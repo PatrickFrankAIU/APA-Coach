@@ -53,5 +53,6 @@ export {
 }
 
 module.exports = {
+  base: "/APA-Coach/",
   plugins: [react(), commonJsSourceBridge()],
 };
