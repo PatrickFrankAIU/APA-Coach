@@ -274,6 +274,72 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
+          {check.rule === "Uncited references" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Each reference needs a matching inline citation:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ Missing citation</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">The experiment showed significant effects on memory retention and recall ability.</p>
+                    <div className="citation-divider" />
+                    <p className="citation-ref-entry citation-ref-entry--highlighted">Smith, J. A. (2023). <em>Memory and cognition.</em> Publisher.</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Citation present</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">The experiment showed significant effects on memory retention and recall ability <span className="citation-inline">(Smith, 2023)</span>.</p>
+                    <div className="citation-divider" />
+                    <p className="citation-ref-entry">Smith, J. A. (2023). <em>Memory and cognition.</em> Publisher.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Unmatched citations" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Each inline citation needs a matching reference entry:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ No reference</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Research suggests this is common <span className="citation-inline citation-inline--highlighted">(Jones, 2022)</span>.</p>
+                    <div className="citation-divider" />
+                    <p className="citation-ref-entry">Smith, J. A. (2023). <em>Memory and cognition.</em> Publisher.</p>
+                    <p className="citation-ref-missing">Jones (2022) — not found</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Reference present</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Research suggests this is common <span className="citation-inline">(Jones, 2022)</span>.</p>
+                    <div className="citation-divider" />
+                    <p className="citation-ref-entry">Jones, B. C. (2022). Article title. <em>Journal, 5</em>(1), 10–20.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Reference DOI/URL" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Each reference should include a DOI or URL:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ No DOI/URL</span>
+                  <div className="citation-example-page">
+                    <p className="citation-ref-entry citation-ref-entry--highlighted">Smith, J. A. (2023). <em>Book title.</em> Publisher.</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ DOI included</span>
+                  <div className="citation-example-page">
+                    <p className="citation-ref-entry">Smith, J. A. (2023). <em>Book title.</em> Publisher. https://doi.org/10.xxxx/xxxxx</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {check.rule === "References heading alignment" ? (
             <div className="heading-alignment-example">
               <p className="heading-alignment-example-label">The heading must be centered:</p>
@@ -314,6 +380,16 @@ function CheckCard({ check }) {
                 <li key={step}>{step}</li>
               ))}
             </ol>
+            {check.missingItems && check.missingItems.length > 0 ? (
+              <div className="missing-items">
+                <p className="missing-items-label">{check.missingItemsLabel}</p>
+                <ul>
+                  {check.missingItems.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             {hasResources ? (
               <div className="check-resources">
                 <h4>Additional help</h4>

@@ -327,6 +327,32 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "Uncited references") {
+    return [
+      "For each reference listed, find where you used that source and add an inline citation.",
+      "Parenthetical format: place (Author, Year) at the end of the sentence before the period.",
+      "Narrative format: use Author (Year) at the start of the sentence.",
+      "Note: abbreviated organization names (e.g., APA) may not be detected automatically — check those manually.",
+    ];
+  }
+
+  if (rule === "Unmatched citations") {
+    return [
+      "For each citation listed, add a matching entry to your References page.",
+      "Each APA reference starts with the author's last name and the publication year.",
+      "Use a citation generator or your library database to format the full reference entry.",
+    ];
+  }
+
+  if (rule === "Reference DOI/URL") {
+    return [
+      "For each reference listed, find and add its DOI or URL.",
+      "DOI format: https://doi.org/10.xxxx/xxxxx — find it on the article's page or via doi.org.",
+      "If no DOI exists, add the URL of the publisher's page or database where you accessed the source.",
+      "Note: some older books and sources do not have a DOI or URL — those may be flagged incorrectly.",
+    ];
+  }
+
   if (rule === "References page") {
     return [
       "Add a new page at the end of the document titled 'References'.",
@@ -786,6 +812,79 @@ function looksLikeReferenceEntryStart(paragraph) {
   return /\((\d{4}[a-z]?|n\.d\.)[,)]/i.test(paragraph.text);
 }
 
+function extractReferenceKey(text) {
+  const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)\)/);
+  if (!yearMatch) return null;
+  const year = yearMatch[1];
+  const beforeYear = text.substring(0, yearMatch.index).trim().replace(/\.\s*$/, "").trim();
+  const commaIdx = beforeYear.indexOf(",");
+  const lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear).trim();
+  if (!lastName || lastName.length < 2) return null;
+  const preview = text.length > 80 ? text.substring(0, 80) + "…" : text;
+  return { lastName, year, preview };
+}
+
+function extractInlineCitationKeys(bodyText) {
+  const keys = [];
+  const seen = new Set();
+
+  const parenRe = /\(([^()]{2,300})\)/g;
+  let m;
+  while ((m = parenRe.exec(bodyText)) !== null) {
+    const content = m[1];
+    if (!/\d{4}/.test(content)) continue;
+    const segments = content.split(";");
+    for (const seg of segments) {
+      const yearM = seg.match(/\b(\d{4}[a-z]?)\b/);
+      if (!yearM) continue;
+      const year = yearM[1];
+      const nameM = seg.trim().match(/^([A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+(?:\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+)*)/);
+      if (!nameM) continue;
+      const lastName = nameM[1].replace(/\s+et$/, "").trim();
+      const key = `${lastName.toLowerCase()}|${year.replace(/[a-z]$/, "")}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        keys.push({ lastName, year, source: seg.trim() });
+      }
+    }
+  }
+
+  const narrativeRe = /\b([A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+)(?:\s+et\s+al\.?)?\s+\((\d{4}[a-z]?)\)/g;
+  while ((m = narrativeRe.exec(bodyText)) !== null) {
+    const lastName = m[1];
+    const year = m[2];
+    const key = `${lastName.toLowerCase()}|${year.replace(/[a-z]$/, "")}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      keys.push({ lastName, year, source: `${lastName} (${year})` });
+    }
+  }
+
+  return keys;
+}
+
+function isReferenceCited(key, bodyText) {
+  const { lastName, year } = key;
+  const escaped = lastName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const yearPat = year === "n.d." ? "n\\.d\\." : year.replace(/[a-z]$/, "") + "[a-z]?";
+  const re = new RegExp(`\\b${escaped}(?:\\s+et\\s+al\\.?)?[^\\n.]{0,40}${yearPat}\\b`, "i");
+  return re.test(bodyText);
+}
+
+function isCitationMatched(citKey, referenceKeys) {
+  const normalLast = citKey.lastName.toLowerCase();
+  const yearBase = citKey.year.replace(/[a-z]$/, "");
+  return referenceKeys.some(
+    (refKey) =>
+      refKey.lastName.toLowerCase() === normalLast &&
+      refKey.year.replace(/[a-z]$/, "") === yearBase,
+  );
+}
+
+function hasDOIOrURL(text) {
+  return /https?:\/\/|doi\.org|\bdoi:\s*10\./i.test(text);
+}
+
 function looksLikeIncompleteEnd(text) {
   const trimmed = text.trim();
   if (!trimmed) return false;
@@ -991,6 +1090,177 @@ function checkReferencesLineSpacing(extracted, referencesHeading) {
   );
 }
 
+function checkUncitedReferences(extracted, referencesHeading) {
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
+    (p) => p.index < referencesHeading.index,
+  );
+  const bodyText = bodyParagraphs.map((p) => p.text).join(" ");
+  const referenceKeys = entryParagraphs.map((p) => extractReferenceKey(p.text)).filter(Boolean);
+
+  if (referenceKeys.length === 0) {
+    return {
+      rule: "Uncited references",
+      status: "review",
+      passed: false,
+      expected: "Each reference should have at least one matching inline citation.",
+      expectedText: "Each reference should have at least one matching inline citation.",
+      foundText: "APA Coach could not parse the reference entries to check for inline citations.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Could not parse references",
+      applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const citationKeys = extractInlineCitationKeys(bodyText);
+  const bodyHasCitations = citationKeys.length > 0;
+  const uncited = referenceKeys.filter((key) => !isReferenceCited(key, bodyText));
+  const status = uncited.length === 0 ? "pass" : bodyHasCitations ? "fail" : "review";
+
+  return {
+    rule: "Uncited references",
+    status,
+    passed: status === "pass",
+    expected: "Each reference should have at least one matching inline citation.",
+    expectedText: "Each reference should have at least one matching inline citation.",
+    foundText:
+      status === "pass"
+        ? `All ${referenceKeys.length} references appear to have a matching inline citation.`
+        : !bodyHasCitations
+          ? "APA Coach could not find any inline citations in the body. If your paper uses citations, check that they follow APA format: (Author, Year)."
+          : `${uncited.length} of ${referenceKeys.length} reference${referenceKeys.length === 1 ? "" : "s"} appear to have no matching inline citation.`,
+    applicable: referenceKeys.length,
+    checked: referenceKeys.length,
+    matched: referenceKeys.length - uncited.length,
+    failed: uncited.length,
+    unknown: 0,
+    found: status === "pass" ? "All references cited" : `${uncited.length} reference(s) appear uncited`,
+    applicableParagraphs: entryParagraphs.length,
+    details: uncited.map((key) => `No citation found for: "${key.preview}"`),
+    howToFix: status === "fail" ? getHowToFix("Uncited references") : [],
+    resources: [],
+    missingItems: status === "fail" ? uncited.map((key) => key.preview) : [],
+    missingItemsLabel: "References that appear uncited:",
+  };
+}
+
+function checkUnmatchedCitations(extracted, referencesHeading) {
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
+    (p) => p.index < referencesHeading.index,
+  );
+  const bodyText = bodyParagraphs.map((p) => p.text).join(" ");
+  const citationKeys = extractInlineCitationKeys(bodyText);
+  const referenceKeys = entryParagraphs.map((p) => extractReferenceKey(p.text)).filter(Boolean);
+
+  if (citationKeys.length === 0) {
+    return {
+      rule: "Unmatched citations",
+      status: "review",
+      passed: false,
+      expected: "Each inline citation should have a matching entry in the References list.",
+      expectedText: "Each inline citation should have a matching entry in the References list.",
+      foundText: "APA Coach could not find any inline citations in the body to check.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No inline citations found",
+      applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [],
+    };
+  }
+
+  if (referenceKeys.length === 0) {
+    return {
+      rule: "Unmatched citations",
+      status: "review",
+      passed: false,
+      expected: "Each inline citation should have a matching entry in the References list.",
+      expectedText: "Each inline citation should have a matching entry in the References list.",
+      foundText: "APA Coach could not parse the References list to check against inline citations.",
+      applicable: citationKeys.length, checked: 0, matched: 0, failed: 0, unknown: citationKeys.length,
+      found: "Could not parse references",
+      applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const unmatched = citationKeys.filter((cit) => !isCitationMatched(cit, referenceKeys));
+  const status = unmatched.length === 0 ? "pass" : "fail";
+
+  return {
+    rule: "Unmatched citations",
+    status,
+    passed: status === "pass",
+    expected: "Each inline citation should have a matching entry in the References list.",
+    expectedText: "Each inline citation should have a matching entry in the References list.",
+    foundText:
+      status === "pass"
+        ? `All ${citationKeys.length} inline citations appear to have a matching reference.`
+        : `${unmatched.length} of ${citationKeys.length} inline citation${citationKeys.length === 1 ? "" : "s"} appear to have no matching reference entry.`,
+    applicable: citationKeys.length,
+    checked: citationKeys.length,
+    matched: citationKeys.length - unmatched.length,
+    failed: unmatched.length,
+    unknown: 0,
+    found: status === "pass" ? "All citations matched" : `${unmatched.length} citation(s) unmatched`,
+    applicableParagraphs: entryParagraphs.length,
+    details: unmatched.map((cit) => `No reference found for: "${cit.source}"`),
+    howToFix: status === "fail" ? getHowToFix("Unmatched citations") : [],
+    resources: [],
+    missingItems: status === "fail" ? unmatched.map((cit) => cit.source) : [],
+    missingItemsLabel: "Citations with no matching reference:",
+  };
+}
+
+function checkReferenceDOIs(extracted, referencesHeading) {
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule: "Reference DOI/URL",
+      status: "review",
+      passed: false,
+      expected: "APA 7th edition requires a DOI or URL for most sources.",
+      expectedText: "APA 7th edition requires a DOI or URL for most sources.",
+      foundText: "APA Coach could not find any reference entries to check for DOIs.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references found",
+      applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const missing = entryParagraphs.filter((p) => !hasDOIOrURL(p.text));
+  const status = missing.length === 0 ? "pass" : "fail";
+
+  return {
+    rule: "Reference DOI/URL",
+    status,
+    passed: status === "pass",
+    expected: "APA 7th edition requires a DOI or URL for most sources.",
+    expectedText: "APA 7th edition requires a DOI or URL for most sources.",
+    foundText:
+      status === "pass"
+        ? `All ${entryParagraphs.length} references include a DOI or URL.`
+        : `${missing.length} of ${entryParagraphs.length} reference${entryParagraphs.length === 1 ? "" : "s"} appear to be missing a DOI or URL.`,
+    applicable: entryParagraphs.length,
+    checked: entryParagraphs.length,
+    matched: entryParagraphs.length - missing.length,
+    failed: missing.length,
+    unknown: 0,
+    found: status === "pass" ? "All references have DOI/URL" : `${missing.length} reference(s) missing DOI/URL`,
+    applicableParagraphs: entryParagraphs.length,
+    details: missing.map((p) => `No DOI or URL found in: "${p.text.length > 80 ? p.text.substring(0, 80) + "…" : p.text}"`),
+    howToFix: status === "fail" ? getHowToFix("Reference DOI/URL") : [],
+    resources: [],
+    missingItems: status === "fail" ? missing.map((p) => (p.text.length > 80 ? p.text.substring(0, 80) + "…" : p.text)) : [],
+    missingItemsLabel: "References missing a DOI or URL:",
+  };
+}
+
 function checkApaFormatting(extracted) {
   const referencesHeading = findReferencesHeadingNearEnd(extracted.paragraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
@@ -1000,7 +1270,13 @@ function checkApaFormatting(extracted) {
   return [
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
-    ...(referencesHeading ? [checkReferencesHeadingAlignment(referencesHeading), checkReferencesFormatting(extracted, referencesHeading)] : []),
+    ...(referencesHeading ? [
+      checkReferencesHeadingAlignment(referencesHeading),
+      checkReferencesFormatting(extracted, referencesHeading),
+      checkUncitedReferences(extracted, referencesHeading),
+      checkUnmatchedCitations(extracted, referencesHeading),
+      checkReferenceDOIs(extracted, referencesHeading),
+    ] : []),
     checkMargins(extracted),
     checkLineSpacingForParagraphs(bodyParagraphs, "Body line spacing", "Body"),
     checkLineSpacingForRole(extracted, "heading", "Heading"),
@@ -1024,4 +1300,7 @@ module.exports = {
   checkParagraphSpacingForRole,
   checkFirstLineIndents,
   checkAlignment,
+  checkUncitedReferences,
+  checkUnmatchedCitations,
+  checkReferenceDOIs,
 };
