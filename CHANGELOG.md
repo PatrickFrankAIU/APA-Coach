@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.3.0] - 2026-05-02
+
+### Changed
+
+**Visual examples on fail cards**
+- Added a visual example to the References formatting card showing a hanging indent
+- Added a before/after visual to the References heading alignment card (left vs. centered)
+- Added a before/after visual to the Body first-line indents card
+- Added a before/after visual to the References line spacing card (single vs. double)
+- Added a before/after visual to the Body line spacing card (single vs. double)
+- Added a before/after visual to the Heading line spacing card using headings and body text
+- Added a before/after visual to the Body paragraph spacing card (extra vs. no spacing)
+- Added a before/after visual to the Heading paragraph spacing card using headings and body text
+- Added a three-way margin diagram to the Margins card (too narrow / too wide / correct)
+- Added a centered title page mockup to the Title page card
+
+**Additional help links**
+- References heading alignment: Microsoft Support (Align text), GeeksforGeeks (Text Alignment in MS Word)
+- References formatting: Microsoft Support (hanging indent), Scribbr (hanging indent)
+- References page: Scribbr (APA Reference Pages)
+- References line spacing: Microsoft Support (Change the line spacing in Word)
+- Body first-line indents: Microsoft Support (Indent the first line of a paragraph)
+- Body paragraph spacing: Microsoft Support (Change spacing between paragraphs)
+- Heading paragraph spacing: Microsoft Support (Change spacing between paragraphs)
+- Margins: Microsoft Support (Change margins)
+- Title page: APA Style (Title Page Setup)
+
+**Text and formatting fixes**
+- Fixed "References heading alignment" how-to-fix steps being swallowed by the generic alignment rule
+- Updated how-to-fix steps for References heading alignment to be clearer
+- Fixed number formatting to always show at least one decimal place (e.g. "1.0x" instead of "1x")
+- Fixed "All heading paragraphs use…" to read "All headings use…"
+- Fixed broken sentence in summarizeAllValueGroups after paragraph/paragraphs wording update
+- Added "paragraph"/"paragraphs" before verb in value group summaries for clarity
+
+**App info card**
+- Added GitHub repository link above the "Please report" line
+- AIU logo now links to aiuniv.edu
+- Shortened "Please report any problems with this app to" to "Please report any problems to"
+
 ## [0.2.0] - 2026-05-02
 
 ### Changed

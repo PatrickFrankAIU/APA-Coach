@@ -4,13 +4,54 @@ const EXPECTED_PARAGRAPH_SPACING_POINTS = 0;
 const EXPECTED_FIRST_LINE_INDENT_INCHES = 0.5;
 const EXPECTED_ALIGNMENT = "left";
 const TOLERANCE = 0.01;
+const MISSING_HANGING_INDENT_ISSUE = "One or more references are missing a 0.5-inch hanging indent.";
+const HANGING_INDENT_RESOURCE = {
+  label: "Microsoft Support: Create a hanging indent in Word",
+  url: "https://support.microsoft.com/en-us/office/create-a-hanging-indent-in-word-7bdfb86a-c714-41a8-ac7a-3782a91ccad5",
+};
+const HANGING_INDENT_SCRIBBR_RESOURCE = {
+  label: "Hanging Indent Instructions (Scribbr)",
+  url: "https://www.scribbr.com/citing-sources/hanging-indent/",
+};
+const MARGINS_MSFT_RESOURCE = {
+  label: "Microsoft Support: Change margins",
+  url: "https://support.microsoft.com/en-us/office/change-margins-da21a474-99d8-4e54-b12d-a8a14ea7ce02",
+};
+const PARA_SPACING_MSFT_RESOURCE = {
+  label: "Microsoft Support: Change spacing between paragraphs",
+  url: "https://support.microsoft.com/en-us/office/change-spacing-between-paragraphs-ee4c7016-7cb8-405e-90a1-6601e657f3ce",
+};
+const LINE_SPACING_MSFT_RESOURCE = {
+  label: "Microsoft Support: Change the line spacing in Word",
+  url: "https://support.microsoft.com/en-us/office/change-the-line-spacing-in-word-04ada056-b8ef-4b84-87dd-5d7c28a85712",
+};
+const FIRST_LINE_INDENT_MSFT_RESOURCE = {
+  label: "Microsoft Support: Indent the first line of a paragraph",
+  url: "https://support.microsoft.com/en-us/office/indent-the-first-line-of-a-paragraph-b3721167-e1c8-40c3-8a97-3f046fc72d6d",
+};
+const APA_REFERENCES_PAGE_SCRIBBR_RESOURCE = {
+  label: "Scribbr Guide to APA Reference Pages",
+  url: "https://www.scribbr.com/apa-style/apa-reference-page/",
+};
+const APA_TITLE_PAGE_RESOURCE = {
+  label: "APA Title Page Setup",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/paper-format/title-page",
+};
+const ALIGN_TEXT_MSFT_RESOURCE = {
+  label: "Microsoft Support: Align text",
+  url: "https://support.microsoft.com/en-us/office/align-text-left-or-right-center-text-or-justify-text-on-a-page-70da744d-0f4d-472e-916d-1c42d94dc33f",
+};
+const ALIGN_TEXT_GFG_RESOURCE = {
+  label: "GeeksforGeeks: Text Alignment in MS Word",
+  url: "https://www.geeksforgeeks.org/ms-word/text-alignment-in-ms-word/",
+};
 
 function isClose(actual, expected) {
   return typeof actual === "number" && Math.abs(actual - expected) <= TOLERANCE;
 }
 
 function formatNumber(value, suffix) {
-  return typeof value === "number" ? `${Number(value.toFixed(2))}${suffix}` : "not found";
+  return typeof value === "number" ? `${value.toFixed(2).replace(/0$/, "")}${suffix}` : "not found";
 }
 
 function formatSource(source) {
@@ -82,7 +123,7 @@ function summarizeParagraphs(paragraphs) {
   return `paragraphs ${shown}${extra}`;
 }
 
-function finishCheck(rule, expectedText, foundText, applicableParagraphs, failures, unknowns, details, howToFix = []) {
+function finishCheck(rule, expectedText, foundText, applicableParagraphs, failures, unknowns, details, howToFix = [], resources = []) {
   const checked = applicableParagraphs.length - unknowns.length;
   const matched = checked - failures.length;
   let status = "pass";
@@ -113,6 +154,7 @@ function finishCheck(rule, expectedText, foundText, applicableParagraphs, failur
     applicableParagraphs: applicableParagraphs.length,
     details: applicableParagraphs.length === 0 ? ["No applicable paragraphs were found for this check."] : details,
     howToFix: status === "fail" ? howToFix : [],
+    resources: status === "fail" ? resources : [],
   };
 }
 
@@ -160,13 +202,13 @@ function summarizeValueGroups(paragraphs, fieldName, suffix, valueLabel) {
   }
 
   return Array.from(groups.values())
-    .map((group) => `${group.count} ${group.count === 1 ? "uses" : "use"} ${group.text}`)
+    .map((group) => `${group.count} ${group.count === 1 ? "paragraph uses" : "paragraphs use"} ${group.text}`)
     .join("; ");
 }
 
 function summarizeAllValueGroups(paragraphs, fieldName, suffix, valueLabel) {
   const grouped = summarizeValueGroups(paragraphs, fieldName, suffix, valueLabel);
-  return grouped.replace(/\b\d+ uses /g, "").replace(/\b\d+ use /g, "");
+  return grouped.replace(/\b\d+ paragraph uses /g, "").replace(/\b\d+ paragraphs use /g, "");
 }
 
 function summarizeKnownCheck(label, expected, applicableParagraphs, failures, unknowns, fieldName, suffix, valueLabel) {
@@ -277,7 +319,7 @@ function getHowToFix(rule) {
     ];
   }
 
-  if (rule.includes("alignment")) {
+  if (rule.includes("alignment") && rule !== "References heading alignment") {
     return [
       "Select the affected body text in Microsoft Word.",
       "Open Home > Paragraph.",
@@ -296,8 +338,8 @@ function getHowToFix(rule) {
 
   if (rule === "References heading alignment") {
     return [
-      "Select the 'References' heading.",
-      "Click the Center Align button in the Home toolbar.",
+      "Select the \"References\" heading in Microsoft Word.",
+      "In the Home toolbar, click the Center Align button.",
     ];
   }
 
@@ -344,6 +386,7 @@ function checkTitlePage(extracted) {
         ? ["No titlePage paragraphs were detected before the first body paragraph."]
         : [`Detected ${titlePageParagraphs.length} possible title page paragraph(s).`],
     howToFix: status === "fail" ? getHowToFix("Title page") : [],
+    resources: status === "fail" ? [APA_TITLE_PAGE_RESOURCE] : [],
   };
 }
 
@@ -450,6 +493,7 @@ function checkMargins(extracted) {
       .map(([side, margin]) => `${side} margin is ${formatNumber(margin.value, " in")} (${formatSource(margin.source)}).`)
       .concat(unknowns.map(([side]) => `${side} margin is unknown.`)),
     howToFix: status === "fail" ? getHowToFix("Margins") : [],
+    resources: status === "fail" ? [MARGINS_MSFT_RESOURCE] : [],
   };
 }
 
@@ -480,7 +524,7 @@ function checkLineSpacingForParagraphs(paragraphs, rule, label) {
     rule,
     "APA expects double spacing.",
     summarizeKnownCheck(
-      `${label} paragraphs`,
+      label === "Heading" ? "Headings" : `${label} paragraphs`,
       "double spacing",
       paragraphs,
       failures,
@@ -558,6 +602,7 @@ function checkParagraphSpacingForRole(extracted, role, label) {
     partialUnknowns,
     details,
     getHowToFix(`${label} paragraph spacing`),
+    [PARA_SPACING_MSFT_RESOURCE],
   );
 }
 
@@ -632,6 +677,7 @@ function checkFirstLineIndents(extracted) {
     applicableParagraphs: applicableParagraphs.length,
     details: applicableParagraphs.length === 0 ? ["No applicable paragraphs were found for this check."] : details,
     howToFix: status === "fail" ? getHowToFix("Body first-line indents") : [],
+    resources: status === "fail" ? [FIRST_LINE_INDENT_MSFT_RESOURCE] : [],
   };
 }
 
@@ -788,11 +834,11 @@ function findReferencesFormattingIssues(referencesHeading, referenceParagraphs) 
   }
 
   if (shortParagraphs.length >= 2) {
-    issues.push("Multiple short reference paragraphs were detected.");
+    issues.push("Some reference entries appear incomplete or separated incorrectly.");
   }
 
   if (missingHangingIndentParagraphs.length > 0) {
-    issues.push("One or more reference paragraphs are missing a 0.5-inch hanging indent.");
+    issues.push(MISSING_HANGING_INDENT_ISSUE);
   }
 
   if (hasBrokenReferenceEntries(referenceParagraphs)) {
@@ -828,6 +874,7 @@ function checkReferencesPage(extracted) {
         ? [`Detected References heading at paragraph ${referencesHeading.index}.`]
         : ["No References heading was detected near the end of the document."],
     howToFix: status === "fail" ? getHowToFix("References page") : [],
+    resources: status === "fail" ? [APA_REFERENCES_PAGE_SCRIBBR_RESOURCE] : [],
   };
 }
 
@@ -855,6 +902,7 @@ function checkReferencesHeadingAlignment(referencesHeading) {
       ? ["The References heading uses center alignment."]
       : ["The References heading does not use center alignment."],
     howToFix: status === "fail" ? getHowToFix("References heading alignment") : [],
+    resources: status === "fail" ? [ALIGN_TEXT_MSFT_RESOURCE, ALIGN_TEXT_GFG_RESOURCE] : [],
   };
 }
 
@@ -862,6 +910,10 @@ function checkReferencesFormatting(extracted, referencesHeading) {
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
   const issues = findReferencesFormattingIssues(referencesHeading, referenceParagraphs);
   const status = issues.length > 0 ? "fail" : "pass";
+  const resources =
+    status === "fail" && issues.includes(MISSING_HANGING_INDENT_ISSUE)
+      ? [HANGING_INDENT_RESOURCE, HANGING_INDENT_SCRIBBR_RESOURCE]
+      : [];
 
   return {
     rule: "References formatting",
@@ -885,6 +937,7 @@ function checkReferencesFormatting(extracted, referencesHeading) {
     applicableParagraphs: referenceParagraphs.length,
     details: issues,
     howToFix: status === "fail" ? getHowToFix("References formatting") : [],
+    resources,
   };
 }
 
@@ -934,6 +987,7 @@ function checkReferencesLineSpacing(extracted, referencesHeading) {
     unknowns,
     details,
     getHowToFix("References line spacing"),
+    [LINE_SPACING_MSFT_RESOURCE],
   );
 }
 

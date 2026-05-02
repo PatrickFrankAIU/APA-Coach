@@ -9,6 +9,12 @@ const APP_INFO = {
   version: packageInfo.version,
   lastUpdated: "May 2, 2026",
   supportEmail: "pfrank@aiuniv.edu",
+  resources: [
+    {
+      label: "AIU APA Guide",
+      url: "https://careered.libguides.com/AIUS/APA",
+    },
+  ],
 };
 
 const STATUS_ORDER = {
@@ -62,6 +68,7 @@ function CheckCard({ check }) {
   const fixId = useId();
   const [open, setOpen] = useState(false);
   const hasFixes = check.howToFix && check.howToFix.length > 0;
+  const hasResources = check.resources && check.resources.length > 0;
 
   return (
     <article className={`check-card ${check.status}`}>
@@ -73,6 +80,225 @@ function CheckCard({ check }) {
       <p className="expected">{check.expectedText || check.expected}</p>
       {hasFixes ? (
         <div className="fixes">
+          {check.rule === "Title page" ? (
+            <div className="title-page-example">
+              <p className="title-page-example-label">Example APA title page layout:</p>
+              <div className="title-page-demo">
+                <p className="title-page-title">The Full Title of Your Paper</p>
+                <div className="title-page-spacer" />
+                <p className="title-page-meta">Author Name</p>
+                <p className="title-page-meta">Department, University Name</p>
+                <p className="title-page-meta">Course Number: Course Name</p>
+                <p className="title-page-meta">Instructor Name</p>
+                <p className="title-page-meta">Month Day, Year</p>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Margins" ? (
+            <div className="margins-example">
+              <p className="margins-example-label">All four margins must be 1 inch:</p>
+              <div className="margins-demo">
+                <div className="margins-col">
+                  <span className="margins-tag margins-tag--wrong">✗ Wrong</span>
+                  <div className="margins-page">
+                    <div className="margins-content margins-content--tight">
+                      <div className="margins-line" /><div className="margins-line" /><div className="margins-line margins-line--short" />
+                    </div>
+                  </div>
+                  <span className="margins-caption">Too narrow</span>
+                </div>
+                <div className="margins-col">
+                  <span className="margins-tag margins-tag--wrong">✗ Wrong</span>
+                  <div className="margins-page">
+                    <div className="margins-content margins-content--wide">
+                      <div className="margins-line" /><div className="margins-line" /><div className="margins-line margins-line--short" />
+                    </div>
+                  </div>
+                  <span className="margins-caption">Too wide</span>
+                </div>
+                <div className="margins-col">
+                  <span className="margins-tag margins-tag--right">✓ Correct</span>
+                  <div className="margins-page">
+                    <div className="margins-content margins-content--correct">
+                      <div className="margins-line" /><div className="margins-line" /><div className="margins-line margins-line--short" />
+                    </div>
+                  </div>
+                  <span className="margins-caption">1 inch on all sides</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Heading paragraph spacing" ? (
+            <div className="para-spacing-example">
+              <p className="para-spacing-example-label">Headings must have 0 pt spacing before and after:</p>
+              <div className="para-spacing-demo">
+                <div className="para-spacing-col">
+                  <span className="para-spacing-tag para-spacing-tag--wrong">✗ Extra spacing</span>
+                  <div className="para-spacing-page">
+                    <p className="line-spacing-heading-para line-spacing-entry--double para-spacing-para--extra">Method</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double para-spacing-para--extra">Lorem ipsum dolor sit amet, consectetur adipiscing.</p>
+                    <p className="line-spacing-heading-para line-spacing-entry--double para-spacing-para--extra">Results</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double para-spacing-para--extra">Sed do eiusmod tempor incididunt ut labore.</p>
+                  </div>
+                </div>
+                <div className="para-spacing-col">
+                  <span className="para-spacing-tag para-spacing-tag--right">✓ No extra spacing</span>
+                  <div className="para-spacing-page">
+                    <p className="line-spacing-heading-para line-spacing-entry--double para-spacing-para--none">Method</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double para-spacing-para--none">Lorem ipsum dolor sit amet, consectetur adipiscing.</p>
+                    <p className="line-spacing-heading-para line-spacing-entry--double para-spacing-para--none">Results</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double para-spacing-para--none">Sed do eiusmod tempor incididunt ut labore.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Body paragraph spacing" ? (
+            <div className="para-spacing-example">
+              <p className="para-spacing-example-label">Paragraphs must have 0 pt spacing before and after:</p>
+              <div className="para-spacing-demo">
+                <div className="para-spacing-col">
+                  <span className="para-spacing-tag para-spacing-tag--wrong">✗ Extra spacing</span>
+                  <div className="para-spacing-page">
+                    <p className="para-spacing-para para-spacing-para--extra">Lorem ipsum dolor sit amet, consectetur adipiscing elit ut labore.</p>
+                    <p className="para-spacing-para para-spacing-para--extra">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    <p className="para-spacing-para para-spacing-para--extra">Ut enim ad minim veniam quis nostrud exercitation ullamco.</p>
+                  </div>
+                </div>
+                <div className="para-spacing-col">
+                  <span className="para-spacing-tag para-spacing-tag--right">✓ No extra spacing</span>
+                  <div className="para-spacing-page">
+                    <p className="para-spacing-para para-spacing-para--none">Lorem ipsum dolor sit amet, consectetur adipiscing elit ut labore.</p>
+                    <p className="para-spacing-para para-spacing-para--none">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    <p className="para-spacing-para para-spacing-para--none">Ut enim ad minim veniam quis nostrud exercitation ullamco.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Body line spacing" ? (
+            <div className="line-spacing-example">
+              <p className="line-spacing-example-label">Body text must be double-spaced:</p>
+              <div className="line-spacing-demo">
+                <div className="line-spacing-col">
+                  <span className="line-spacing-tag line-spacing-tag--wrong">✗ Single spacing</span>
+                  <div className="line-spacing-page">
+                    <p className="line-spacing-body-para line-spacing-entry--single">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    <p className="line-spacing-body-para line-spacing-entry--single">Sed do eiusmod tempor incididunt ut labore et dolore.</p>
+                  </div>
+                </div>
+                <div className="line-spacing-col">
+                  <span className="line-spacing-tag line-spacing-tag--right">✓ Double spacing</span>
+                  <div className="line-spacing-page">
+                    <p className="line-spacing-body-para line-spacing-entry--double">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double">Sed do eiusmod tempor incididunt ut labore et dolore.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Heading line spacing" ? (
+            <div className="line-spacing-example">
+              <p className="line-spacing-example-label">Headings must be double-spaced:</p>
+              <div className="line-spacing-demo">
+                <div className="line-spacing-col">
+                  <span className="line-spacing-tag line-spacing-tag--wrong">✗ Single spacing</span>
+                  <div className="line-spacing-page">
+                    <p className="line-spacing-heading-para line-spacing-entry--single">Method</p>
+                    <p className="line-spacing-body-para line-spacing-entry--single">Lorem ipsum dolor sit amet, consectetur adipiscing.</p>
+                    <p className="line-spacing-heading-para line-spacing-entry--single">Results</p>
+                    <p className="line-spacing-body-para line-spacing-entry--single">Sed do eiusmod tempor incididunt ut labore.</p>
+                  </div>
+                </div>
+                <div className="line-spacing-col">
+                  <span className="line-spacing-tag line-spacing-tag--right">✓ Double spacing</span>
+                  <div className="line-spacing-page">
+                    <p className="line-spacing-heading-para line-spacing-entry--double">Method</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double">Lorem ipsum dolor sit amet, consectetur adipiscing.</p>
+                    <p className="line-spacing-heading-para line-spacing-entry--double">Results</p>
+                    <p className="line-spacing-body-para line-spacing-entry--double">Sed do eiusmod tempor incididunt ut labore.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "References line spacing" ? (
+            <div className="line-spacing-example">
+              <p className="line-spacing-example-label">References must be double-spaced:</p>
+              <div className="line-spacing-demo">
+                <div className="line-spacing-col">
+                  <span className="line-spacing-tag line-spacing-tag--wrong">✗ Single spacing</span>
+                  <div className="line-spacing-page">
+                    <p className="line-spacing-entry line-spacing-entry--single">Smith, J. A. (2023). <em>Book title here.</em> Publisher.</p>
+                    <p className="line-spacing-entry line-spacing-entry--single">Jones, B. C. (2022). Article title. <em>Journal Name, 10</em>(2), 45–67.</p>
+                  </div>
+                </div>
+                <div className="line-spacing-col">
+                  <span className="line-spacing-tag line-spacing-tag--right">✓ Double spacing</span>
+                  <div className="line-spacing-page">
+                    <p className="line-spacing-entry line-spacing-entry--double">Smith, J. A. (2023). <em>Book title here.</em> Publisher.</p>
+                    <p className="line-spacing-entry line-spacing-entry--double">Jones, B. C. (2022). Article title. <em>Journal Name, 10</em>(2), 45–67.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Body first-line indents" ? (
+            <div className="first-line-indent-example">
+              <p className="first-line-indent-example-label">Each paragraph must begin with a 0.5" indent:</p>
+              <div className="first-line-indent-demo">
+                <div className="first-line-indent-col">
+                  <span className="first-line-indent-tag first-line-indent-tag--wrong">✗ Wrong</span>
+                  <div className="first-line-indent-page">
+                    <p className="first-line-indent-para first-line-indent-para--none">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+                    <p className="first-line-indent-para first-line-indent-para--none">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi.</p>
+                  </div>
+                </div>
+                <div className="first-line-indent-col">
+                  <span className="first-line-indent-tag first-line-indent-tag--right">✓ Correct</span>
+                  <div className="first-line-indent-page">
+                    <p className="first-line-indent-para first-line-indent-para--indented">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+                    <p className="first-line-indent-para first-line-indent-para--indented">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "References formatting" ? (
+            <div className="hanging-indent-example">
+              <p className="hanging-indent-example-label">Example of a hanging indent:</p>
+              <div className="hanging-indent-demo">
+                <p className="hanging-indent-entry">
+                  Smith, J. A. (2023). <em>The title of a really long book that wraps onto a second line to show the indent effect.</em> Publisher Name.
+                </p>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "References heading alignment" ? (
+            <div className="heading-alignment-example">
+              <p className="heading-alignment-example-label">The heading must be centered:</p>
+              <div className="heading-alignment-demo">
+                <div className="heading-alignment-col">
+                  <span className="heading-alignment-tag heading-alignment-tag--wrong">✗ Wrong</span>
+                  <div className="heading-alignment-page">
+                    <p className="heading-alignment-heading heading-alignment-heading--left">References</p>
+                    <div className="heading-alignment-lines">
+                      <span /><span /><span className="heading-alignment-line--short" />
+                    </div>
+                  </div>
+                </div>
+                <div className="heading-alignment-col">
+                  <span className="heading-alignment-tag heading-alignment-tag--right">✓ Correct</span>
+                  <div className="heading-alignment-page">
+                    <p className="heading-alignment-heading heading-alignment-heading--center">References</p>
+                    <div className="heading-alignment-lines">
+                      <span /><span /><span className="heading-alignment-line--short" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
           <button
             className="fix-toggle"
             type="button"
@@ -88,6 +314,20 @@ function CheckCard({ check }) {
                 <li key={step}>{step}</li>
               ))}
             </ol>
+            {hasResources ? (
+              <div className="check-resources">
+                <h4>Additional help</h4>
+                <ul>
+                  {check.resources.map((resource) => (
+                    <li key={resource.url}>
+                      <a href={resource.url} target="_blank" rel="noreferrer">
+                        {resource.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -232,9 +472,25 @@ function AppInfoCard() {
         </div>
       </dl>
       <p>
-        Please report any problems with this app to{" "}
+        This project is actively maintained on{" "}
+        <a href="https://github.com/PatrickFrankAIU/APA-Coach" target="_blank" rel="noreferrer">GitHub</a>.
+      </p>
+      <p>
+        Please report any problems to{" "}
         <a href={`mailto:${APP_INFO.supportEmail}`}>{APP_INFO.supportEmail}</a>
       </p>
+      <div className="app-resources">
+        <h2>Useful resources</h2>
+        <ul>
+          {APP_INFO.resources.map((resource) => (
+            <li key={resource.url}>
+              <a href={resource.url} target="_blank" rel="noreferrer">
+                {resource.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }
@@ -275,11 +531,13 @@ function App() {
     <div id="top" className="app-shell">
       <header className="app-header">
         <div>
-          <img className="brand-logo" src={aiuLogoUrl} alt="AIU" />
+          <a href="https://www.aiuniv.edu/" target="_blank" rel="noreferrer">
+            <img className="brand-logo" src={aiuLogoUrl} alt="AIU" />
+          </a>
           <p className="eyebrow">AIU APA Coach</p>
           <h1>Check APA Format</h1>
           <p>
-            Upload a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
+            Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
           </p>
         </div>
         <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
