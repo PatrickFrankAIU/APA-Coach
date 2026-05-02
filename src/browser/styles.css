@@ -37,6 +37,62 @@ input {
   border-radius: 8px;
 }
 
+.app-info-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 24px 28px;
+  background: #2a3441;
+  border: 1px solid #3a4655;
+  border-radius: 8px;
+}
+
+.app-info-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 18px 32px;
+  margin: 0;
+}
+
+.app-info-list div {
+  min-width: 0;
+}
+
+.app-info-list dt {
+  color: #9ca3af;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.app-info-list dd {
+  margin: 3px 0 0;
+  color: #f3f4f6;
+  font-weight: 800;
+}
+
+.app-info-card p {
+  margin: 0;
+  color: #b4bfcc;
+}
+
+.app-info-card a {
+  color: #93c5fd;
+}
+
+.app-info-card a:hover,
+.app-info-card a:focus-visible {
+  color: #bfdbfe;
+  outline: none;
+}
+
+.brand-logo {
+  display: block;
+  width: min(180px, 100%);
+  height: auto;
+  margin-bottom: 14px;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: #93c5fd;
@@ -377,6 +433,14 @@ h1 {
   .summary {
     grid-template-columns: 1fr;
     padding: 22px;
+  }
+
+  .app-info-card {
+    padding: 22px;
+  }
+
+  .app-info-list {
+    grid-template-columns: 1fr;
   }
 
   .summary-grid {

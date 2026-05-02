@@ -1,7 +1,15 @@
 import React, { useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import aiuLogoUrl from "../../aiuslogo.png";
+import packageInfo from "../../package.json";
 import { analyzeDocxFile } from "./apaBrowser.js";
 import "./styles.css";
+
+const APP_INFO = {
+  version: packageInfo.version,
+  lastUpdated: "May 2, 2026",
+  supportEmail: "pfrank@aiuniv.edu",
+};
 
 const STATUS_ORDER = {
   fail: 0,
@@ -210,6 +218,27 @@ function DocxDropZone({ fileName, isAnalyzing, onFileSelected }) {
   );
 }
 
+function AppInfoCard() {
+  return (
+    <aside className="app-info-card" aria-label="Application information">
+      <dl className="app-info-list">
+        <div>
+          <dt>Version</dt>
+          <dd>{APP_INFO.version}</dd>
+        </div>
+        <div>
+          <dt>Last updated</dt>
+          <dd>{APP_INFO.lastUpdated}</dd>
+        </div>
+      </dl>
+      <p>
+        Please report any problems with this app to{" "}
+        <a href={`mailto:${APP_INFO.supportEmail}`}>{APP_INFO.supportEmail}</a>
+      </p>
+    </aside>
+  );
+}
+
 function App() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState("");
@@ -246,7 +275,8 @@ function App() {
     <div id="top" className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">APA Coach</p>
+          <img className="brand-logo" src={aiuLogoUrl} alt="AIU" />
+          <p className="eyebrow">AIU APA Coach</p>
           <h1>Check APA Format</h1>
           <p>
             Upload a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
@@ -255,6 +285,7 @@ function App() {
         <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
       </header>
 
+      {!report ? <AppInfoCard /> : null}
       {isAnalyzing ? (
         <p className="notice" role="status">
           Analyzing document...
@@ -266,6 +297,7 @@ function App() {
         </p>
       ) : null}
       {report ? <Report report={report} /> : null}
+      {report ? <AppInfoCard /> : null}
     </div>
   );
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2026-05-02
+
+### Changed
+
+- Added an application information card with the version number, last-updated date, and support contact.
+- Moved the application information card to the bottom of the page after a report appears.
+- Added AIU branding to the app header.
+
 ## [0.1.0] — 2026-05-01
 
 Initial release of APA Coach.
