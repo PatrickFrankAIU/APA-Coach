@@ -12,7 +12,8 @@ export async function analyzeDocxFile(file) {
   const zip = await JSZip.loadAsync(buffer);
   const documentXml = await readZipText(zip, "word/document.xml");
   const stylesXml = await readZipText(zip, "word/styles.xml");
-  const extracted = extractDocxFormattingFromXml(documentXml, stylesXml);
+  const relsXml = await readZipText(zip, "word/_rels/document.xml.rels");
+  const extracted = extractDocxFormattingFromXml(documentXml, stylesXml, relsXml);
   const checks = checkApaFormatting(extracted);
   const passed = checks.filter((check) => check.status === "pass").length;
   const failed = checks.filter((check) => check.status === "fail").length;

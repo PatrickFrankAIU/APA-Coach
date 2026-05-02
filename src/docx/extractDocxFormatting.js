@@ -101,22 +101,58 @@ function extractMargins(sectionProperties) {
   };
 }
 
+function parseHyperlinkRels(relsXml) {
+  if (!relsXml) return {};
+  const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "", removeNSPrefix: true });
+  const parsed = parser.parse(relsXml);
+  const rels = toArray(parsed.Relationships && parsed.Relationships.Relationship);
+  const map = {};
+  for (const rel of rels) {
+    if (rel.Type && rel.Type.includes("/hyperlink") && rel.Id && rel.Target) {
+      map[rel.Id] = rel.Target;
+    }
+  }
+  return map;
+}
+
+function getRunText(run) {
+  const parts = [];
+  const textNodes = toArray(run.t);
+  for (const text of textNodes) {
+    if (typeof text === "string") {
+      parts.push(text);
+    } else if (text && typeof text["#text"] === "string") {
+      parts.push(text["#text"]);
+    }
+  }
+  return parts.join("");
+}
+
 function getParagraphText(paragraph) {
-  const runs = toArray(paragraph.r);
   const parts = [];
 
-  for (const run of runs) {
-    const textNodes = toArray(run.t);
-    for (const text of textNodes) {
-      if (typeof text === "string") {
-        parts.push(text);
-      } else if (text && typeof text["#text"] === "string") {
-        parts.push(text["#text"]);
-      }
+  for (const run of toArray(paragraph.r)) {
+    parts.push(getRunText(run));
+  }
+
+  for (const hyperlink of toArray(paragraph["hyperlink"])) {
+    for (const run of toArray(hyperlink.r)) {
+      parts.push(getRunText(run));
     }
   }
 
   return parts.join("");
+}
+
+function getParagraphHyperlinkUrls(paragraph, hyperlinkRels) {
+  const urls = [];
+  for (const hyperlink of toArray(paragraph["hyperlink"])) {
+    const id = hyperlink.id || hyperlink["r:id"];
+    if (id && hyperlinkRels[id]) {
+      urls.push(hyperlinkRels[id]);
+    }
+  }
+  return urls;
 }
 
 function getStyleId(paragraphProperties) {
@@ -389,7 +425,7 @@ function classifyParagraph(paragraph, nonBlankPosition) {
   return "body";
 }
 
-function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBlankPosition) {
+function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBlankPosition, hyperlinkRels = {}) {
   const paragraphProperties = paragraph.pPr || {};
   const explicitStyleId = getStyleId(paragraphProperties);
   const styleId = explicitStyleId || styleMap.defaultParagraphStyleId;
@@ -399,6 +435,7 @@ function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBla
     index: index + 1,
     text,
     textPreview: text.slice(0, 80),
+    hyperlinkUrls: getParagraphHyperlinkUrls(paragraph, hyperlinkRels),
     style,
     hasExplicitStyle: Boolean(explicitStyleId),
     role: "body",
@@ -460,7 +497,7 @@ function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBla
   return extracted;
 }
 
-function extractParagraphs(document, styleMap, defaults) {
+function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}) {
   const body = document.document && document.document.body;
   const paragraphs = body ? toArray(body.p) : [];
   let nonBlankPosition = 0;
@@ -470,11 +507,11 @@ function extractParagraphs(document, styleMap, defaults) {
       nonBlankPosition += 1;
     }
 
-    return extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBlankPosition);
+    return extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBlankPosition, hyperlinkRels);
   });
 }
 
-function extractDocxFormattingFromXml(documentXml, stylesXml = null) {
+function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = null) {
   if (!documentXml) {
     throw new Error("Invalid .docx file: word/document.xml was not found.");
   }
@@ -484,6 +521,7 @@ function extractDocxFormattingFromXml(documentXml, stylesXml = null) {
   const styleMap = buildStyleMap(stylesDocument);
   const defaults = extractDocumentDefaults(stylesDocument);
   const sectionProperties = findSectionProperties(document);
+  const hyperlinkRels = parseHyperlinkRels(relsXml);
 
   return {
     margins: extractMargins(sectionProperties),
@@ -492,7 +530,7 @@ function extractDocxFormattingFromXml(documentXml, stylesXml = null) {
       defaultParagraphStyleId: styleMap.defaultParagraphStyleId,
     },
     documentDefaults: defaults.formatting,
-    paragraphs: extractParagraphs(document, styleMap, defaults),
+    paragraphs: extractParagraphs(document, styleMap, defaults, hyperlinkRels),
   };
 }
 
@@ -508,8 +546,9 @@ function extractDocxFormatting(filePath) {
   const zip = new AdmZip(filePath);
   const documentXml = readDocxXml(zip, "word/document.xml");
   const stylesXml = readDocxXml(zip, "word/styles.xml");
+  const relsXml = readDocxXml(zip, "word/_rels/document.xml.rels");
 
-  return extractDocxFormattingFromXml(documentXml, stylesXml);
+  return extractDocxFormattingFromXml(documentXml, stylesXml, relsXml);
 }
 
 module.exports = {

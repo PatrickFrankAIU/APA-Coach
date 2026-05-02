@@ -885,6 +885,31 @@ function hasDOIOrURL(text) {
   return /https?:\/\/|doi\.org|\bdoi:\s*10\./i.test(text);
 }
 
+function groupHasVisibleDOIOrURL(group) {
+  return group.some((p) => hasDOIOrURL(p.text));
+}
+
+function groupHasHiddenHyperlinkURL(group) {
+  return group.some(
+    (p) =>
+      p.hyperlinkUrls &&
+      p.hyperlinkUrls.some((url) => /https?:\/\//i.test(url)) &&
+      !hasDOIOrURL(p.text),
+  );
+}
+
+function groupReferenceEntries(referenceParagraphs) {
+  const groups = [];
+  for (const paragraph of referenceParagraphs) {
+    if (looksLikeReferenceEntryStart(paragraph)) {
+      groups.push([paragraph]);
+    } else if (groups.length > 0) {
+      groups[groups.length - 1].push(paragraph);
+    }
+  }
+  return groups;
+}
+
 function looksLikeIncompleteEnd(text) {
   const trimmed = text.trim();
   if (!trimmed) return false;
@@ -1233,8 +1258,21 @@ function checkReferenceDOIs(extracted, referencesHeading) {
     };
   }
 
-  const missing = entryParagraphs.filter((p) => !hasDOIOrURL(p.text));
-  const status = missing.length === 0 ? "pass" : "fail";
+  const groups = groupReferenceEntries(referenceParagraphs);
+  const total = groups.length;
+
+  const missingGroups = groups.filter((g) => !groupHasVisibleDOIOrURL(g));
+  const hiddenLinkGroups = missingGroups.filter((g) => groupHasHiddenHyperlinkURL(g));
+  const trulyMissingGroups = missingGroups.filter((g) => !groupHasHiddenHyperlinkURL(g));
+  const status = missingGroups.length === 0 ? "pass" : "fail";
+
+  const missingItems = [
+    ...hiddenLinkGroups.map((g) => {
+      const preview = g[0].text.length > 70 ? g[0].text.substring(0, 70) + "…" : g[0].text;
+      return `${preview} — URL is hidden in a hyperlink; paste it as visible text`;
+    }),
+    ...trulyMissingGroups.map((g) => (g[0].text.length > 80 ? g[0].text.substring(0, 80) + "…" : g[0].text)),
+  ];
 
   return {
     rule: "Reference DOI/URL",
@@ -1244,20 +1282,20 @@ function checkReferenceDOIs(extracted, referencesHeading) {
     expectedText: "APA 7th edition requires a DOI or URL for most sources.",
     foundText:
       status === "pass"
-        ? `All ${entryParagraphs.length} references include a DOI or URL.`
-        : `${missing.length} of ${entryParagraphs.length} reference${entryParagraphs.length === 1 ? "" : "s"} appear to be missing a DOI or URL.`,
-    applicable: entryParagraphs.length,
-    checked: entryParagraphs.length,
-    matched: entryParagraphs.length - missing.length,
-    failed: missing.length,
+        ? `All ${total} references include a DOI or URL.`
+        : `${missingGroups.length} of ${total} reference${total === 1 ? "" : "s"} appear to be missing a visible DOI or URL.`,
+    applicable: total,
+    checked: total,
+    matched: total - missingGroups.length,
+    failed: missingGroups.length,
     unknown: 0,
-    found: status === "pass" ? "All references have DOI/URL" : `${missing.length} reference(s) missing DOI/URL`,
+    found: status === "pass" ? "All references have DOI/URL" : `${missingGroups.length} reference(s) missing DOI/URL`,
     applicableParagraphs: entryParagraphs.length,
-    details: missing.map((p) => `No DOI or URL found in: "${p.text.length > 80 ? p.text.substring(0, 80) + "…" : p.text}"`),
+    details: missingItems.map((item) => `Issue: "${item}"`),
     howToFix: status === "fail" ? getHowToFix("Reference DOI/URL") : [],
     resources: [],
-    missingItems: status === "fail" ? missing.map((p) => (p.text.length > 80 ? p.text.substring(0, 80) + "…" : p.text)) : [],
-    missingItemsLabel: "References missing a DOI or URL:",
+    missingItems: status === "fail" ? missingItems : [],
+    missingItemsLabel: "References missing a visible DOI or URL:",
   };
 }
 
