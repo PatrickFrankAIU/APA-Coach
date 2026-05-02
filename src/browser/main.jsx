@@ -365,6 +365,16 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
+          {check.missingItems && check.missingItems.length > 0 ? (
+            <div className="missing-items">
+              <p className="missing-items-label">{check.missingItemsLabel}</p>
+              <ul>
+                {check.missingItems.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <button
             className="fix-toggle"
             type="button"
@@ -380,16 +390,6 @@ function CheckCard({ check }) {
                 <li key={step}>{step}</li>
               ))}
             </ol>
-            {check.missingItems && check.missingItems.length > 0 ? (
-              <div className="missing-items">
-                <p className="missing-items-label">{check.missingItemsLabel}</p>
-                <ul>
-                  {check.missingItems.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
             {hasResources ? (
               <div className="check-resources">
                 <h4>Additional help</h4>

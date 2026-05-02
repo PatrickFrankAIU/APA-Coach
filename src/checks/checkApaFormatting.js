@@ -29,6 +29,10 @@ const FIRST_LINE_INDENT_MSFT_RESOURCE = {
   label: "Microsoft Support: Indent the first line of a paragraph",
   url: "https://support.microsoft.com/en-us/office/indent-the-first-line-of-a-paragraph-b3721167-e1c8-40c3-8a97-3f046fc72d6d",
 };
+const APA_DOIS_URLS_RESOURCE = {
+  label: "APA Style DOIs and URLs",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/references/dois-urls",
+};
 const APA_REFERENCES_PAGE_SCRIBBR_RESOURCE = {
   label: "Scribbr Guide to APA Reference Pages",
   url: "https://www.scribbr.com/apa-style/apa-reference-page/",
@@ -1293,7 +1297,7 @@ function checkReferenceDOIs(extracted, referencesHeading) {
     applicableParagraphs: entryParagraphs.length,
     details: missingItems.map((item) => `Issue: "${item}"`),
     howToFix: status === "fail" ? getHowToFix("Reference DOI/URL") : [],
-    resources: [],
+    resources: status === "fail" ? [APA_DOIS_URLS_RESOURCE] : [],
     missingItems: status === "fail" ? missingItems : [],
     missingItemsLabel: "References missing a visible DOI or URL:",
   };
