@@ -274,6 +274,46 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
+          {check.rule === "Font" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Use 12-point Times New Roman consistently throughout:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ Wrong</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text font-example--wrong-heading">Results</p>
+                    <p className="citation-body-text font-example--wrong-body">The experiment showed significant effects on participant response times across all conditions tested.</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Correct</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text font-example--right-heading">Results</p>
+                    <p className="citation-body-text font-example--right-body">The experiment showed significant effects on participant response times across all conditions tested.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Inline citations" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Cite every source you use in the body of your paper:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ No citation</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text citation-body-text--highlighted">Research shows that sleep deprivation significantly impairs cognitive performance.</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Citation added</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Research shows that sleep deprivation significantly impairs cognitive performance <span className="citation-inline">(Walker, 2017)</span>.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {check.rule === "Uncited references" ? (
             <div className="citation-example">
               <p className="citation-example-label">Each reference needs a matching inline citation:</p>
@@ -316,6 +356,25 @@ function CheckCard({ check }) {
                     <p className="citation-body-text">Research suggests this is common <span className="citation-inline">(Jones, 2022)</span>.</p>
                     <div className="citation-divider" />
                     <p className="citation-ref-entry">Jones, B. C. (2022). Article title. <em>Journal, 5</em>(1), 10–20.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Reference short link" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">The URL must link to the specific article, not the website homepage:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ Domain only</span>
+                  <div className="citation-example-page">
+                    <p className="citation-ref-entry">Intel. (2023). <em>Thermal design in modern processors.</em> <span className="citation-ref-entry--highlighted">https://www.intel.com</span></p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Full article URL</span>
+                  <div className="citation-example-page">
+                    <p className="citation-ref-entry">Intel. (2023). <em>Thermal design in modern processors.</em> https://www.intel.com/content/www/us/en/gaming/resources/cpu-cooler.html</p>
                   </div>
                 </div>
               </div>

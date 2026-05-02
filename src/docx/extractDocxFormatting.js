@@ -115,14 +115,80 @@ function parseHyperlinkRels(relsXml) {
   return map;
 }
 
+function getRunFontSize(run) {
+  const sz = run.rPr && run.rPr.sz;
+  if (!sz || sz.val == null) return null;
+  const val = Number(sz.val);
+  return Number.isFinite(val) ? val / 2 : null;
+}
+
+function getRunFontFamily(run) {
+  const rFonts = run.rPr && run.rPr.rFonts;
+  if (!rFonts) return null;
+  // Only use explicit font names; skip theme refs (asciiTheme, hAnsiTheme) to avoid false positives
+  return rFonts.ascii || rFonts.hAnsi || null;
+}
+
+function collectRunFontInfo(runs, sizes, families) {
+  for (const run of runs) {
+    const size = getRunFontSize(run);
+    const family = getRunFontFamily(run);
+    if (size !== null) sizes.add(size);
+    if (family !== null) families.add(family);
+  }
+}
+
+function extractParagraphFontInfo(paragraph) {
+  const sizes = new Set();
+  const families = new Set();
+  collectRunFontInfo(toArray(paragraph.r), sizes, families);
+  for (const hl of toArray(paragraph["hyperlink"])) {
+    collectRunFontInfo(toArray(hl.r), sizes, families);
+  }
+  for (const sdt of toArray(paragraph.sdt)) {
+    if (sdt.sdtContent) collectRunFontInfo(toArray(sdt.sdtContent.r), sizes, families);
+  }
+  return { sizes: [...sizes], families: [...families] };
+}
+
+function extractDocumentDefaultFont(stylesDocument) {
+  const defaults = stylesDocument && stylesDocument.styles ? stylesDocument.styles.docDefaults : null;
+  const rPr = defaults && defaults.rPrDefault ? defaults.rPrDefault.rPr || {} : {};
+  const szVal = rPr.sz && rPr.sz.val != null ? Number(rPr.sz.val) : null;
+  const sizePoints = szVal !== null && Number.isFinite(szVal) ? szVal / 2 : null;
+  const rFonts = rPr.rFonts || {};
+  const family = rFonts.ascii || rFonts.hAnsi || null; // skip theme refs
+  return { sizePoints, family };
+}
+
 function getRunText(run) {
   const parts = [];
   const textNodes = toArray(run.t);
   for (const text of textNodes) {
     if (typeof text === "string") {
       parts.push(text);
+    } else if (typeof text === "number") {
+      // fast-xml-parser parses purely numeric <w:t> content (e.g. years) as numbers
+      parts.push(String(text));
     } else if (text && typeof text["#text"] === "string") {
       parts.push(text["#text"]);
+    } else if (text && typeof text["#text"] === "number") {
+      parts.push(String(text["#text"]));
+    }
+  }
+  return parts.join("");
+}
+
+function getSdtText(sdt) {
+  const content = sdt.sdtContent;
+  if (!content) return "";
+  const parts = [];
+  for (const run of toArray(content.r)) {
+    parts.push(getRunText(run));
+  }
+  for (const hyperlink of toArray(content["hyperlink"])) {
+    for (const run of toArray(hyperlink.r)) {
+      parts.push(getRunText(run));
     }
   }
   return parts.join("");
@@ -139,6 +205,10 @@ function getParagraphText(paragraph) {
     for (const run of toArray(hyperlink.r)) {
       parts.push(getRunText(run));
     }
+  }
+
+  for (const sdt of toArray(paragraph.sdt)) {
+    parts.push(getSdtText(sdt));
   }
 
   return parts.join("");
@@ -493,13 +563,25 @@ function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBla
   };
 
   extracted.role = classifyParagraph(extracted, nonBlankPosition);
+  extracted.fonts = extractParagraphFontInfo(paragraph);
 
   return extracted;
 }
 
+function collectParagraphNodes(content, out) {
+  for (const p of toArray(content.p)) {
+    out.push(p);
+  }
+  for (const sdt of toArray(content.sdt)) {
+    const inner = sdt.sdtContent;
+    if (inner) collectParagraphNodes(inner, out);
+  }
+}
+
 function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}) {
   const body = document.document && document.document.body;
-  const paragraphs = body ? toArray(body.p) : [];
+  const paragraphs = [];
+  if (body) collectParagraphNodes(body, paragraphs);
   let nonBlankPosition = 0;
 
   return paragraphs.map((paragraph, index) => {
@@ -530,6 +612,7 @@ function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = n
       defaultParagraphStyleId: styleMap.defaultParagraphStyleId,
     },
     documentDefaults: defaults.formatting,
+    fontDefaults: extractDocumentDefaultFont(stylesDocument),
     paragraphs: extractParagraphs(document, styleMap, defaults, hyperlinkRels),
   };
 }

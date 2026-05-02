@@ -5,6 +5,7 @@ const EXPECTED_FIRST_LINE_INDENT_INCHES = 0.5;
 const EXPECTED_ALIGNMENT = "left";
 const TOLERANCE = 0.01;
 const MISSING_HANGING_INDENT_ISSUE = "One or more references are missing a 0.5-inch hanging indent.";
+const BARE_URL_ISSUE = "One or more entries appear to be bare URLs with no author, title, or year. APA references must include the author, publication year, title, and source — a URL alone is not a complete reference.";
 const HANGING_INDENT_RESOURCE = {
   label: "Microsoft Support: Create a hanging indent in Word",
   url: "https://support.microsoft.com/en-us/office/create-a-hanging-indent-in-word-7bdfb86a-c714-41a8-ac7a-3782a91ccad5",
@@ -49,6 +50,46 @@ const ALIGN_TEXT_GFG_RESOURCE = {
   label: "GeeksforGeeks: Text Alignment in MS Word",
   url: "https://www.geeksforgeeks.org/ms-word/text-alignment-in-ms-word/",
 };
+
+const UNAPPROVED_DOMAINS = [
+  "123helpme.com","a1-termpaper.com","academic-papers.blogspot.com","academized.com",
+  "activant.in","advancedwriters.com","affordablepapers.com","algebra.com",
+  "allessayhelp.net","allinterview.com","answerbag.com","answers.com",
+  "antiessays.com","antistudy.com","articlesbase.com","articlesfactory.com",
+  "ask.com","askanewquestion.com","askmehelpdesk.com","assignmenthelppro.co",
+  "bartleby.com","bestessays.com","besttermpaper.com","blurtit.com",
+  "bookrags.com","brainly.com","brainmass.com","buenastareas.com",
+  "bukisa.com","business-bliss.com","business-plan.com","cheathouse.com",
+  "chegg.com","chuckiii.com","cliffsnotes.com","collegetermpapers.com",
+  "copy.ai","coursehero.com","cram.com","customessaymeister.com",
+  "customwriting.com","customwritings.com","cyberessays.com","docshare.com",
+  "domypapers.com","dreamessays.com","eddusaver.com","eduessays.com",
+  "edugenie.net","effectivepapers.com","ehow.com","eliteacademicessays.com",
+  "enotes.com","essay24.com","essayailab.com","essaycapital.com",
+  "essayexperts.com","essayhub.com","essaykitchen.com","essayok.net",
+  "essaypro.com","essaysforstudent.com","essaytown.com","examcollection.com",
+  "exampleessays.com","exclusivepapers.com","fastpapers.com","foxessays.com",
+  "freeadvice.com","freeessay.com","freeonlineresearchpapers.com","gotessays.com",
+  "homework.ecrater.com","homework.study.com","how2pass.com","hubpages.com",
+  "indiacelebrating.com","informationheadquarter.com","investopedia.com","ipl.org",
+  "ivythesis.typepad.com","javacodee.blogspot.com","justanswer.com","keenessays.com",
+  "lawbirdie.com","lawteacher.net","lotsofessays.com","majortests.com",
+  "markedbyteachers.com","mastersthesiswriting.com","megaessays.com","midterm.us",
+  "myassignmenthelp.com","myspace.com","mysupergeek.com","netmba.com",
+  "otherpapers.com","papercamp.com","paperhelp.org","paperial.com",
+  "paperlap.com","papersowl.com","phd-dissertations.com","premium-papers.com",
+  "prepmypaper.com","prowritershub.com","quickessayrelief.com","quizlet.com",
+  "quora.com","radessays.com","rentacoder.com","researchpaper.com",
+  "researchpapers247.com","reviewessays.com","rushtermpapers.com","scienceline.ucsb.edu",
+  "slickpapers.com","smodin.io","stackoverflow.co","statisticsbrain.com",
+  "studentshare.org","studocu.com","studybay.com","studybounty.com",
+  "studymode.com","studymoose.com","superiorpapers.com","sweetstudy.com",
+  "termpaperaccess.com","termpaperwarehouse.com","thebalance.com","thekumachan.com",
+  "transtutors.com","tutorsonspot.com","ukessays.com","wedoyouressay.com",
+  "wikibooks.org","wikipedia.org","wikiversity.org","wisegeek.com",
+  "wordpress.com","writeessaytoday.com","writemyessays.net","writework.com",
+  "zeepedia.com",
+];
 
 function isClose(actual, expected) {
   return typeof actual === "number" && Math.abs(actual - expected) <= TOLERANCE;
@@ -281,6 +322,23 @@ function summarizeKnownCheck(label, expected, applicableParagraphs, failures, un
 }
 
 function getHowToFix(rule) {
+  if (rule === "Unapproved source") {
+    return [
+      "This source is on AIU's list of websites not approved for academic use.",
+      "Replace it with a peer-reviewed article, textbook, or credible institutional source.",
+      "Search your AIU library database (ProQuest, EBSCOhost) for a credible alternative on the same topic.",
+    ];
+  }
+
+  if (rule === "Font") {
+    return [
+      "Select all text in the document (Ctrl+A / Cmd+A).",
+      "In the Home toolbar, set the font to Times New Roman and size to 12.",
+      "Check headings: APA headings should also be 12pt (bold or bold-italic, not larger).",
+      "Avoid mixing fonts — use one font family throughout the entire document.",
+    ];
+  }
+
   if (rule === "Title page") {
     return [
       "Remove the existing cover page or title-page template.",
@@ -331,6 +389,14 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "Inline citations") {
+    return [
+      "Add an inline citation every time you use information from a source.",
+      "Parenthetical format: place (Author, Year) at the end of the sentence before the period.",
+      "Narrative format: use Author (Year) at the start of the sentence.",
+    ];
+  }
+
   if (rule === "Uncited references") {
     return [
       "For each reference listed, find where you used that source and add an inline citation.",
@@ -345,6 +411,17 @@ function getHowToFix(rule) {
       "For each citation listed, add a matching entry to your References page.",
       "Each APA reference starts with the author's last name and the publication year.",
       "Use a citation generator or your library database to format the full reference entry.",
+      "Note: if your citation uses 'et al.' (e.g., Smith et al., 2022), make sure the reference entry starts with the same first author's last name.",
+      "Note: abbreviated organization names (e.g., APA) may not be detected automatically — check those manually.",
+    ];
+  }
+
+  if (rule === "Reference short link") {
+    return [
+      "Go to the website and navigate to the specific article or page you used.",
+      "Copy the full URL from your browser's address bar — it should include a path after the domain.",
+      "Replace the short domain link in your reference with the full URL.",
+      "If you can't find the original page, use a search engine to locate the article and copy its direct URL.",
     ];
   }
 
@@ -375,13 +452,14 @@ function getHowToFix(rule) {
 
   if (rule === "References formatting") {
     return [
+      "If any entries are bare URLs: replace each URL-only line with a full APA reference. A complete reference includes the author's last name and initials, publication year in parentheses, title of the work, and the URL or DOI.",
+      "Example: Smith, J. A. (2023). Title of article. Site Name. https://www.example.com/article",
       "A hanging indent means the first line is flush left and all following lines are indented 0.5\".",
       "Select all reference entries in Microsoft Word.",
       "Click the Line Spacing button (⇵☰) in the Home toolbar to open its menu.",
       "Click 'Line Spacing Options...'",
       "In the Paragraph window, under Indentation, set Special to Hanging and By to 0.5\".",
       "Click OK.",
-      "Alternative: show the ruler (View > Ruler), then drag the lower triangle (◭) to the 0.5\" mark.",
     ];
   }
 
@@ -797,13 +875,29 @@ function checkAlignment(extracted) {
 }
 
 function isReferencesHeading(paragraph) {
-  return paragraph.text.trim().toLowerCase() === "references";
+  const text = paragraph.text.trim().replace(/^[^a-zA-Z]+|[^a-zA-Z]+$/g, "").toLowerCase();
+  return text === "references" || text === "reference";
 }
 
 function findReferencesHeadingNearEnd(paragraphs) {
-  const firstNearEndIndex = Math.floor(paragraphs.length * 0.75);
+  // Use last non-blank paragraph as ceiling to ignore trailing blank pages
+  const nonBlank = paragraphs.filter((p) => p.text.trim().length > 0);
+  if (nonBlank.length === 0) return null;
+  const lastNonBlankIndex = nonBlank[nonBlank.length - 1].index;
+  const threshold = Math.floor(lastNonBlankIndex * 0.6);
 
-  return paragraphs.find((paragraph) => paragraph.index > firstNearEndIndex && isReferencesHeading(paragraph)) || null;
+  // Look for an explicit "References" heading
+  const heading = paragraphs.find((p) => p.index > threshold && isReferencesHeading(p));
+  if (heading) return heading;
+
+  // Fallback: find first run of reference-entry-style paragraphs after the threshold
+  // (handles documents where the References heading is missing)
+  const firstEntry = paragraphs.find((p) => p.index > threshold && looksLikeReferenceEntryStart(p));
+  if (!firstEntry) return null;
+
+  // Synthesize a virtual heading one index before the first entry so that
+  // getReferenceEntryParagraphs (index > heading.index) captures all entries
+  return { index: firstEntry.index - 1, text: "", synthetic: true };
 }
 
 function getReferenceEntryParagraphs(paragraphs, referencesHeading) {
@@ -817,12 +911,16 @@ function looksLikeReferenceEntryStart(paragraph) {
 }
 
 function extractReferenceKey(text) {
-  const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)\)/);
+  const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)[,)]/);
   if (!yearMatch) return null;
   const year = yearMatch[1];
   const beforeYear = text.substring(0, yearMatch.index).trim().replace(/\.\s*$/, "").trim();
   const commaIdx = beforeYear.indexOf(",");
-  const lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear).trim();
+  // Strip trailing initials glued without comma (e.g., "Laudon K.C." → "Laudon")
+  const lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear)
+    .trim()
+    .replace(/\s+[A-Z]\.(?:[A-Z]\.)*$/, "")
+    .trim();
   if (!lastName || lastName.length < 2) return null;
   const preview = text.length > 80 ? text.substring(0, 80) + "…" : text;
   return { lastName, year, preview };
@@ -836,24 +934,29 @@ function extractInlineCitationKeys(bodyText) {
   let m;
   while ((m = parenRe.exec(bodyText)) !== null) {
     const content = m[1];
-    if (!/\d{4}/.test(content)) continue;
+    if (!/\d{4}|n\.d\./.test(content)) continue;
     const segments = content.split(";");
     for (const seg of segments) {
-      const yearM = seg.match(/\b(\d{4}[a-z]?)\b/);
+      const segTrimmed = seg.trim();
+      const yearM = segTrimmed.match(/\b(\d{4}[a-z]?)\b/) || segTrimmed.match(/(n\.d\.)/);
       if (!yearM) continue;
       const year = yearM[1];
-      const nameM = seg.trim().match(/^([A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+(?:\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+)*)/);
-      if (!nameM) continue;
-      const lastName = nameM[1].replace(/\s+et$/, "").trim();
+      // Extract everything before the year as the author/title portion
+      const beforeYear = segTrimmed.slice(0, yearM.index).replace(/[,\s]+$/, "").trim();
+      if (!beforeYear) continue;
+      // Strip "et al." — also handles missing space (e.g., "Smithet al." → "Smith")
+      const withoutEtAl = beforeYear.replace(/\s*et\s+al\.?$/i, "").trim();
+      // For multi-author paren citations, take only the first author
+      const lastName = withoutEtAl.split(/\s*&\s*|\s+and\s+/i)[0].trim() || withoutEtAl;
       const key = `${lastName.toLowerCase()}|${year.replace(/[a-z]$/, "")}`;
       if (!seen.has(key)) {
         seen.add(key);
-        keys.push({ lastName, year, source: seg.trim() });
+        keys.push({ lastName, year, source: segTrimmed });
       }
     }
   }
 
-  const narrativeRe = /\b([A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+)(?:\s+et\s+al\.?)?\s+\((\d{4}[a-z]?)\)/g;
+  const narrativeRe = /\b([A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+)(?:\s+(?:and|&)\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ''-]+)*(?:\s+et\s+al\.?)?\s+\((\d{4}[a-z]?)\)/g;
   while ((m = narrativeRe.exec(bodyText)) !== null) {
     const lastName = m[1];
     const year = m[2];
@@ -867,20 +970,56 @@ function extractInlineCitationKeys(bodyText) {
   return keys;
 }
 
-function isReferenceCited(key, bodyText) {
+function isReferenceCited(key, bodyText, citationKeys) {
   const { lastName, year } = key;
   const escaped = lastName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const yearPat = year === "n.d." ? "n\\.d\\." : year.replace(/[a-z]$/, "") + "[a-z]?";
-  const re = new RegExp(`\\b${escaped}(?:\\s+et\\s+al\\.?)?[^\\n.]{0,40}${yearPat}\\b`, "i");
-  return re.test(bodyText);
+  const strict = new RegExp(`(?<![a-zA-Z])${escaped}(?:\\s+et\\s+al\\.?)?[^\\n.]{0,40}${yearPat}`, "i");
+  if (strict.test(bodyText)) return true;
+  // Fallback: name and year appear within 100 chars (catches typos like "toGrandNode(2020)")
+  const nameIdx = bodyText.search(new RegExp(escaped, "i"));
+  if (nameIdx !== -1) {
+    const window = bodyText.substring(Math.max(0, nameIdx - 10), nameIdx + lastName.length + 100);
+    if (new RegExp(yearPat).test(window)) return true;
+  }
+  // Fuzzy fallback: check extracted citation keys for a near-match (catches "Hallet" vs "HALLETT")
+  if (citationKeys) {
+    const yearBase = year.replace(/[a-z]$/, "");
+    return citationKeys.some(
+      (ck) => namesMatch(ck.lastName, lastName) && ck.year.replace(/[a-z]$/, "") === yearBase,
+    );
+  }
+  return false;
+}
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[-‑‐]/g, "");
+}
+
+function editDistance(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function namesMatch(a, b) {
+  const na = normalizeName(a), nb = normalizeName(b);
+  if (na === nb) return true;
+  // Allow 1-edit difference for names of 5+ chars (catches single-letter typos and all-caps mismatches)
+  return na.length >= 5 && nb.length >= 5 && editDistance(na, nb) <= 1;
 }
 
 function isCitationMatched(citKey, referenceKeys) {
-  const normalLast = citKey.lastName.toLowerCase();
   const yearBase = citKey.year.replace(/[a-z]$/, "");
   return referenceKeys.some(
     (refKey) =>
-      refKey.lastName.toLowerCase() === normalLast &&
+      namesMatch(citKey.lastName, refKey.lastName) &&
       refKey.year.replace(/[a-z]$/, "") === yearBase,
   );
 }
@@ -900,6 +1039,25 @@ function groupHasHiddenHyperlinkURL(group) {
       p.hyperlinkUrls.some((url) => /https?:\/\//i.test(url)) &&
       !hasDOIOrURL(p.text),
   );
+}
+
+function isDomainOnlyUrl(url) {
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.pathname === "/" || parsed.pathname === "";
+  } catch {
+    return false;
+  }
+}
+
+function extractVisibleUrls(text) {
+  return (text.match(/https?:\/\/[^\s,)<>]+/gi) || []);
+}
+
+function groupHasDomainOnlyUrl(group) {
+  const combined = group.map((p) => p.text).join(" ");
+  if (extractVisibleUrls(combined).some(isDomainOnlyUrl)) return true;
+  return group.some((p) => p.hyperlinkUrls && p.hyperlinkUrls.some(isDomainOnlyUrl));
 }
 
 function groupReferenceEntries(referenceParagraphs) {
@@ -952,13 +1110,23 @@ function isCentered(paragraph) {
   return alignment.known && alignment.value === "center";
 }
 
+function looksLikeBareUrl(paragraph) {
+  return /^https?:\/\//i.test(paragraph.text.trim());
+}
+
 function findReferencesFormattingIssues(referencesHeading, referenceParagraphs) {
   const issues = [];
-  const shortParagraphs = referenceParagraphs.filter((paragraph) => paragraph.text.trim().length < 40);
-  const missingHangingIndentParagraphs = referenceParagraphs.filter((paragraph) => !hasExpectedHangingIndent(paragraph));
+  const bareUrlParagraphs = referenceParagraphs.filter(looksLikeBareUrl);
+  const properEntries = referenceParagraphs.filter((p) => !looksLikeBareUrl(p));
+  const shortParagraphs = properEntries.filter((paragraph) => paragraph.text.trim().length < 40);
+  const missingHangingIndentParagraphs = properEntries.filter((paragraph) => !hasExpectedHangingIndent(paragraph));
 
   if (referenceParagraphs.length === 0) {
     issues.push("No reference entries were detected after the References heading.");
+  }
+
+  if (bareUrlParagraphs.length > 0) {
+    issues.push(BARE_URL_ISSUE);
   }
 
   if (shortParagraphs.length >= 2) {
@@ -969,7 +1137,7 @@ function findReferencesFormattingIssues(referencesHeading, referenceParagraphs) 
     issues.push(MISSING_HANGING_INDENT_ISSUE);
   }
 
-  if (hasBrokenReferenceEntries(referenceParagraphs)) {
+  if (hasBrokenReferenceEntries(properEntries)) {
     issues.push("Some reference entries appear to be broken across separate paragraphs.");
   }
 
@@ -979,6 +1147,7 @@ function findReferencesFormattingIssues(referencesHeading, referenceParagraphs) 
 function checkReferencesPage(extracted) {
   const referencesHeading = findReferencesHeadingNearEnd(extracted.paragraphs);
   const status = referencesHeading ? "pass" : "fail";
+  const isSynthetic = referencesHeading && referencesHeading.synthetic;
 
   return {
     rule: "References page",
@@ -987,9 +1156,11 @@ function checkReferencesPage(extracted) {
     expected: "APA expects a References page with sources listed in alphabetical order using hanging indents.",
     expectedText: "APA expects a References page with sources listed in alphabetical order using hanging indents.",
     foundText:
-      status === "pass"
-        ? "A References page was detected at the end of the document."
-        : "APA Coach did not detect a References page at the end of the document.",
+      status === "fail"
+        ? "APA Coach did not detect a References page at the end of the document."
+        : isSynthetic
+          ? "Reference entries were detected, but APA Coach did not find a 'References' heading above them."
+          : "A References page was detected at the end of the document.",
     applicable: 1,
     checked: 1,
     matched: status === "pass" ? 1 : 0,
@@ -1119,6 +1290,51 @@ function checkReferencesLineSpacing(extracted, referencesHeading) {
   );
 }
 
+function checkInlineCitations(extracted, referencesHeading) {
+  const rule = "Inline citations";
+  const expected = "Each source used in the paper should have an inline citation.";
+
+  const allText = extracted.paragraphs
+    .filter((p) => p.role !== "blank" && (!referencesHeading || p.index < referencesHeading.index))
+    .map((p) => p.text)
+    .join(" ");
+  const citationKeys = extractInlineCitationKeys(allText);
+
+  if (citationKeys.length > 0) {
+    return {
+      rule, status: "pass", passed: true,
+      expected, expectedText: expected,
+      foundText: `APA Coach found ${citationKeys.length} inline citation(s) in the document.`,
+      applicable: citationKeys.length, checked: citationKeys.length, matched: citationKeys.length,
+      failed: 0, unknown: 0, found: `${citationKeys.length} inline citation(s) found`,
+      applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const substantiveCount = extracted.paragraphs.filter(
+    (p) => p.role !== "blank" && p.role !== "titlePage" && (!referencesHeading || p.index < referencesHeading.index),
+  ).length;
+
+  if (substantiveCount <= 2) {
+    return {
+      rule, status: "review", passed: false,
+      expected, expectedText: expected,
+      foundText: "APA Coach did not find enough content to check for inline citations.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Not enough content", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false,
+    expected, expectedText: expected,
+    foundText: "APA Coach did not find any inline citations. If you used sources, add (Author, Year) citations throughout the body.",
+    applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+    found: "No inline citations found", applicableParagraphs: 0,
+    details: [], howToFix: getHowToFix(rule), resources: [],
+  };
+}
+
 function checkUncitedReferences(extracted, referencesHeading) {
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
   const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
@@ -1145,7 +1361,7 @@ function checkUncitedReferences(extracted, referencesHeading) {
 
   const citationKeys = extractInlineCitationKeys(bodyText);
   const bodyHasCitations = citationKeys.length > 0;
-  const uncited = referenceKeys.filter((key) => !isReferenceCited(key, bodyText));
+  const uncited = referenceKeys.filter((key) => !isReferenceCited(key, bodyText, citationKeys));
   const status = uncited.length === 0 ? "pass" : bodyHasCitations ? "fail" : "review";
 
   return {
@@ -1303,21 +1519,203 @@ function checkReferenceDOIs(extracted, referencesHeading) {
   };
 }
 
+function checkFonts(extracted) {
+  const rule = "Font";
+  const expected = "APA recommends 12-point Times New Roman throughout the document.";
+
+  const explicitSizes = new Set();
+  const explicitFamilies = new Set();
+
+  for (const p of extracted.paragraphs) {
+    if (p.role === "blank" || !p.fonts) continue;
+    for (const s of p.fonts.sizes) explicitSizes.add(s);
+    for (const f of p.fonts.families) explicitFamilies.add(f);
+  }
+
+  // Fall back to document defaults only when paragraphs have no explicit font info
+  const allSizes = explicitSizes.size > 0 ? explicitSizes : new Set(
+    extracted.fontDefaults?.sizePoints != null ? [extracted.fontDefaults.sizePoints] : [],
+  );
+  const allFamilies = explicitFamilies.size > 0 ? explicitFamilies : new Set(
+    extracted.fontDefaults?.family ? [extracted.fontDefaults.family] : [],
+  );
+
+  if (allSizes.size === 0 && allFamilies.size === 0) {
+    return {
+      rule, status: "review", passed: false,
+      expected, expectedText: expected,
+      foundText: "APA Coach could not detect font information in this document.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No font info", applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const sortedSizes = [...allSizes].sort((a, b) => a - b);
+  const oversized = sortedSizes.filter((s) => s > 12);
+  const issues = [];
+
+  if (oversized.length > 0) {
+    issues.push("Font size exceeds 12pt.");
+  }
+  if (allSizes.size > 1) {
+    issues.push(`Multiple font sizes detected: ${sortedSizes.map((s) => s + "pt").join(", ")}.`);
+  }
+  if (allFamilies.size > 1) {
+    issues.push(`Multiple fonts detected: ${[...allFamilies].join(", ")}.`);
+  }
+
+  const status = issues.length > 0 ? "fail" : "pass";
+  const sizeLabel = sortedSizes.length === 1 ? sortedSizes[0] + "pt" : sortedSizes.map((s) => s + "pt").join("/");
+  const familyLabel = allFamilies.size === 1 ? [...allFamilies][0] : `${allFamilies.size} fonts`;
+
+  return {
+    rule, status, passed: status === "pass",
+    expected, expectedText: expected,
+    foundText:
+      status === "pass"
+        ? `Font appears consistent: ${sizeLabel} ${familyLabel}.`
+        : issues.join(" "),
+    applicable: allSizes.size + allFamilies.size,
+    checked: allSizes.size + allFamilies.size,
+    matched: status === "pass" ? allSizes.size + allFamilies.size : 0,
+    failed: issues.length, unknown: 0,
+    found: status === "pass" ? "Font consistent" : `${issues.length} font issue(s) detected`,
+    applicableParagraphs: extracted.paragraphs.filter((p) => p.role !== "blank").length,
+    details: issues,
+    howToFix: status === "fail" ? getHowToFix("Font") : [],
+    resources: [],
+  };
+}
+
+function checkReferenceShortLinks(extracted, referencesHeading) {
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const groups = groupReferenceEntries(referenceParagraphs);
+
+  if (groups.length === 0) {
+    return {
+      rule: "Reference short link",
+      status: "review", passed: false,
+      expected: "Each reference URL should link directly to the specific article or page, not just the website homepage.",
+      expectedText: "Each reference URL should link directly to the specific article or page, not just the website homepage.",
+      foundText: "APA Coach could not find any reference entries to check for short links.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references found", applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [], missingItems: [], missingItemsLabel: "",
+    };
+  }
+
+  const shortLinkGroups = groups.filter(groupHasDomainOnlyUrl);
+  const status = shortLinkGroups.length === 0 ? "pass" : "fail";
+  const total = groups.length;
+
+  const missingItems = shortLinkGroups.map((g) =>
+    g[0].text.length > 80 ? g[0].text.substring(0, 80) + "…" : g[0].text,
+  );
+
+  return {
+    rule: "Reference short link",
+    status, passed: status === "pass",
+    expected: "Each reference URL should link directly to the specific article or page, not just the website homepage.",
+    expectedText: "Each reference URL should link directly to the specific article or page, not just the website homepage.",
+    foundText:
+      status === "pass"
+        ? `All ${total} references with URLs appear to link to a specific page.`
+        : `${shortLinkGroups.length} of ${total} reference${total === 1 ? "" : "s"} appear to use a domain-only URL (e.g., https://www.example.com) instead of a direct link to the article.`,
+    applicable: total, checked: total, matched: total - shortLinkGroups.length,
+    failed: shortLinkGroups.length, unknown: 0,
+    found: status === "pass" ? "No short links detected" : `${shortLinkGroups.length} reference(s) use a domain-only URL`,
+    applicableParagraphs: referenceParagraphs.length,
+    details: missingItems.map((item) => `Short link: "${item}"`),
+    howToFix: status === "fail" ? getHowToFix("Reference short link") : [],
+    resources: [],
+    missingItems: status === "fail" ? missingItems : [],
+    missingItemsLabel: "References with domain-only URLs:",
+  };
+}
+
+function urlMatchesUnapproved(url) {
+  try {
+    const hostname = new URL(url.trim()).hostname.toLowerCase();
+    return UNAPPROVED_DOMAINS.some((d) => hostname === d || hostname.endsWith("." + d));
+  } catch {
+    return false;
+  }
+}
+
+function groupHasUnapprovedSource(group) {
+  const combined = group.map((p) => p.text).join(" ");
+  if (extractVisibleUrls(combined).some(urlMatchesUnapproved)) return true;
+  return group.some((p) => p.hyperlinkUrls && p.hyperlinkUrls.some(urlMatchesUnapproved));
+}
+
+function checkUnapprovedSources(extracted, referencesHeading) {
+  const rule = "Unapproved source";
+  const expected = "References must use sources approved for academic use at AIU.";
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const groups = groupReferenceEntries(referenceParagraphs);
+
+  if (groups.length === 0) {
+    return {
+      rule, status: "review", passed: false,
+      expected, expectedText: expected,
+      foundText: "APA Coach could not find any reference entries to check.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references found", applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [], missingItems: [], missingItemsLabel: "",
+    };
+  }
+
+  const badGroups = groups.filter(groupHasUnapprovedSource);
+  const status = badGroups.length === 0 ? "pass" : "fail";
+  const missingItems = badGroups.map((g) =>
+    g[0].text.length > 80 ? g[0].text.substring(0, 80) + "…" : g[0].text,
+  );
+
+  return {
+    rule, status, passed: status === "pass",
+    expected, expectedText: expected,
+    foundText: status === "pass"
+      ? `All ${groups.length} references appear to use approved sources.`
+      : `${badGroups.length} of ${groups.length} reference${groups.length === 1 ? "" : "s"} use a source that is not approved for academic use at AIU.`,
+    applicable: groups.length, checked: groups.length,
+    matched: groups.length - badGroups.length, failed: badGroups.length, unknown: 0,
+    found: status === "pass" ? "No unapproved sources detected" : `${badGroups.length} unapproved source(s) found`,
+    applicableParagraphs: referenceParagraphs.length,
+    details: missingItems.map((item) => `Unapproved source: "${item}"`),
+    howToFix: status === "fail" ? getHowToFix(rule) : [],
+    resources: [],
+    missingItems: status === "fail" ? missingItems : [],
+    missingItemsLabel: "References using unapproved sources:",
+  };
+}
+
 function checkApaFormatting(extracted) {
   const referencesHeading = findReferencesHeadingNearEnd(extracted.paragraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
     (paragraph) => !referencesHeading || paragraph.index < referencesHeading.index,
   );
 
+  const bodyText = extracted.paragraphs
+    .filter((p) => p.role !== "blank" && (!referencesHeading || p.index < referencesHeading.index))
+    .map((p) => p.text)
+    .join(" ");
+  const hasCitations = extractInlineCitationKeys(bodyText).length > 0;
+
   return [
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
+    checkInlineCitations(extracted, referencesHeading),
     ...(referencesHeading ? [
-      checkReferencesHeadingAlignment(referencesHeading),
+      ...(referencesHeading.synthetic ? [] : [checkReferencesHeadingAlignment(referencesHeading)]),
       checkReferencesFormatting(extracted, referencesHeading),
-      checkUncitedReferences(extracted, referencesHeading),
-      checkUnmatchedCitations(extracted, referencesHeading),
+      ...(hasCitations ? [
+        checkUncitedReferences(extracted, referencesHeading),
+        checkUnmatchedCitations(extracted, referencesHeading),
+      ] : []),
       checkReferenceDOIs(extracted, referencesHeading),
+      checkReferenceShortLinks(extracted, referencesHeading),
+      checkUnapprovedSources(extracted, referencesHeading),
     ] : []),
     checkMargins(extracted),
     checkLineSpacingForParagraphs(bodyParagraphs, "Body line spacing", "Body"),
@@ -1327,6 +1725,7 @@ function checkApaFormatting(extracted) {
     checkParagraphSpacingForRole(extracted, "heading", "Heading"),
     checkFirstLineIndents(extracted),
     checkAlignment(extracted),
+    checkFonts(extracted),
   ];
 }
 
@@ -1342,7 +1741,11 @@ module.exports = {
   checkParagraphSpacingForRole,
   checkFirstLineIndents,
   checkAlignment,
+  checkInlineCitations,
   checkUncitedReferences,
   checkUnmatchedCitations,
   checkReferenceDOIs,
+  checkReferenceShortLinks,
+  checkUnapprovedSources,
+  checkFonts,
 };

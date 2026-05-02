@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0] - 2026-05-02
+
+### Added
+
+- **Unapproved source check** — New red fail card that detects references linking to any of 145 domains on AIU's list of websites not approved for academic use (e.g., Wikipedia, Chegg, Course Hero, Quora, ChatGPT-writing tools). Checks both visible URLs in reference text and hidden hyperlinks.
+
+### Fixed
+
+**Citation extraction**
+- Fixed narrative two-author citations ("Stallings and Brown (2018)") being extracted as only the last name before the year ("Brown"). The narrative regex now consumes "and CoAuthor" segments and anchors on the first author.
+- Fixed missing space before "et al." ("Nurdiyantoet al.") — the "et" concatenated onto the name is now stripped when the text immediately after the name is "al."
+- Fixed author initials glued to the last name in references without a separating comma ("Laudon K.C." → "Laudon"), preventing false "uncited reference" hits.
+- Fixed title-as-author parenthetical citations ("Enterprise portal, n.d.") being truncated to only the first capitalized word. Author/title extraction now takes everything before the year rather than requiring each word to start with a capital letter.
+- Fixed citation key extraction index offset bug: when a multi-citation parenthetical (e.g., "Smith, 2023; Jones, 2024") is split on semicolons, segments with a leading space had their year index applied to the trimmed string, corrupting the extracted author name ("Jones, 2" instead of "Jones"). Year regex now matches on the already-trimmed segment.
+- Fixed years in their own Word run being silently dropped. `fast-xml-parser` parses `<w:t>2026</w:t>` as a JavaScript number when the content is purely numeric; `getRunText` now converts numeric text nodes to strings.
+
+**Citation matching**
+- Added note to Unmatched citations how-to-fix explaining that "et al." citations must match the first author's last name in the reference entry.
+- Suppressed redundant "Uncited references" and "Unmatched citations" yellow cards when no inline citations are found — the "Inline citations" red fail card already covers this case.
+
 ## [0.3.0] - 2026-05-02
 
 ### Changed

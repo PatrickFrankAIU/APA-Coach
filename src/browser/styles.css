@@ -554,6 +554,41 @@ h1 {
   text-decoration: underline wavy #f87171;
 }
 
+.citation-body-text--highlighted {
+  color: #fca5a5;
+  text-decoration: underline wavy #f87171;
+}
+
+.font-example--wrong-heading {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fca5a5;
+  text-decoration: underline wavy #f87171;
+  margin-bottom: 4px;
+  text-indent: 0;
+}
+
+.font-example--wrong-body {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  text-indent: 0;
+}
+
+.font-example--right-heading {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-indent: 0;
+}
+
+.font-example--right-body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12px;
+  text-indent: 0;
+}
+
 .citation-divider {
   height: 1px;
   background: #374151;
