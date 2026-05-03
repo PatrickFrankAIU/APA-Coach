@@ -617,6 +617,7 @@ function AppInfoCard() {
         Please report any problems to{" "}
         <a href={`mailto:${APP_INFO.supportEmail}`}>{APP_INFO.supportEmail}</a>
       </p>
+      <p><em>If you report a problem, please attach a copy of your paper so I can see the issue myself. Thanks!</em></p>
       <div className="app-resources">
         <h2>Useful resources</h2>
         <ul>

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] - 2026-05-03
+
+### Changed
+
+- Added italicized note below the support email asking users to attach a copy of their paper when reporting a problem.
+
 ## [0.5.0] - 2026-05-03
 
 ### Added
