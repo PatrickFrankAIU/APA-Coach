@@ -6,6 +6,8 @@ A client-side tool for checking APA 7 formatting in Word documents. Upload a `.d
 
 Contact pfrank@aiuniv.edu with questions, comments, or bug reports.
 
+Licensed under the [GNU General Public License v3.0](LICENSE). You are free to use, modify, and distribute this software, but any distributed version — including modified versions — must also be released under the GPL v3.0 with source code available. It may not be used as the basis for proprietary closed-source software.
+
 ---
 
 ## What it does
