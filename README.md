@@ -1,8 +1,10 @@
 # APA Coach
 
-A client-side tool for checking APA 7 formatting in Word documents. Upload a `.docx` file and get an instant report. Runs entirely within the browser, so the student's paper never leaves their hard drive.
+A client-side tool for checking APA 7 formatting in Word documents. Upload a `.docx` file and get an instant report. Runs entirely within the browser — the student's paper never leaves their device.
 
-Contact pfrank@aiuniv.edu with questions, comments, criticisms, etc. 
+> **Beta:** APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
+
+Contact pfrank@aiuniv.edu with questions, comments, or bug reports.
 
 ---
 
@@ -22,7 +24,17 @@ Each result card explains what was found, what APA expects, and (for failures) s
 
 | Check | What it verifies |
 |---|---|
+| Page numbering | Plain page number in the upper-right header on every page, starting at 1 on the title page; no "Page" or "Pg" label |
 | Title page | Detects a standard APA title page at the start of the document |
+| References page | Detects a References page near the end of the document |
+| Inline citations | At least one (Author, Year) citation found in the body |
+| References heading alignment | "References" heading is centered |
+| References formatting | Hanging indents on reference entries; flags broken or bare-URL entries |
+| Uncited references | Every reference entry has a matching inline citation |
+| Unmatched citations | Every inline citation has a matching reference entry |
+| Reference DOI/URL | Each reference includes a visible DOI or URL |
+| Reference short link | Reference URLs link to a specific page, not just a domain homepage |
+| Unapproved source | References do not use sources on AIU's list of 145+ unapproved domains |
 | Margins | 1-inch margins on all four sides |
 | Body line spacing | Double spacing throughout body paragraphs |
 | Heading line spacing | Double spacing on heading paragraphs |
@@ -31,9 +43,7 @@ Each result card explains what was found, what APA expects, and (for failures) s
 | Heading paragraph spacing | 0 pt before and after headings |
 | Body first-line indents | 0.5-inch first-line indent on body paragraphs |
 | Body alignment | Left alignment on body text |
-| References page | Detects a References page near the end of the document |
-| References heading alignment | "References" heading is centered |
-| References formatting | Hanging indents on reference entries; flags broken or inconsistent entries |
+| Font | 12pt Times New Roman throughout; flags mixed sizes or families |
 
 ---
 
@@ -41,7 +51,7 @@ Each result card explains what was found, what APA expects, and (for failures) s
 
 APA Coach runs entirely in the browser using three layers:
 
-1. **Extraction** (`src/docx/extractDocxFormatting.js`) — A `.docx` file is a ZIP archive containing XML. [JSZip](https://stuk.github.io/jszip/) unpacks it and [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) reads `word/document.xml` and `word/styles.xml`. The extractor walks every paragraph and resolves its formatting (margins, spacing, indents, alignment) by merging direct formatting, applied styles, and Word defaults into a single resolved value with a known source.
+1. **Extraction** (`src/docx/extractDocxFormatting.js`) — A `.docx` file is a ZIP archive containing XML. [JSZip](https://stuk.github.io/jszip/) unpacks it and [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) reads `word/document.xml`, `word/styles.xml`, and the header XML files referenced in `word/_rels/document.xml.rels`. The extractor walks every paragraph and resolves its formatting (margins, spacing, indents, alignment) by merging direct formatting, applied styles, and Word defaults into a single resolved value with a known source.
 
 2. **Checking** (`src/checks/checkApaFormatting.js`) — Each APA rule is implemented as a separate deterministic function. Checks produce a structured result object with a status (`fail`, `review`, or `pass`), human-readable found/expected text, diagnostic details, and how-to-fix steps. No AI or heuristic guessing — only values that can be read from the file are evaluated; anything else is flagged as unverifiable rather than assumed.
 
@@ -62,7 +72,7 @@ npm install
 npm run dev
 ```
 
-Then open `http://localhost:5173` and upload a `.docx` file.
+Then open `http://localhost:5173/APA-Coach/` and upload a `.docx` file.
 
 To build for production:
 
