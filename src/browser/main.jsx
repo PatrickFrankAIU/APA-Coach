@@ -596,6 +596,9 @@ function DocxDropZone({ fileName, isAnalyzing, onFileSelected }) {
 function AppInfoCard() {
   return (
     <aside className="app-info-card" aria-label="Application information">
+      <div className="beta-notice" role="note">
+        <strong>Beta</strong> — APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
+      </div>
       <dl className="app-info-list">
         <div>
           <dt>Version</dt>

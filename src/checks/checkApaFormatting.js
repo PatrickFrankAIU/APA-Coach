@@ -42,6 +42,10 @@ const APA_TITLE_PAGE_RESOURCE = {
   label: "APA Title Page Setup",
   url: "https://apastyle.apa.org/style-grammar-guidelines/paper-format/title-page",
 };
+const PAGE_NUMBER_MSFT_RESOURCE = {
+  label: "Microsoft Support: Insert page numbers",
+  url: "https://support.microsoft.com/en-us/office/insert-page-numbers-9f366518-0500-4b45-903d-987d3827c007",
+};
 const ALIGN_TEXT_MSFT_RESOURCE = {
   label: "Microsoft Support: Align text",
   url: "https://support.microsoft.com/en-us/office/align-text-left-or-right-center-text-or-justify-text-on-a-page-70da744d-0f4d-472e-916d-1c42d94dc33f",
@@ -434,6 +438,16 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "Page numbering") {
+    return [
+      "In Microsoft Word, double-click near the top of the page to open the Header.",
+      "Press Tab twice to move the cursor to the right margin (the Header has built-in center and right-flush tab stops).",
+      "Go to Insert > Page Number > Current Position > Plain Number.",
+      "Make sure page numbering starts at 1 on the title page.",
+      "Do not type 'Page' or 'Pg' before the number — use a plain number only.",
+    ];
+  }
+
   if (rule === "References page") {
     return [
       "Add a new page at the end of the document titled 'References'.",
@@ -464,6 +478,67 @@ function getHowToFix(rule) {
   }
 
   return [];
+}
+
+function checkPageNumbering(extracted) {
+  const rule = "Page numbering";
+  const expected = "APA requires a plain page number in the upper right corner of every page, starting with 1 on the title page.";
+  const expectedText = expected;
+
+  const pn = extracted.pageNumbering;
+  if (!pn) {
+    return {
+      rule, status: "review", passed: false,
+      expected, expectedText,
+      foundText: "APA Coach could not check page numbering in this document.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Page numbering unknown",
+      applicableParagraphs: 0,
+      details: ["Page numbering information could not be extracted from this document."],
+      howToFix: [], resources: [],
+    };
+  }
+
+  const issues = [];
+  const details = [];
+
+  if (!pn.defaultHeader || !pn.defaultHeader.hasNumber) {
+    issues.push("No page number was found in the document header. APA requires a page number in the upper right corner of every page.");
+  }
+
+  if (pn.titlePgEnabled && (!pn.firstPageHeader || !pn.firstPageHeader.hasNumber)) {
+    issues.push("The title page header is missing a page number. Page numbering must start at 1 on the title page.");
+  }
+
+  const headersToCheck = [pn.defaultHeader, pn.titlePgEnabled ? pn.firstPageHeader : null].filter(Boolean);
+  if (headersToCheck.some((h) => h.hasPageLabel)) {
+    issues.push('The page number should be a plain number only — do not include "Page" or "Pg" before the number.');
+  }
+
+  if (pn.defaultHeader && pn.defaultHeader.hasNumber && !pn.defaultHeader.tabBeforeNumber) {
+    details.push(
+      "The page number may not be positioned in the upper right corner. In Word, press Tab twice in the Header to reach the right-flush position before inserting the page number.",
+    );
+  }
+
+  const status = issues.length > 0 ? "fail" : "pass";
+
+  return {
+    rule, status, passed: status === "pass",
+    expected, expectedText,
+    foundText: status === "pass"
+      ? "Page numbers appear in the header on all pages, starting at 1 on the title page."
+      : issues.join(" "),
+    applicable: 1, checked: 1,
+    matched: status === "pass" ? 1 : 0,
+    failed: status === "fail" ? 1 : 0,
+    unknown: 0,
+    found: status === "pass" ? "Page numbering detected" : "Page numbering issue detected",
+    applicableParagraphs: 0,
+    details: issues.concat(details),
+    howToFix: status === "fail" ? getHowToFix(rule) : [],
+    resources: status === "fail" ? [PAGE_NUMBER_MSFT_RESOURCE] : [],
+  };
 }
 
 function checkTitlePage(extracted) {
@@ -1703,6 +1778,7 @@ function checkApaFormatting(extracted) {
   const hasCitations = extractInlineCitationKeys(bodyText).length > 0;
 
   return [
+    checkPageNumbering(extracted),
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
     checkInlineCitations(extracted, referencesHeading),
@@ -1731,6 +1807,7 @@ function checkApaFormatting(extracted) {
 
 module.exports = {
   checkApaFormatting,
+  checkPageNumbering,
   checkTitlePage,
   checkReferencesPage,
   checkReferencesHeadingAlignment,

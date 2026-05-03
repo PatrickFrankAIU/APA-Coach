@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { extractDocxFormattingFromXml } from "../docx/extractDocxFormatting.js";
+import { extractDocxFormattingFromXml, resolveHeaderFiles } from "../docx/extractDocxFormatting.js";
 import { checkApaFormatting } from "../checks/checkApaFormatting.js";
 
 async function readZipText(zip, entryName) {
@@ -13,7 +13,14 @@ export async function analyzeDocxFile(file) {
   const documentXml = await readZipText(zip, "word/document.xml");
   const stylesXml = await readZipText(zip, "word/styles.xml");
   const relsXml = await readZipText(zip, "word/_rels/document.xml.rels");
-  const extracted = extractDocxFormattingFromXml(documentXml, stylesXml, relsXml);
+
+  const headerFiles = resolveHeaderFiles(relsXml, documentXml);
+  const headerXmlsByType = {};
+  for (const [type, file] of Object.entries(headerFiles)) {
+    headerXmlsByType[type] = await readZipText(zip, file);
+  }
+
+  const extracted = extractDocxFormattingFromXml(documentXml, stylesXml, relsXml, headerXmlsByType);
   const checks = checkApaFormatting(extracted);
   const passed = checks.filter((check) => check.status === "pass").length;
   const failed = checks.filter((check) => check.status === "fail").length;

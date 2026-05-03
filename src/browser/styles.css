@@ -47,6 +47,21 @@ input {
   border-radius: 8px;
 }
 
+.beta-notice {
+  padding: 10px 14px;
+  background: #2e2a18;
+  border: 1px solid #7a6520;
+  border-radius: 6px;
+  color: #e8d87a;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.beta-notice strong {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
 .app-info-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, max-content));

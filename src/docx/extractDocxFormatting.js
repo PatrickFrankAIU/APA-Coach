@@ -593,7 +593,121 @@ function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}) {
   });
 }
 
-function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = null) {
+function resolveHeaderFiles(relsXml, documentXml) {
+  if (!relsXml || !documentXml) return {};
+
+  const relsDoc = parseXml(relsXml);
+  const allRels = toArray(relsDoc.Relationships && relsDoc.Relationships.Relationship);
+  const ridToFile = {};
+  for (const rel of allRels) {
+    if (rel.Type && rel.Type.includes("/header") && rel.Id && rel.Target) {
+      const target = rel.Target;
+      ridToFile[rel.Id] = target.startsWith("word/") ? target : `word/${target}`;
+    }
+  }
+
+  const docParsed = parseXml(documentXml);
+  const sectPr = findSectionProperties(docParsed);
+  if (!sectPr) return {};
+
+  const result = {};
+  for (const ref of toArray(sectPr.headerReference)) {
+    const type = ref.type;
+    const rId = ref.id;
+    if (type && rId && ridToFile[rId]) {
+      result[type] = ridToFile[rId];
+    }
+  }
+  return result;
+}
+
+function collectHeaderParagraphs(hdr) {
+  const paras = [];
+  for (const p of toArray(hdr.p)) paras.push(p);
+  for (const sdt of toArray(hdr.sdt)) {
+    if (sdt.sdtContent) {
+      for (const p of toArray(sdt.sdtContent.p)) paras.push(p);
+    }
+  }
+  return paras;
+}
+
+function getInstrText(run) {
+  if (!run.instrText) return "";
+  if (typeof run.instrText === "string") return run.instrText;
+  if (typeof run.instrText["#text"] === "string") return run.instrText["#text"];
+  return String(run.instrText);
+}
+
+function analyzeHeaderXml(headerXml) {
+  if (!headerXml) return null;
+
+  const parsed = parseXml(headerXml);
+  const hdr = parsed.hdr;
+  if (!hdr) return null;
+
+  const paragraphs = collectHeaderParagraphs(hdr);
+  let hasPageField = false;
+  let hasLiteralNumber = false;
+  let tabBeforeNumber = false;
+  let hasPageLabel = false;
+
+  for (const para of paragraphs) {
+    let seenTab = false;
+
+    // Process direct runs first (picks up tabs that precede an inline sdt)
+    for (const run of toArray(para.r)) {
+      if (run.tab !== undefined) seenTab = true;
+
+      const instr = getInstrText(run);
+      if (/\bPAGE\b/i.test(instr)) {
+        hasPageField = true;
+        if (seenTab) tabBeforeNumber = true;
+      }
+
+      const text = getRunText(run).trim();
+      if (/\b(?:page|pg)\b/i.test(text)) hasPageLabel = true;
+
+      if (seenTab && !hasPageField && /^\d{1,3}$/.test(text)) {
+        hasLiteralNumber = true;
+        tabBeforeNumber = true;
+      }
+    }
+
+    // Also check runs inside inline sdt elements within the paragraph
+    // (Word wraps page number fields in sdt when inserted via Insert > Page Number)
+    for (const sdt of toArray(para.sdt)) {
+      for (const run of toArray(sdt.sdtContent && sdt.sdtContent.r)) {
+        const instr = getInstrText(run);
+        if (/\bPAGE\b/i.test(instr)) {
+          hasPageField = true;
+          if (seenTab) tabBeforeNumber = true;
+        }
+        const text = getRunText(run).trim();
+        if (/\b(?:page|pg)\b/i.test(text)) hasPageLabel = true;
+      }
+    }
+  }
+
+  return {
+    hasPageField,
+    hasLiteralNumber,
+    hasNumber: hasPageField || hasLiteralNumber,
+    tabBeforeNumber,
+    hasPageLabel,
+  };
+}
+
+function extractPageNumbering(sectionProperties, headerXmlsByType) {
+  const titlePgEnabled = Boolean(sectionProperties && sectionProperties.titlePg !== undefined);
+  return {
+    titlePgEnabled,
+    defaultHeader: analyzeHeaderXml(headerXmlsByType.default || null),
+    firstPageHeader: analyzeHeaderXml(headerXmlsByType.first || null),
+  };
+}
+
+function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = null, headerXmlsByType = {}) {
   if (!documentXml) {
     throw new Error("Invalid .docx file: word/document.xml was not found.");
   }
@@ -614,6 +728,7 @@ function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = n
     documentDefaults: defaults.formatting,
     fontDefaults: extractDocumentDefaultFont(stylesDocument),
     paragraphs: extractParagraphs(document, styleMap, defaults, hyperlinkRels),
+    pageNumbering: extractPageNumbering(sectionProperties, headerXmlsByType),
   };
 }
 
@@ -631,10 +746,17 @@ function extractDocxFormatting(filePath) {
   const stylesXml = readDocxXml(zip, "word/styles.xml");
   const relsXml = readDocxXml(zip, "word/_rels/document.xml.rels");
 
-  return extractDocxFormattingFromXml(documentXml, stylesXml, relsXml);
+  const headerFiles = resolveHeaderFiles(relsXml, documentXml);
+  const headerXmlsByType = {};
+  for (const [type, file] of Object.entries(headerFiles)) {
+    headerXmlsByType[type] = readDocxXml(zip, file);
+  }
+
+  return extractDocxFormattingFromXml(documentXml, stylesXml, relsXml, headerXmlsByType);
 }
 
 module.exports = {
   extractDocxFormatting,
   extractDocxFormattingFromXml,
+  resolveHeaderFiles,
 };

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0] - 2026-05-03
+
+### Added
+
+- **Page numbering check** — Detects whether a plain page number appears in the document header. Verifies that the default header contains a `PAGE` field, that the title-page header also shows a number when a separate first-page header is configured, and that no "Page" or "Pg" label precedes the number. Handles page number fields wrapped in Word's inline content-control (`sdt`) elements as well as literal numbers on first-page headers.
+- **Beta notice banner** — Amber warning banner added to the app info card reminding users that APA Coach is in active development and that manual review is still required.
+
 ## [0.4.0] - 2026-05-02
 
 ### Added

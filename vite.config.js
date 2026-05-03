@@ -13,6 +13,7 @@ function commonJsSourceBridge() {
             `
 export {
   checkApaFormatting,
+  checkPageNumbering,
   checkTitlePage,
   checkReferencesPage,
   checkReferencesFormatting,
@@ -40,6 +41,7 @@ export {
             `
 export {
   extractDocxFormattingFromXml,
+  resolveHeaderFiles,
 };
 `,
           ),
