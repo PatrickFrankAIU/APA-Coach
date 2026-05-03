@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0] - 2026-05-03
+
+### Added
+
+- **Page numbering visual** — Two-column before/after mockup on the Page numbering fail card showing a header with no page number vs. a correct header with a plain number flush right.
+
 ## [0.5.1] - 2026-05-03
 
 ### Changed

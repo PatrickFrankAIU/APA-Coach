@@ -80,6 +80,37 @@ function CheckCard({ check }) {
       <p className="expected">{check.expectedText || check.expected}</p>
       {hasFixes ? (
         <div className="fixes">
+          {check.rule === "Page numbering" ? (
+            <div className="page-numbering-example">
+              <p className="page-numbering-example-label">Page number must appear in the upper right corner of every page:</p>
+              <div className="page-numbering-demo">
+                <div className="page-numbering-col">
+                  <span className="page-numbering-tag page-numbering-tag--wrong">✗ Missing</span>
+                  <div className="page-numbering-page">
+                    <div className="page-numbering-header page-numbering-header--empty" />
+                    <div className="page-numbering-body">
+                      <div className="page-numbering-line" />
+                      <div className="page-numbering-line" />
+                      <div className="page-numbering-line page-numbering-line--short" />
+                    </div>
+                  </div>
+                </div>
+                <div className="page-numbering-col">
+                  <span className="page-numbering-tag page-numbering-tag--right">✓ Correct</span>
+                  <div className="page-numbering-page">
+                    <div className="page-numbering-header">
+                      <span className="page-numbering-number">1</span>
+                    </div>
+                    <div className="page-numbering-body">
+                      <div className="page-numbering-line" />
+                      <div className="page-numbering-line" />
+                      <div className="page-numbering-line page-numbering-line--short" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {check.rule === "Title page" ? (
             <div className="title-page-example">
               <p className="title-page-example-label">Example APA title page layout:</p>

@@ -815,6 +815,82 @@ h1 {
   margin-bottom: 0;
 }
 
+.page-numbering-example {
+  margin-bottom: 12px;
+}
+
+.page-numbering-example-label {
+  margin: 0 0 6px;
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.page-numbering-demo {
+  display: flex;
+  gap: 12px;
+}
+
+.page-numbering-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  max-width: 160px;
+}
+
+.page-numbering-tag {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.page-numbering-tag--wrong {
+  color: #f87171;
+}
+
+.page-numbering-tag--right {
+  color: #6ee7b7;
+}
+
+.page-numbering-page {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.page-numbering-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 5px 10px;
+  border-bottom: 1px solid #374151;
+  min-height: 22px;
+}
+
+.page-numbering-number {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 0.8rem;
+  color: #e5e7eb;
+}
+
+.page-numbering-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 10px 12px;
+}
+
+.page-numbering-line {
+  height: 6px;
+  background: #374151;
+  border-radius: 2px;
+}
+
+.page-numbering-line--short {
+  width: 55%;
+}
+
 .line-spacing-example {
   margin-bottom: 12px;
 }
