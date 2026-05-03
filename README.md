@@ -98,6 +98,7 @@ The CLI prints a JSON report followed by a human-readable summary. `--verbose` i
 ## Tech stack
 
 - [Vite](https://vitejs.dev/) + [React](https://react.dev/) — build tooling and UI
+- [Node.js](https://nodejs.org/) — runtime for the CLI script and local development
 - [JSZip](https://stuk.github.io/jszip/) — in-browser `.docx` unpacking
 - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — XML parsing
 - [adm-zip](https://github.com/cthackers/adm-zip) — `.docx` unpacking in the Node CLI
