@@ -54,6 +54,14 @@ const ALIGN_TEXT_GFG_RESOURCE = {
   label: "GeeksforGeeks: Text Alignment in MS Word",
   url: "https://www.geeksforgeeks.org/ms-word/text-alignment-in-ms-word/",
 };
+const INLINE_CITATIONS_APA_RESOURCE = {
+  label: "APA Style: In-text citations",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/citations",
+};
+const INLINE_CITATIONS_OWL_RESOURCE = {
+  label: "Purdue OWL: In-Text Citations — The Basics",
+  url: "https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/in_text_citations_the_basics.html",
+};
 
 const UNAPPROVED_DOMAINS = [
   "123helpme.com","a1-termpaper.com","academic-papers.blogspot.com","academized.com",
@@ -721,6 +729,7 @@ function checkLineSpacingForParagraphs(paragraphs, rule, label) {
     unknowns,
     details,
     getHowToFix(rule),
+    [LINE_SPACING_MSFT_RESOURCE],
   );
 }
 
@@ -1406,7 +1415,7 @@ function checkInlineCitations(extracted, referencesHeading) {
     foundText: "APA Coach did not find any inline citations. If you used sources, add (Author, Year) citations throughout the body.",
     applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
     found: "No inline citations found", applicableParagraphs: 0,
-    details: [], howToFix: getHowToFix(rule), resources: [],
+    details: [], howToFix: getHowToFix(rule), resources: [INLINE_CITATIONS_APA_RESOURCE, INLINE_CITATIONS_OWL_RESOURCE],
   };
 }
 
