@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2] - 2026-05-05
+
+### Changed
+
+- **Branding update** — App name and resource link label updated from "AIU" to "AIUS".
+- **Unapproved source check** — The check description now links to [AIU's list of unapproved websites](https://careered.libguides.com/AIUS/unacceptablewebsites) in the README.
+
 ## [0.6.1] - 2026-05-05
 
 ### Added

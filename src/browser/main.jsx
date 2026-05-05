@@ -11,7 +11,7 @@ const APP_INFO = {
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
-      label: "AIU APA Guide",
+      label: "AIUS APA Guide",
       url: "https://careered.libguides.com/AIUS/APA",
     },
   ],
@@ -704,7 +704,7 @@ function App() {
           <a href="https://www.aiuniv.edu/" target="_blank" rel="noreferrer">
             <img className="brand-logo" src={aiuLogoUrl} alt="AIU" />
           </a>
-          <p className="eyebrow">AIU APA Coach</p>
+          <p className="eyebrow">AIUS APA Coach</p>
           <h1>Check APA Format</h1>
           <p>
             Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.

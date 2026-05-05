@@ -36,7 +36,7 @@ Each result card explains what was found, what APA expects, and (for failures) s
 | Unmatched citations | Every inline citation has a matching reference entry |
 | Reference DOI/URL | Each reference includes a visible DOI or URL |
 | Reference short link | Reference URLs link to a specific page, not just a domain homepage |
-| Unapproved source | References do not use sources on AIU's list of 145+ unapproved domains |
+| Unapproved source | References do not use sources on [AIU's list of 145+ unapproved domains](https://careered.libguides.com/AIUS/unacceptablewebsites) |
 | Margins | 1-inch margins on all four sides |
 | Body line spacing | Double spacing throughout body paragraphs |
 | Heading line spacing | Double spacing on heading paragraphs |
