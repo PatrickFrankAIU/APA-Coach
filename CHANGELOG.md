@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1] - 2026-05-05
+
+### Added
+
+- **Resource links for line spacing checks** — Heading line spacing and Body line spacing checks now include a link to Microsoft Support: Change the line spacing in Word (matching the existing References line spacing check).
+- **Resource links for Inline citations check** — Inline citations fail card now links to the official APA Style in-text citations guide and the Purdue OWL in-text citations basics page.
+
 ## [0.6.0] - 2026-05-03
 
 ### Added
