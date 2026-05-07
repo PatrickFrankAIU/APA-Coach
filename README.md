@@ -108,3 +108,13 @@ The CLI prints a JSON report followed by a human-readable summary. `--verbose` i
 ## Project rules
 
 See [AGENTS.md](AGENTS.md). The short version: no LLMs in application logic, all checks are deterministic, each APA rule is a separate function, output is structured JSON before rendering.
+
+---
+
+## License
+
+Copyright (C) 2026 Patrick Frank
+
+APA Coach is licensed under the GNU General Public License v3.0 (GPL-3.0).
+
+See the [LICENSE](LICENSE) file for details.

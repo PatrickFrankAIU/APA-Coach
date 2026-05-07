@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 5, 2026",
+  lastUpdated: "May 7, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -726,6 +726,10 @@ function App() {
       ) : null}
       {report ? <Report report={report} /> : null}
       {report ? <AppInfoCard /> : null}
+      <footer className="app-footer">
+        <p>APA Coach &copy; 2026 Patrick Frank</p>
+        <p>GPL-3.0 Licensed</p>
+      </footer>
     </div>
   );
 }

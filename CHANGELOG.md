@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.3] - 2026-05-07
+
+### Added
+
+- **App footer** — Persistent footer at the bottom of the page with copyright notice (© 2026 Patrick Frank) and GPL-3.0 license attribution.
+- **README license section** — Added a License section near the bottom of README.md with the copyright notice and GPL-3.0 reference.
+
 ## [0.6.2] - 2026-05-05
 
 ### Changed
