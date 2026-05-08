@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.4] - 2026-05-08
+
+### Fixed
+
+- **Stale analysis race condition** — If a second file was selected before the first finished analyzing, the first result could overwrite the report for the second file. A generation token now ensures only the most recent selection can update the report, error, and spinner state. Invalid or empty selections also advance the token and clear the spinner immediately.
+- **File size guard** — `.docx` files larger than 20 MB are now rejected before being read into memory, preventing large or malformed files from hanging the browser tab.
+
 ## [0.6.3] - 2026-05-07
 
 ### Added
