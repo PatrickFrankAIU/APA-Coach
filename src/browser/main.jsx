@@ -673,6 +673,7 @@ function App() {
   const analysisToken = useRef(0);
 
   async function analyzeSelectedFile(file) {
+    const token = ++analysisToken.current;
     setReport(null);
     setError("");
 
@@ -687,8 +688,6 @@ function App() {
     }
 
     setFileName(file.name);
-
-    const token = ++analysisToken.current;
     try {
       setIsAnalyzing(true);
       const result = await analyzeDocxFile(file);
