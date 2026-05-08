@@ -7,7 +7,12 @@ async function readZipText(zip, entryName) {
   return entry ? entry.async("text") : null;
 }
 
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+
 export async function analyzeDocxFile(file) {
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    throw new Error("This file is too large. APA Coach can analyze documents up to 20 MB. Please check that you are submitting a standard Word document.");
+  }
   const buffer = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(buffer);
   const documentXml = await readZipText(zip, "word/document.xml");
