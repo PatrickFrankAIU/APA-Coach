@@ -670,6 +670,7 @@ function App() {
   const [error, setError] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileName, setFileName] = useState("");
+  const analysisToken = useRef(0);
 
   async function analyzeSelectedFile(file) {
     setReport(null);
@@ -687,13 +688,17 @@ function App() {
 
     setFileName(file.name);
 
+    const token = ++analysisToken.current;
     try {
       setIsAnalyzing(true);
-      setReport(await analyzeDocxFile(file));
+      const result = await analyzeDocxFile(file);
+      if (token !== analysisToken.current) return;
+      setReport(result);
     } catch (analysisError) {
+      if (token !== analysisToken.current) return;
       setError(analysisError.message || "APA Coach could not read this .docx file.");
     } finally {
-      setIsAnalyzing(false);
+      if (token === analysisToken.current) setIsAnalyzing(false);
     }
   }
 
