@@ -670,30 +670,36 @@ function App() {
   const [error, setError] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileName, setFileName] = useState("");
+  const analysisToken = useRef(0);
 
   async function analyzeSelectedFile(file) {
+    const token = ++analysisToken.current;
     setReport(null);
     setError("");
 
     if (!file) {
+      setIsAnalyzing(false);
       return;
     }
 
     if (!file.name.toLowerCase().endsWith(".docx")) {
       setFileName("");
       setError("APA Coach can only analyze Word documents saved as .docx files.");
+      setIsAnalyzing(false);
       return;
     }
 
     setFileName(file.name);
-
     try {
       setIsAnalyzing(true);
-      setReport(await analyzeDocxFile(file));
+      const result = await analyzeDocxFile(file);
+      if (token !== analysisToken.current) return;
+      setReport(result);
     } catch (analysisError) {
+      if (token !== analysisToken.current) return;
       setError(analysisError.message || "APA Coach could not read this .docx file.");
     } finally {
-      setIsAnalyzing(false);
+      if (token === analysisToken.current) setIsAnalyzing(false);
     }
   }
 
