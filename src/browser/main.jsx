@@ -678,12 +678,14 @@ function App() {
     setError("");
 
     if (!file) {
+      setIsAnalyzing(false);
       return;
     }
 
     if (!file.name.toLowerCase().endsWith(".docx")) {
       setFileName("");
       setError("APA Coach can only analyze Word documents saved as .docx files.");
+      setIsAnalyzing(false);
       return;
     }
 
