@@ -531,6 +531,10 @@ function Report({ report }) {
   return (
     <main className="report" aria-live="polite">
       <Summary report={report} />
+      <div className="filename-card">
+        <p className="filename-card-label">Analyzing</p>
+        <p className="filename-card-name">{report.file}</p>
+      </div>
       <section className="checks" aria-label="APA checks">
         {failChecks.length > 0 && (
           <section id="fail-section" className="check-group" aria-labelledby="fail-heading">

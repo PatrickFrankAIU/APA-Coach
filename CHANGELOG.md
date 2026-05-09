@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.2] - 2026-05-09
+
+### Added
+
+- **Filename card** — A bold, blue-accented card now appears above the check results showing the name of the file being analyzed, making it clear which paper the report applies to.
+
 ## [0.7.1] - 2026-05-09
 
 ### Added
