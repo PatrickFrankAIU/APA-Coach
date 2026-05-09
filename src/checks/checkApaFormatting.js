@@ -1363,7 +1363,7 @@ function checkReferencesLineSpacing(extracted, referencesHeading) {
 
   return finishCheck(
     "References line spacing",
-    "APA requires references to be double spaced and hanging.",
+    "APA requires references to be double spaced with a hanging indent.",
     foundText,
     referenceParagraphs,
     failures,
