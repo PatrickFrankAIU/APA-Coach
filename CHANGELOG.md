@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.4] - 2026-05-09
+
+### Changed
+
+- **References line spacing expected text** — Updated to "APA requires references to be double spaced with a hanging indent." to clarify both requirements in one place.
+
 ## [0.7.3] - 2026-05-09
 
 ### Changed
