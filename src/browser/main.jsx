@@ -765,9 +765,7 @@ function App() {
     <div id="top" className="app-shell">
       <header className="app-header">
         <div>
-          <a href="https://www.aiuniv.edu/" target="_blank" rel="noreferrer">
-            <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
-          </a>
+          <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
           <h1>Check APA Format</h1>
           <p>
             Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
