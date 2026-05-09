@@ -68,7 +68,7 @@ module.exports = {
       manifest: {
         name: "APA Coach",
         short_name: "APA Coach",
-        version: "0.7.0",
+        version: "0.7.1",
         description: "Check APA formatting in your Word documents — right in the browser.",
         start_url: "/APA-Coach/",
         scope: "/APA-Coach/",

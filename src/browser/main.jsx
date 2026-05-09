@@ -695,6 +695,8 @@ function AppInfoCard({ canInstall, triggerInstall }) {
   );
 }
 
+const SESSION_KEY = "apa-coach-session";
+
 function App() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState("");
@@ -702,6 +704,27 @@ function App() {
   const [fileName, setFileName] = useState("");
   const analysisToken = useRef(0);
   const { canInstall, triggerInstall } = useInstallPrompt();
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved) {
+        const { report: savedReport, fileName: savedFileName } = JSON.parse(saved);
+        setReport(savedReport);
+        setFileName(savedFileName);
+      }
+    } catch {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (report) {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ report, fileName }));
+    } else {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  }, [report, fileName]);
 
   async function analyzeSelectedFile(file) {
     const token = ++analysisToken.current;

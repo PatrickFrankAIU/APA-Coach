@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1] - 2026-05-09
+
+### Added
+
+- **Session restore** — The analysis report now survives an accidental F5 or page refresh. Results are saved to `sessionStorage` when a report is generated and restored on load. Closing the tab or opening a new one still gives a clean slate.
+
 ## [0.7.0] - 2026-05-09
 
 ### Added
