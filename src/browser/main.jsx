@@ -1,13 +1,13 @@
-import React, { useId, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import aiuLogoUrl from "../../aiuslogo.png";
+import apaCoachLogoUrl from "../../apacoachlogo.png";
 import packageInfo from "../../package.json";
 import { analyzeDocxFile } from "./apaBrowser.js";
 import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 8, 2026",
+  lastUpdated: "May 9, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -16,6 +16,27 @@ const APP_INFO = {
     },
   ],
 };
+
+function useInstallPrompt() {
+  const [prompt, setPrompt] = useState(null);
+
+  useEffect(() => {
+    function handler(e) {
+      e.preventDefault();
+      setPrompt(e);
+    }
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  function triggerInstall() {
+    if (!prompt) return;
+    prompt.prompt();
+    prompt.userChoice.then(() => setPrompt(null));
+  }
+
+  return { canInstall: !!prompt, triggerInstall };
+}
 
 const STATUS_ORDER = {
   fail: 0,
@@ -624,7 +645,7 @@ function DocxDropZone({ fileName, isAnalyzing, onFileSelected }) {
   );
 }
 
-function AppInfoCard() {
+function AppInfoCard({ canInstall, triggerInstall }) {
   return (
     <aside className="app-info-card" aria-label="Application information">
       <div className="beta-notice" role="note">
@@ -661,6 +682,15 @@ function AppInfoCard() {
           ))}
         </ul>
       </div>
+      {canInstall && (
+        <div className="install-section">
+          <h2>Install APA Coach</h2>
+          <p>Add APA Coach to your device for quick access — it works offline too, so you can check papers without an internet connection.</p>
+          <button className="install-button" type="button" onClick={triggerInstall}>
+            Install App
+          </button>
+        </div>
+      )}
     </aside>
   );
 }
@@ -671,6 +701,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileName, setFileName] = useState("");
   const analysisToken = useRef(0);
+  const { canInstall, triggerInstall } = useInstallPrompt();
 
   async function analyzeSelectedFile(file) {
     const token = ++analysisToken.current;
@@ -708,9 +739,8 @@ function App() {
       <header className="app-header">
         <div>
           <a href="https://www.aiuniv.edu/" target="_blank" rel="noreferrer">
-            <img className="brand-logo" src={aiuLogoUrl} alt="AIU" />
+            <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
           </a>
-          <p className="eyebrow">AIUS APA Coach</p>
           <h1>Check APA Format</h1>
           <p>
             Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
@@ -719,7 +749,7 @@ function App() {
         <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
       </header>
 
-      {!report ? <AppInfoCard /> : null}
+      {!report ? <AppInfoCard canInstall={canInstall} triggerInstall={triggerInstall} /> : null}
       {isAnalyzing ? (
         <p className="notice" role="status">
           Analyzing document...
@@ -731,7 +761,7 @@ function App() {
         </p>
       ) : null}
       {report ? <Report report={report} /> : null}
-      {report ? <AppInfoCard /> : null}
+      {report ? <AppInfoCard canInstall={canInstall} triggerInstall={triggerInstall} /> : null}
       <footer className="app-footer">
         <p>APA Coach &copy; 2026 Patrick Frank</p>
         <p>GPL-3.0 Licensed</p>

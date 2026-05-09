@@ -128,6 +128,26 @@ input {
   margin-bottom: 14px;
 }
 
+.install-section {
+  margin-top: 24px;
+}
+
+.install-button {
+  margin-top: 16px;
+  padding: 8px 18px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.install-button:hover {
+  background: #1d4ed8;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: #93c5fd;

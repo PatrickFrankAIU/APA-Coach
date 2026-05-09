@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0] - 2026-05-09
+
+### Added
+
+- **PWA support** — APA Coach can now be installed as a standalone app on desktop and mobile. The browser's install prompt is surfaced via an "Install App" button in the app info card, below "Useful resources", with a short explanation. Once installed, the app works fully offline (including after a page refresh) since all analysis runs client-side.
+- **App icons** — New square app icon (`apacoachlogo.png`) resized to 512×512, 192×192, and 180×180 for the web app manifest and Apple touch icon.
+- **Service worker** — Workbox-powered service worker (via `vite-plugin-pwa`) caches the app shell on first load and auto-updates silently when a new version is deployed.
+
+### Changed
+
+- **Logo** — Replaced the AIUS wordmark logo with the new APA Coach square logo in the app header.
+- **Header title** — Removed the redundant "AIUS APA Coach" eyebrow label; the logo now serves as the sole branding element above the page heading.
+
 ## [0.6.4] - 2026-05-08
 
 ### Fixed
