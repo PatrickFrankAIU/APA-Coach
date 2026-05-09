@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import apaCoachLogoUrl from "../../apacoachlogo.png";
+const apaCoachLogoUrl = import.meta.env.BASE_URL + "pwa-192.png";
 import packageInfo from "../../package.json";
 import { analyzeDocxFile } from "./apaBrowser.js";
 import "./styles.css";
