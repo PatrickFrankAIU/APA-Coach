@@ -32,7 +32,7 @@ input {
   gap: 24px;
   align-items: center;
   padding: 32px;
-  background: #2a3441;
+  background: #03060e;
   border: 1px solid #3a4655;
   border-radius: 8px;
 }
@@ -167,7 +167,7 @@ p {
   margin: 32px auto 24px;
   max-width: 860px;
   padding: 20px 28px;
-  background: #1c2e3e;
+  background: #03060e;
   border-left: 6px solid #60a5fa;
   border-radius: 6px;
 }

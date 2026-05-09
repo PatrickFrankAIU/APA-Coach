@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3] - 2026-05-09
+
+### Changed
+
+- **Header background** — App header background color updated to `#03060e` to match the background of the APA Coach logo, giving the logo a seamless, flush appearance.
+- **Filename card background** — Analyzing card background also updated to `#03060e` for visual consistency.
+
 ## [0.7.2] - 2026-05-09
 
 ### Added
