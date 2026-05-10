@@ -89,6 +89,8 @@ input {
   gap: 6px;
   padding: 16px;
   min-height: 90px;
+  cursor: pointer;
+  padding: 26px 16px;
   border: 2px dashed #3a4655;
   border-radius: 8px;
   transition: border-color 0.15s;

@@ -609,7 +609,17 @@ function DocxDropZone({ fileName, isAnalyzing, onFileSelected, compact }) {
 
   if (compact) {
     return (
-      <div className={`drop-zone-compact${isDragging ? " dragging" : ""}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+      <div
+        className={`drop-zone-compact${isDragging ? " dragging" : ""}`}
+        role="button"
+        tabIndex="0"
+        aria-label="Upload a .docx file"
+        onClick={openFilePicker}
+        onKeyDown={handleKeyDown}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <input
           ref={inputRef}
           className="file-input"
@@ -618,7 +628,15 @@ function DocxDropZone({ fileName, isAnalyzing, onFileSelected, compact }) {
           onChange={handleInputChange}
         />
         <p className="drop-zone-compact-hint">Drop a .docx file here, or</p>
-        <button className="choose-file-button" type="button" disabled={isAnalyzing} onClick={openFilePicker}>
+        <button
+          className="choose-file-button"
+          type="button"
+          disabled={isAnalyzing}
+          onClick={(event) => {
+            event.stopPropagation();
+            openFilePicker();
+          }}
+        >
           Check another paper
         </button>
       </div>
