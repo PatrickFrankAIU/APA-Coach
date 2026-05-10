@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5] - 2026-05-09
+
+### Added
+
+- **Compact header** — When a paper is submitted, the full header is replaced by a slim bar showing the logo, the filename being analyzed, and a "Check another paper" drop zone. The full header is restored when a new session starts.
+- **New SVG logo** — Replaced the PNG logo with a new SVG design (document + magnifying glass, APA Coach wordmark, feature tagline). Background matches the card color for a seamless look.
+
 ## [0.7.4] - 2026-05-09
 
 ### Changed

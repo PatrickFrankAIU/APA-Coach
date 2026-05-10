@@ -530,10 +530,6 @@ function Report({ report }) {
 
   return (
     <main className="report" aria-live="polite">
-      <div className="filename-card">
-        <p className="filename-card-label">Analyzing</p>
-        <p className="filename-card-name">{report.file}</p>
-      </div>
       <Summary report={report} />
       <section className="checks" aria-label="APA checks">
         {failChecks.length > 0 && (
@@ -573,7 +569,7 @@ function Report({ report }) {
   );
 }
 
-function DocxDropZone({ fileName, isAnalyzing, onFileSelected }) {
+function DocxDropZone({ fileName, isAnalyzing, onFileSelected, compact }) {
   const inputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -609,6 +605,24 @@ function DocxDropZone({ fileName, isAnalyzing, onFileSelected }) {
       event.preventDefault();
       openFilePicker();
     }
+  }
+
+  if (compact) {
+    return (
+      <div className={`drop-zone-compact${isDragging ? " dragging" : ""}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+        <input
+          ref={inputRef}
+          className="file-input"
+          type="file"
+          accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          onChange={handleInputChange}
+        />
+        <p className="drop-zone-compact-hint">Drop a .docx file here, or</p>
+        <button className="choose-file-button" type="button" disabled={isAnalyzing} onClick={openFilePicker}>
+          Check another paper
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -761,27 +775,36 @@ function App() {
     }
   }
 
+  const isCompact = !!(report || isAnalyzing);
+
   return (
     <div id="top" className="app-shell">
-      <header className="app-header">
-        <div>
-          <div className="brand-block">
-            <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
+      {isCompact ? (
+        <header className="app-header-compact">
+          <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
+          <div className="compact-file-info">
+            <p className="compact-file-label">{isAnalyzing ? "Analyzing…" : "Analyzing"}</p>
+            <p className="compact-file-name">{fileName}</p>
           </div>
-          <h1>Check APA Format</h1>
-          <p>
-            Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
-          </p>
-        </div>
-        <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
-      </header>
+          <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} compact />
+        </header>
+      ) : (
+        <header className="app-header">
+          <div>
+            <div className="brand-block">
+              <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
+            </div>
+            <h1>Check APA Format</h1>
+            <p>
+              Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
+            </p>
+          </div>
+          <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
+        </header>
+      )}
 
       {!report ? <AppInfoCard canInstall={canInstall} triggerInstall={triggerInstall} /> : null}
-      {isAnalyzing ? (
-        <p className="notice" role="status">
-          Analyzing document...
-        </p>
-      ) : null}
+      {isAnalyzing ? <p className="notice" role="status" aria-live="polite">Analyzing document…</p> : null}
       {error ? (
         <p className="error" role="alert">
           {error}

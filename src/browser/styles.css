@@ -37,6 +37,73 @@ input {
   border-radius: 8px;
 }
 
+.app-header-compact {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 24px;
+  background: #03060e;
+  border: 1px solid #3a4655;
+  border-radius: 8px;
+}
+
+.app-header-compact .brand-logo {
+  flex-shrink: 0;
+  width: 220px;
+  margin-bottom: 0;
+}
+
+.compact-file-info {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.compact-file-label {
+  margin: 0 0 2px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #60a5fa;
+}
+
+.compact-file-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drop-zone-compact {
+  flex-shrink: 0;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  min-height: 90px;
+  border: 2px dashed #3a4655;
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.drop-zone-compact.dragging {
+  border-color: #60a5fa;
+}
+
+.drop-zone-compact-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
 .app-info-card {
   display: grid;
   gap: 14px;
