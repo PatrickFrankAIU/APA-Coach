@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 9, 2026",
+  lastUpdated: "May 10, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -40,8 +40,9 @@ function useInstallPrompt() {
 
 const STATUS_ORDER = {
   fail: 0,
-  review: 1,
-  pass: 2,
+  warn: 1,
+  review: 2,
+  pass: 3,
 };
 
 function sortChecks(checks) {
@@ -59,16 +60,18 @@ function SummaryCell({ count, label, href }) {
 }
 
 function Summary({ report }) {
-  const { failed, review, passed } = report.summary;
-  const isReady = failed === 0;
-  const issueText = failed === 1 ? "issue" : "issues";
+  const { failed, warn = 0, review, passed } = report.summary;
+  const issueCount = failed + warn;
+  const isReady = issueCount === 0;
+  const issueText = issueCount === 1 ? "issue" : "issues";
+  const failHref = failed > 0 ? "#fail-section" : warn > 0 ? "#warn-section" : null;
 
   return (
     <section className="summary" aria-labelledby="summary-heading">
       <div>
         <p className="eyebrow">Report summary</p>
         <h2 id="summary-heading">
-          {isReady ? "You're ready to submit" : `${failed} ${issueText} to fix`}
+          {isReady ? "You're ready to submit" : `${issueCount} ${issueText} to fix`}
         </h2>
         <p className="summary-copy">
           {isReady && review > 0
@@ -77,7 +80,7 @@ function Summary({ report }) {
         </p>
       </div>
       <dl className="summary-grid" aria-label="Check totals">
-        <SummaryCell count={failed} label="Failed" href={failed > 0 ? "#fail-section" : null} />
+        <SummaryCell count={issueCount} label="Failed" href={failHref} />
         <SummaryCell count={review} label="Review" href={review > 0 ? "#review-section" : null} />
         <SummaryCell count={passed} label="Passed" href={passed > 0 ? "#pass-section" : null} />
       </dl>
@@ -525,6 +528,7 @@ function CheckCard({ check }) {
 function Report({ report }) {
   const sortedChecks = useMemo(() => sortChecks(report.checks), [report]);
   const failChecks = sortedChecks.filter((c) => c.status === "fail");
+  const warnChecks = sortedChecks.filter((c) => c.status === "warn");
   const reviewChecks = sortedChecks.filter((c) => c.status === "review");
   const passChecks = sortedChecks.filter((c) => c.status === "pass");
 
@@ -537,6 +541,16 @@ function Report({ report }) {
             <h3 id="fail-heading" className="check-group-heading">Issues to fix (Required)</h3>
             <p className="fail-intro">These items should be corrected before you submit your paper.</p>
             {failChecks.map((check) => (
+              <CheckCard key={check.rule} check={check} />
+            ))}
+            <a href="#top" className="back-to-top">↑ Back to top</a>
+          </section>
+        )}
+        {warnChecks.length > 0 && (
+          <section id="warn-section" className="check-group" aria-labelledby="warn-heading">
+            <h3 id="warn-heading" className="check-group-heading">Warnings — verify before submitting</h3>
+            <p className="warn-intro">These items may indicate a problem. Open each link and confirm it leads to the source you intended.</p>
+            {warnChecks.map((check) => (
               <CheckCard key={check.rule} check={check} />
             ))}
             <a href="#top" className="back-to-top">↑ Back to top</a>
@@ -737,6 +751,7 @@ function App() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzePhase, setAnalyzePhase] = useState("Analyzing document…");
   const [fileName, setFileName] = useState("");
   const analysisToken = useRef(0);
   const { canInstall, triggerInstall } = useInstallPrompt();
@@ -782,7 +797,8 @@ function App() {
     setFileName(file.name);
     try {
       setIsAnalyzing(true);
-      const result = await analyzeDocxFile(file);
+      setAnalyzePhase("Analyzing document…");
+      const result = await analyzeDocxFile(file, (phase) => setAnalyzePhase(phase));
       if (token !== analysisToken.current) return;
       setReport(result);
     } catch (analysisError) {
@@ -801,7 +817,7 @@ function App() {
         <header className="app-header-compact">
           <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
           <div className="compact-file-info">
-            <p className="compact-file-label">{isAnalyzing ? "Analyzing…" : "Analyzing"}</p>
+            <p className="compact-file-label">{isAnalyzing ? analyzePhase : "Analyzing"}</p>
             <p className="compact-file-name">{fileName}</p>
           </div>
           <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} compact />
@@ -812,9 +828,9 @@ function App() {
             <div className="brand-block">
               <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
             </div>
-            <h1>Check APA Format</h1>
+            <h1>Check APA 7 Formatting</h1>
             <p>
-              Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.
+              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded, stored, or saved — your paper will never leave your hard drive.
             </p>
           </div>
           <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
@@ -822,7 +838,7 @@ function App() {
       )}
 
       {!report ? <AppInfoCard canInstall={canInstall} triggerInstall={triggerInstall} /> : null}
-      {isAnalyzing ? <p className="notice" role="status" aria-live="polite">Analyzing document…</p> : null}
+      {isAnalyzing ? <p className="notice" role="status" aria-live="polite">{analyzePhase}</p> : null}
       {error ? (
         <p className="error" role="alert">
           {error}

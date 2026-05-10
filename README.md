@@ -12,9 +12,10 @@ Licensed under the [GNU General Public License v3.0](LICENSE). You are free to u
 
 ## What it does
 
-APA Coach reads the formatting metadata inside a `.docx` file and checks it against APA 7th edition requirements. It produces a report organized into three categories:
+APA Coach reads the formatting metadata inside a `.docx` file and checks it against APA 7th edition requirements. It produces a report organized into four categories:
 
 - **Required fixes** — formatting errors that should be corrected before submission
+- **Warnings** — items that may indicate a problem and should be verified (e.g., a DOI that resolves to a different source)
 - **Optional review** — items that may be correct but couldn't be fully verified from the file alone
 - **Passed** — items that meet APA expectations
 
@@ -37,6 +38,7 @@ Each result card explains what was found, what APA expects, and (for failures) s
 | Reference DOI/URL | Each reference includes a visible DOI or URL |
 | Reference short link | Reference URLs link to a specific page, not just a domain homepage |
 | Unapproved source | References do not use sources on [AIU's list of 145+ unapproved domains](https://careered.libguides.com/AIUS/unacceptablewebsites) |
+| Reference link verification | DOIs are verified against CrossRef — flags mismatches where the DOI resolves to a different source than the reference claims; URLs are probed for liveness and flagged if they fail to respond |
 | Margins | 1-inch margins on all four sides |
 | Body line spacing | Double spacing throughout body paragraphs |
 | Heading line spacing | Double spacing on heading paragraphs |
@@ -57,7 +59,9 @@ APA Coach runs entirely in the browser using three layers:
 
 2. **Checking** (`src/checks/checkApaFormatting.js`) — Each APA rule is implemented as a separate deterministic function. Checks produce a structured result object with a status (`fail`, `review`, or `pass`), human-readable found/expected text, diagnostic details, and how-to-fix steps. No AI or heuristic guessing — only values that can be read from the file are evaluated; anything else is flagged as unverifiable rather than assumed.
 
-3. **UI** (`src/browser/main.jsx`) — A React interface renders the structured report. Results are grouped by status, with color-coded badges and expandable fix instructions.
+3. **Reference link verification** (`src/checks/verifyReferenceLinks.js`) — After formatting checks complete, each reference's DOI or URL is verified asynchronously. DOIs are checked against the [CrossRef API](https://api.crossref.org); if the returned title, author, or year disagrees with the reference, an orange warning card is shown. URLs are probed for liveness using a `no-cors` fetch. Up to 5 references are verified concurrently, bounded by a 13-second global timeout. Results are cached for the session so re-uploading the same paper doesn't repeat network requests.
+
+4. **UI** (`src/browser/main.jsx`) — A React interface renders the structured report. Results are grouped by status, with color-coded badges and expandable fix instructions.
 
 ---
 

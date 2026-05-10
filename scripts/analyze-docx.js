@@ -70,7 +70,7 @@ async function main() {
 
   try {
     const extracted = extractDocxFormatting(inputPath);
-    const checks = checkApaFormatting(extracted);
+    const { checks } = checkApaFormatting(extracted);
     const passed = checks.filter((check) => check.status === "pass").length;
     const failed = checks.filter((check) => check.status === "fail").length;
     const review = checks.filter((check) => check.status === "review").length;

@@ -450,6 +450,7 @@ h1 {
 }
 
 .fail-intro,
+.warn-intro,
 .review-intro,
 .pass-intro {
   margin: 0;
@@ -462,6 +463,12 @@ h1 {
   background: #352222;
   border: 1px solid #6d3d3d;
   color: #e8a0a0;
+}
+
+.warn-intro {
+  background: #352a1a;
+  border: 1px solid #6d4a2a;
+  color: #e8b080;
 }
 
 .review-intro {
@@ -486,6 +493,10 @@ h1 {
 
 .check-card.fail {
   border-left-color: #d16d6d;
+}
+
+.check-card.warn {
+  border-left-color: #d1864a;
 }
 
 .check-card.review {
@@ -524,6 +535,11 @@ h1 {
 .check-card.fail .status-badge {
   background: #3d1e1e;
   color: #d16d6d;
+}
+
+.check-card.warn .status-badge {
+  background: #3d2614;
+  color: #d1864a;
 }
 
 .check-card.review .status-badge {

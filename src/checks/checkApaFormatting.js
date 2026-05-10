@@ -1786,7 +1786,7 @@ function checkApaFormatting(extracted) {
     .join(" ");
   const hasCitations = extractInlineCitationKeys(bodyText).length > 0;
 
-  return [
+  const checks = [
     checkPageNumbering(extracted),
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
@@ -1812,6 +1812,12 @@ function checkApaFormatting(extracted) {
     checkAlignment(extracted),
     checkFonts(extracted),
   ];
+
+  const referenceGroups = referencesHeading
+    ? groupReferenceEntries(getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading))
+    : [];
+
+  return { checks, referenceGroups };
 }
 
 module.exports = {

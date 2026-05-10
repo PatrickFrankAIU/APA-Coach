@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0] - 2026-05-10
+
+### Added
+
+- **Reference link verification** — After formatting checks run, APA Coach now attempts to verify each reference's DOI or URL. DOIs are checked against the CrossRef API; if the returned metadata disagrees with the reference (title, author, or year mismatch), an orange warning card is shown. URLs are probed for liveness; broken or unreachable links surface as a yellow card. Verified DOIs show a green pass card. Results are cached for the session so re-uploading the same paper is fast.
+- **Warn status** — A new orange card level (between fail and review) for DOI metadata mismatches, where the link resolves but points to the wrong source.
+- **Two-phase analysis status** — The spinner now shows "Analyzing document…" during formatting checks and transitions to "Verifying references…" during network verification, so the extra time is clearly accounted for.
+- **13-second verification deadline** — All reference link checks are bounded by a 13-second global timeout with proper `AbortController` cancellation. References not resolved within the window are reported as unverifiable; work already completed is cached so re-uploads pick up where the previous run left off.
+
+### Changed
+
+- **Header text** — "Check APA Format" updated to "Check APA 7 Formatting"; subtitle updated to "Submit a Word document to verify its compatibility with APA 7. Files are not uploaded, stored, or saved — your paper will never leave your hard drive."
+
 ## [0.7.5] - 2026-05-09
 
 ### Added
