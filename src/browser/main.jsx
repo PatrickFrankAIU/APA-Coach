@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-const apaCoachLogoUrl = import.meta.env.BASE_URL + "pwa-192.png";
+import apaCoachLogoUrl from "../../apa-coach-logo.svg";
 import packageInfo from "../../package.json";
 import { analyzeDocxFile } from "./apaBrowser.js";
 import "./styles.css";
@@ -530,11 +530,11 @@ function Report({ report }) {
 
   return (
     <main className="report" aria-live="polite">
-      <Summary report={report} />
       <div className="filename-card">
         <p className="filename-card-label">Analyzing</p>
         <p className="filename-card-name">{report.file}</p>
       </div>
+      <Summary report={report} />
       <section className="checks" aria-label="APA checks">
         {failChecks.length > 0 && (
           <section id="fail-section" className="check-group" aria-labelledby="fail-heading">
@@ -765,7 +765,9 @@ function App() {
     <div id="top" className="app-shell">
       <header className="app-header">
         <div>
-          <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
+          <div className="brand-block">
+            <img className="brand-logo" src={apaCoachLogoUrl} alt="APA Coach" />
+          </div>
           <h1>Check APA Format</h1>
           <p>
             Submit a Word document to verify its APA formatting. Files are not uploaded, stored, or saved.

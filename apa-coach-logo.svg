@@ -1,0 +1,54 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="900" fill="#03060e"/>
+
+  <!-- Document -->
+  <rect x="480" y="120" width="320" height="430" rx="24" fill="#F3F5F8"/>
+  <path d="M700 120H800V220L700 120Z" fill="#2F80ED"/>
+
+  <!-- Document lines -->
+  <rect x="540" y="180" width="150" height="16" rx="8" fill="#2F80ED"/>
+  <rect x="540" y="240" width="200" height="14" rx="7" fill="#AAB3BE"/>
+  <rect x="540" y="290" width="200" height="14" rx="7" fill="#AAB3BE"/>
+  <rect x="540" y="340" width="200" height="14" rx="7" fill="#AAB3BE"/>
+  <rect x="540" y="390" width="200" height="14" rx="7" fill="#AAB3BE"/>
+  <rect x="540" y="440" width="200" height="14" rx="7" fill="#AAB3BE"/>
+
+  <!-- Magnifying glass -->
+  <circle cx="760" cy="360" r="145" fill="#F7F8FA" stroke="#0A1528" stroke-width="20"/>
+  <line x1="850" y1="455" x2="940" y2="545" stroke="#D9DDE3" stroke-width="18" stroke-linecap="round"/>
+  <rect x="925" y="525" width="55" height="130" rx="24" transform="rotate(-45 925 525)" fill="#0A1528"/>
+
+  <!-- Magnified lines -->
+  <circle cx="655" cy="315" r="6" fill="#AAB3BE"/>
+  <circle cx="655" cy="345" r="6" fill="#AAB3BE"/>
+  <circle cx="655" cy="375" r="6" fill="#AAB3BE"/>
+
+  <rect x="690" y="300" width="120" height="14" rx="7" fill="#AAB3BE"/>
+  <rect x="690" y="340" width="170" height="16" rx="8" fill="#2F80ED"/>
+  <rect x="690" y="385" width="140" height="16" rx="8" fill="#2F80ED"/>
+  <rect x="690" y="430" width="170" height="14" rx="7" fill="#AAB3BE"/>
+
+  <!-- Accent lines -->
+  <line x1="70" y1="690" x2="150" y2="690" stroke="#2F80ED" stroke-width="4" stroke-linecap="round"/>
+  <line x1="1250" y1="690" x2="1330" y2="690" stroke="#2F80ED" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Main title -->
+  <text x="700" y="760"
+        text-anchor="middle"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="120"
+        font-weight="700">
+    <tspan fill="#F5F7FA">APA </tspan><tspan fill="#2F80ED">Coach</tspan>
+  </text>
+
+  <!-- Footer text -->
+  <text x="700" y="840"
+        text-anchor="middle"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="34"
+        font-weight="400"
+        fill="#F5F7FA"
+        letter-spacing="0.5">
+    Margins • Double Spacing • Headings • References • Title Page
+  </text>
+</svg>
