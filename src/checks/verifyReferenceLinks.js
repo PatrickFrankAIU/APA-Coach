@@ -275,7 +275,7 @@ export async function verifyReferenceLinks(referenceGroups) {
     if (verified.length === total) {
       foundText = `All ${total} reference link${total === 1 ? "" : "s"} verified via CrossRef.`;
     } else if (urlResponded.length > 0 && verified.length === 0) {
-      foundText = `All ${total} reference URL${total === 1 ? "" : "s"} responded. Link content cannot be read from the browser — open each link to confirm it leads to the source you intended.`;
+      foundText = `All ${total} reference URL${total === 1 ? "" : "s"} responded. Open each link to confirm it leads to the source you intended.`;
     } else {
       foundText = `${verified.length} DOI${verified.length === 1 ? "" : "s"} verified; ${urlResponded.length} URL${urlResponded.length === 1 ? "" : "s"} responded.`;
     }
