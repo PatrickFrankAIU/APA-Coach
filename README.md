@@ -73,12 +73,32 @@ Files are processed locally in your browser using the [File API](https://develop
 
 ---
 
+## Running locally
+
+> **Students:** You don't need to install anything. Just open [APA Coach](https://patrickfrankaiu.github.io/APA-Coach/) in your browser and upload your paper. This section is for developers who want to run or modify the source code.
+
+```bash
+npm install
+npm run dev
+```
+
+Then open `http://localhost:5173/APA-Coach/` and upload a `.docx` file.
+
+To build for production:
+
+```bash
+npm run build
+```
+
+---
+
 ## Tech stack
 
 - [Vite](https://vitejs.dev/) + [React](https://react.dev/) — build tooling and UI
 - [Node.js](https://nodejs.org/) — runtime for local development
 - [JSZip](https://stuk.github.io/jszip/) — in-browser `.docx` unpacking
 - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — XML parsing
+- [adm-zip](https://github.com/cthackers/adm-zip) — `.docx` unpacking in the Node CLI
 
 ---
 
