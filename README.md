@@ -1,6 +1,6 @@
 # APA Coach
 
-A client-side tool for checking APA 7 formatting in Word documents. Upload a `.docx` file and get an instant report. Runs entirely within the browser — the student's paper never leaves their device. Report can be printed to a PDF.
+A client-side tool for checking APA 7 formatting in Word documents. Upload a `.docx` file and get an instant report. Runs entirely within the browser — your paper never leaves your device. Report can be printed to a PDF.
 
 > **Beta:** APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
 
