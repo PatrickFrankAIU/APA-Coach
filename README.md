@@ -1,4 +1,4 @@
-<p align="center"><img src="apa-coach-logo.svg" alt="APA Coach" width="330"></p>
+<p align="center"><img src="apa-coach-logo.svg" alt="APA Coach" width="363"></p>
 
 # APA Coach
 
