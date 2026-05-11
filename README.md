@@ -1,6 +1,6 @@
 # APA Coach
 
-A client-side tool for checking APA 7 formatting in Word documents. Upload a `.docx` file and get an instant report. Runs entirely within the browser — the student's paper never leaves their device.
+A client-side tool for checking APA 7 formatting in Word documents. Upload a `.docx` file and get an instant report. Runs entirely within the browser — the student's paper never leaves their device. Report can be printed to a PDF.
 
 > **Beta:** APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
 
@@ -21,6 +21,8 @@ APA Coach reads the formatting metadata inside a `.docx` file and checks it agai
 
 Each result card explains what was found, what APA expects, and (for failures) step-by-step instructions for fixing the issue in Microsoft Word.
 
+The report can be printed or saved as a PDF directly from the browser using the Print / Save as PDF button in the Report Summary card.
+
 ---
 
 ## Checks
@@ -38,7 +40,7 @@ Each result card explains what was found, what APA expects, and (for failures) s
 | Reference DOI/URL | Each reference includes a visible DOI or URL |
 | Reference short link | Reference URLs link to a specific page, not just a domain homepage |
 | Unapproved source | References do not use sources on [AIU's list of 145+ unapproved domains](https://careered.libguides.com/AIUS/unacceptablewebsites) |
-| Reference link verification | DOIs are verified against CrossRef — flags mismatches where the DOI resolves to a different source than the reference claims; URLs are probed for liveness and flagged if they fail to respond |
+| Reference link verification | DOIs are verified against CrossRef — flags mismatches where the DOI resolves to a different source than the reference claims; URLs cannot be verified from the browser (status codes are inaccessible via cross-origin fetch) and are noted for manual review |
 | Margins | 1-inch margins on all four sides |
 | Body line spacing | Double spacing throughout body paragraphs |
 | Heading line spacing | Double spacing on heading paragraphs |
@@ -59,9 +61,9 @@ APA Coach runs entirely in the browser using three layers:
 
 2. **Checking** (`src/checks/checkApaFormatting.js`) — Each APA rule is implemented as a separate deterministic function. Checks produce a structured result object with a status (`fail`, `review`, or `pass`), human-readable found/expected text, diagnostic details, and how-to-fix steps. No AI or heuristic guessing — only values that can be read from the file are evaluated; anything else is flagged as unverifiable rather than assumed.
 
-3. **Reference link verification** (`src/checks/verifyReferenceLinks.js`) — After formatting checks complete, each reference's DOI or URL is verified asynchronously. DOIs are checked against the [CrossRef API](https://api.crossref.org); if the returned title, author, or year disagrees with the reference, an orange warning card is shown. URLs are probed for liveness using a `no-cors` fetch. Up to 5 references are verified concurrently, bounded by a 13-second global timeout. Results are cached for the session so re-uploading the same paper doesn't repeat network requests.
+3. **Reference link verification** (`src/checks/verifyReferenceLinks.js`) — After formatting checks complete, each reference's DOI or URL is verified asynchronously. DOIs are checked against the [CrossRef API](https://api.crossref.org); if the returned title, author, or year disagrees with the reference, an orange warning card is shown. URLs cannot be verified for status codes from the browser (cross-origin fetches return opaque responses with no status), so they are noted for manual review. Up to 5 references are verified concurrently, bounded by a 13-second global timeout. Results are cached for the session so re-uploading the same paper doesn't repeat network requests.
 
-4. **UI** (`src/browser/main.jsx`) — A React interface renders the structured report. Results are grouped by status, with color-coded badges and expandable fix instructions.
+4. **UI** (`src/browser/main.jsx`) — A React interface renders the structured report. Results are grouped by status, with color-coded badges and expandable fix instructions. A print stylesheet produces a clean paginated PDF when the student uses the Print / Save as PDF button.
 
 ---
 
@@ -71,41 +73,12 @@ Files are processed locally in your browser using the [File API](https://develop
 
 ---
 
-## Running locally
-
-```bash
-npm install
-npm run dev
-```
-
-Then open `http://localhost:5173/APA-Coach/` and upload a `.docx` file.
-
-To build for production:
-
-```bash
-npm run build
-```
-
-### CLI
-
-A Node script is available for testing from the command line:
-
-```bash
-node scripts/analyze-docx.js path/to/file.docx
-node scripts/analyze-docx.js path/to/file.docx --verbose
-```
-
-The CLI prints a JSON report followed by a human-readable summary. `--verbose` includes paragraph-level counts and diagnostic details.
-
----
-
 ## Tech stack
 
 - [Vite](https://vitejs.dev/) + [React](https://react.dev/) — build tooling and UI
-- [Node.js](https://nodejs.org/) — runtime for the CLI script and local development
+- [Node.js](https://nodejs.org/) — runtime for local development
 - [JSZip](https://stuk.github.io/jszip/) — in-browser `.docx` unpacking
 - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — XML parsing
-- [adm-zip](https://github.com/cthackers/adm-zip) — `.docx` unpacking in the Node CLI
 
 ---
 
