@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0] - 2026-05-11
+
+### Added
+
+- **Print / Save as PDF report** — A "Print / Save as PDF" button in the Report Summary card opens the browser print dialog. The output is a light-themed, paginated report including all check cards with status badges, found/expected text, how-to-fix steps (auto-expanded), visual demos, and an inset list of specific issues where applicable. The suggested filename is `APACoach-<docx-name>.pdf`.
+
+### Changed
+
+- Removed "Your paper stays in this browser tab." from the Report Summary card.
+
 ## [0.8.1] - 2026-05-11
 
 ### Fixed

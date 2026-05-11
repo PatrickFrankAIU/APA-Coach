@@ -1320,3 +1320,252 @@ h1 {
 .app-footer p {
   margin: 0;
 }
+
+.print-report-header {
+  display: none;
+}
+
+.print-report-btn {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #304155;
+  color: #dbeafe;
+  border: 1px solid #4d6680;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.print-report-btn:hover,
+.print-report-btn:focus-visible {
+  background: #394d63;
+  outline: none;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    margin: 1in;
+  }
+
+  body {
+    background: white;
+    color: black;
+    font-size: 11pt;
+  }
+
+  .app-header,
+  .app-header-compact,
+  .drop-zone,
+  .drop-zone-compact,
+  .back-to-top,
+  .fix-toggle,
+  .app-footer,
+  .print-report-btn {
+    display: none !important;
+  }
+
+  .print-report-header {
+    display: block;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #333;
+  }
+
+  .print-report-title {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: black;
+  }
+
+  .print-report-meta {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #555;
+  }
+
+  .summary {
+    display: block;
+    background: white;
+    border-color: #ccc;
+    padding: 16px 0;
+  }
+
+  .summary h2 {
+    color: black;
+  }
+
+  .eyebrow {
+    color: #555;
+  }
+
+  .summary-copy {
+    color: #333;
+  }
+
+  .summary-grid {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .summary-cell {
+    background: #f4f4f4;
+    border-color: #ccc;
+    color: black;
+  }
+
+  .summary-grid dt {
+    color: #555;
+  }
+
+  .summary-grid dd {
+    color: black;
+  }
+
+  .check-group {
+    margin-top: 20px;
+  }
+
+  .check-group-heading {
+    color: black;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+  }
+
+  .fail-intro,
+  .warn-intro,
+  .review-intro,
+  .pass-intro {
+    background: #f5f5f5 !important;
+    border-color: #ccc !important;
+    color: #333 !important;
+  }
+
+  .check-card {
+    background: white;
+    border-color: #ccc;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .check-card.fail  { border-left-color: #d16d6d; }
+  .check-card.warn  { border-left-color: #d1864a; }
+  .check-card.review { border-left-color: #d1a14a; }
+  .check-card.pass  { border-left-color: #6bbf8f; }
+
+  .status-badge {
+    background: #eee;
+    color: #333;
+  }
+
+  .check-card.fail .status-badge   { background: #fde8e8; color: #b00; }
+  .check-card.warn .status-badge   { background: #fef0e6; color: #8a3800; }
+  .check-card.review .status-badge { background: #fef7e6; color: #6b4500; }
+  .check-card.pass .status-badge   { background: #e8f7ef; color: #155d37; }
+
+  .check-header h3,
+  .found {
+    color: black;
+  }
+
+  .expected {
+    color: #555;
+  }
+
+  .fixes [hidden] {
+    display: block !important;
+  }
+
+  .fixes ol {
+    color: black;
+  }
+
+  .missing-items {
+    background: #f5f5f5 !important;
+    border-color: #ccc !important;
+  }
+
+  .missing-items-label {
+    color: #333 !important;
+  }
+
+  .missing-items li {
+    color: #333 !important;
+  }
+
+  .check-resources h4 {
+    color: #333;
+  }
+
+  .check-resources a {
+    color: #1a56db;
+  }
+
+  /* --- visual demo light-theme overrides --- */
+
+  .title-page-demo,
+  .para-spacing-page,
+  .page-numbering-page,
+  .line-spacing-page,
+  .first-line-indent-page,
+  .heading-alignment-page,
+  .citation-example-page,
+  .hanging-indent-demo {
+    background: white !important;
+    border-color: #bbb !important;
+    color: black !important;
+  }
+
+  .margins-page {
+    background: #e8e8e8 !important;
+    border-color: #bbb !important;
+  }
+
+  .margins-content {
+    background: white !important;
+  }
+
+  .margins-line,
+  .page-numbering-line {
+    background: #bbb !important;
+  }
+
+  .page-numbering-header {
+    border-bottom-color: #bbb !important;
+  }
+
+  .page-numbering-number {
+    color: black !important;
+  }
+
+  .heading-alignment-lines span {
+    background: #bbb !important;
+  }
+
+  .citation-inline {
+    color: #1a56db !important;
+  }
+
+  .citation-inline--highlighted,
+  .citation-body-text--highlighted,
+  .font-example--wrong-heading {
+    color: #b00 !important;
+    text-decoration-color: #b00 !important;
+  }
+
+  [class*="-tag--wrong"] { color: #b00 !important; }
+  [class*="-tag--right"] { color: #166534 !important; }
+
+  [class*="-example-label"],
+  .hanging-indent-example-label,
+  .margins-caption {
+    color: #555 !important;
+  }
+}

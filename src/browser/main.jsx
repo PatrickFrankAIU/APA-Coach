@@ -75,9 +75,22 @@ function Summary({ report }) {
         </h2>
         <p className="summary-copy">
           {isReady && review > 0
-            ? `${review} optional ${review === 1 ? "item" : "items"} to review. Your paper stays in this browser tab.`
-            : `APA Coach checked ${report.summary.totalChecks} items in ${report.file}. Your paper stays in this browser tab.`}
+            ? `${review} optional ${review === 1 ? "item" : "items"} to review.`
+            : `APA Coach checked ${report.summary.totalChecks} items in ${report.file}.`}
         </p>
+        <button
+          className="print-report-btn"
+          type="button"
+          onClick={() => {
+            const stem = report.file.replace(/\.docx$/i, "");
+            const orig = document.title;
+            document.title = `APACoach-${stem}`;
+            window.addEventListener("afterprint", () => { document.title = orig; }, { once: true });
+            window.print();
+          }}
+        >
+          Print / Save as PDF
+        </button>
       </div>
       <dl className="summary-grid" aria-label="Check totals">
         <SummaryCell count={issueCount} label="Failed" href={failHref} />
@@ -532,8 +545,14 @@ function Report({ report }) {
   const reviewChecks = sortedChecks.filter((c) => c.status === "review");
   const passChecks = sortedChecks.filter((c) => c.status === "pass");
 
+  const printDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
   return (
     <main className="report" aria-live="polite">
+      <div className="print-report-header" aria-hidden="true">
+        <p className="print-report-title">APA Formatting Report</p>
+        <p className="print-report-meta">{report.file} &mdash; Checked {printDate} &mdash; APA Coach v{APP_INFO.version}</p>
+      </div>
       <Summary report={report} />
       <section className="checks" aria-label="APA checks">
         {failChecks.length > 0 && (
