@@ -181,26 +181,30 @@ async function verifySingleUrl(url, signal) {
   const cacheKey = `url:${url.toLowerCase().replace(/\/$/, "")}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  // Liveness-only: browser CORS policy prevents reading the response body or status code
-  // for cross-origin URLs. mode:'no-cors' gives an opaque response when the host answers,
-  // but opaque responses expose no status code — a 200 and a 404 are indistinguishable.
-  // To extend this to full content verification (og:title, JSON-LD, body-text matching),
-  // route fetches through a server-side proxy that returns the page metadata.
+  // Browser URL verification is fundamentally limited to couldnt_verify:
+  // 1. mode:'no-cors' gives an opaque response — any HTTP status (200, 403, 404) looks
+  //    identical; we cannot tell a live page from an error page.
+  // 2. Some servers set Cross-Origin-Resource-Policy: same-site, which causes the browser
+  //    to throw a network error even though the URL is perfectly valid. This is
+  //    indistinguishable from a genuine DNS failure or dead link in the catch block.
+  // Both cases are reported as couldnt_verify. To actually check URL content or status,
+  // route fetches through a server-side proxy.
   let result;
   try {
     await fetch(url, {
       mode: "no-cors",
       signal: AbortSignal.any([signal, AbortSignal.timeout(6000)]),
     });
-    // Opaque response: the host answered, but status code and content are inaccessible.
+    // Opaque response: host answered, but status and body are inaccessible.
     result = { outcome: "couldnt_verify" };
   } catch (err) {
     if (signal?.aborted) {
       // Global deadline fired — don't cache so a re-upload can retry this URL.
       return { outcome: "couldnt_verify" };
     }
-    // Per-request timeout (6 s) or network error — real failure, worth caching.
-    result = { outcome: "unresolved" };
+    // Could be a dead link, a timeout, or CORP: same-site blocking cross-origin reads.
+    // All three throw the same TypeError, so we can't distinguish them in the browser.
+    result = { outcome: "couldnt_verify" };
   }
 
   cache.set(cacheKey, result);
@@ -275,9 +279,9 @@ export async function verifyReferenceLinks(referenceGroups) {
     if (verified.length === total) {
       foundText = `All ${total} reference link${total === 1 ? "" : "s"} verified via CrossRef.`;
     } else if (urlResponded.length > 0 && verified.length === 0) {
-      foundText = `All ${total} reference URL${total === 1 ? "" : "s"} responded. Open each link to confirm it leads to the source you intended.`;
+      foundText = `${total} reference URL${total === 1 ? "" : "s"} found. Note: Automated checks cannot confirm status codes from the browser. Open each link to verify it leads to the source you intended.`;
     } else {
-      foundText = `${verified.length} DOI${verified.length === 1 ? "" : "s"} verified; ${urlResponded.length} URL${urlResponded.length === 1 ? "" : "s"} responded.`;
+      foundText = `${verified.length} DOI${verified.length === 1 ? "" : "s"} verified; ${urlResponded.length} URL${urlResponded.length === 1 ? "" : "s"} found (open each to confirm).`;
     }
   } else if (mismatches.length > 0 && unresolved.length === 0 && doiCouldntVerify.length === 0) {
     foundText = `${mismatches.length} of ${total} reference${mismatches.length === 1 ? "" : "s"} may point to the wrong source.`;

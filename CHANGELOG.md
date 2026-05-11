@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1] - 2026-05-11
+
+### Fixed
+
+- **URL verification false positive** — References hosted on sites that set `Cross-Origin-Resource-Policy: same-site` (e.g. Monocubed) were incorrectly flagged as unresolved. The browser throws a network error for CORP-blocked fetches, which is indistinguishable from a genuine DNS failure, so both are now reported as unverifiable rather than broken.
+- **URL verification false negative** — URLs returning 4xx responses (e.g. Techopedia returning 403) were silently passing because `mode: no-cors` opaque responses expose no status code. This is an inherent browser limitation; the check now accurately describes itself as unable to confirm status codes, and instructs students to open each link manually.
+
 ## [0.8.0] - 2026-05-10
 
 ### Added
