@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1] - 2026-05-13
+
+### Added
+
+- **Developer walkthrough** — `AGENTS.md` now includes a step-by-step guide for adding a new APA check: check function skeleton with all result fields annotated, when to use `finishCheck` vs. a manual return, where to add how-to-fix steps, how to register and export the check, and a reference table for the `extracted` object and its formatting fields.
+- **Formatting resolution comment** — `resolveRawParagraphProperty` in `extractDocxFormatting.js` now documents the four-level resolution order (direct → style chain → document defaults → inferred defaults).
+
 ## [0.9.0] - 2026-05-11
 
 ### Added
