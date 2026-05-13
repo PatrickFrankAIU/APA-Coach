@@ -370,6 +370,8 @@ function resolveFromStyleChain(styleId, styleMap, propertyName) {
   return null;
 }
 
+// Resolution order: (1) direct formatting on the paragraph, (2) the applied style and its
+// basedOn ancestors, (3) document-level defaults, (4) Word's built-in inferred defaults.
 function resolveRawParagraphProperty(paragraphProperties, styleId, styleMap, defaults, propertyName) {
   const directValue = findProperty(paragraphProperties, propertyName);
   if (directValue !== undefined) {
