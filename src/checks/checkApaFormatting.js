@@ -1030,8 +1030,11 @@ function extractInlineCitationKeys(bodyText) {
       if (!beforeYear) continue;
       // Strip "et al." — also handles missing space (e.g., "Smithet al." → "Smith")
       const withoutEtAl = beforeYear.replace(/\s*et\s+al\.?$/i, "").trim();
-      // For multi-author paren citations, take only the first author
-      const lastName = withoutEtAl.split(/\s*&\s*|\s+and\s+/i)[0].trim() || withoutEtAl;
+      // For multi-author paren citations, take only the first author.
+      // Split on "&"/"and" first (handles 2-author), then on the first comma
+      // (handles 3+ authors like "A, B, & C" emitted by Word's references feature).
+      const firstAuthorChunk = withoutEtAl.split(/\s*&\s*|\s+and\s+/i)[0].trim();
+      const lastName = firstAuthorChunk.split(",")[0].trim() || firstAuthorChunk || withoutEtAl;
       const key = `${lastName.toLowerCase()}|${year.replace(/[a-z]$/, "")}`;
       if (!seen.has(key)) {
         seen.add(key);

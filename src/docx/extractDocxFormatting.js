@@ -163,6 +163,15 @@ function extractDocumentDefaultFont(stylesDocument) {
 
 function getRunText(run) {
   const parts = [];
+  // Word splits hyphenated words at line-break-eligible points by emitting
+  // <w:noBreakHyphen/> followed by the continuation <w:t> in a new run, so
+  // prepending the hyphen restores the original spelling (e.g. "Smith-Jones").
+  // The XML parser doesn't preserve element order, but in practice the hyphen
+  // starts the continuation run.
+  if (run && run.noBreakHyphen !== undefined) {
+    const count = Array.isArray(run.noBreakHyphen) ? run.noBreakHyphen.length : 1;
+    parts.push("-".repeat(count));
+  }
   const textNodes = toArray(run.t);
   for (const text of textNodes) {
     if (typeof text === "string") {
