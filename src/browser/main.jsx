@@ -764,7 +764,7 @@ function AppInfoCard({ canInstall, triggerInstall }) {
       {canInstall && (
         <div className="install-section">
           <h2>Install APA Coach</h2>
-          <p>Add APA Coach to your device for quick access. Formatting checks work offline; reference link verification requires a connection.</p>
+          <p>Add APA Coach to your device for quick access. Formatting checks work offline; reference link verification requires a connection to the internet.</p>
           <button className="install-button" type="button" onClick={triggerInstall}>
             Install App
           </button>
@@ -859,7 +859,7 @@ function App() {
             </div>
             <h1>Check APA 7 Formatting</h1>
             <p>
-              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded or stored — your paper stays in your browser. DOIs and URLs in your references are checked against public databases to verify they resolve correctly. Formatting checks work offline; reference link verification requires a connection.
+              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded or stored — your paper stays in your browser. DOIs and URLs in your references are checked against public databases to verify they resolve correctly. Formatting checks work offline; reference link verification requires a connection to the internet.
             </p>
           </div>
           <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
