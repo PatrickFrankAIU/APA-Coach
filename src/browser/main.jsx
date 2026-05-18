@@ -859,7 +859,7 @@ function App() {
             </div>
             <h1>Check APA 7 Formatting</h1>
             <p>
-              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded, stored, or saved — your paper will never leave your hard drive. Formatting checks work offline; reference link verification requires a connection.
+              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded or stored — your paper stays in your browser. DOIs and URLs in your references are checked against public databases to verify they resolve correctly. Formatting checks work offline; reference link verification requires a connection.
             </p>
           </div>
           <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
