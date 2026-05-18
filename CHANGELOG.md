@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.3] - 2026-05-18
+
+### Added
+
+- **Offline support** — If the browser has no internet connection when a document is analyzed, reference link verification is skipped entirely (rather than timing out after 13 seconds). A gray "skipped" card explains that formatting checks ran normally but links weren't checked. If the connection drops mid-verification, the check aborts immediately and shows the same card. The header subtitle and PWA install prompt now accurately describe what works offline.
+
 ## [0.9.2] - 2026-05-18
 
 ### Fixed

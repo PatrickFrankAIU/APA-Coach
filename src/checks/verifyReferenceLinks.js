@@ -211,13 +211,15 @@ async function verifySingleUrl(url, signal) {
   return result;
 }
 
-export async function verifyReferenceLinks(referenceGroups) {
+export async function verifyReferenceLinks(referenceGroups, externalSignal) {
   if (!referenceGroups || referenceGroups.length === 0) return null;
 
   const controller = new AbortController();
-  const { signal } = controller;
   // 13 s total budget: two full rounds of 5 concurrent 6 s URL fetches, plus a hair of overage.
   const deadlineTimer = setTimeout(() => controller.abort(), 13_000);
+  const signal = externalSignal
+    ? AbortSignal.any([controller.signal, externalSignal])
+    : controller.signal;
 
   const tasks = referenceGroups.map((group) => async () => {
     // If the deadline already fired before this task starts, skip the fetch entirely.

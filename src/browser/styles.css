@@ -552,6 +552,11 @@ h1 {
   color: #6bbf8f;
 }
 
+.check-card.skipped .status-badge {
+  background: #2e3540;
+  color: #7a8a9a;
+}
+
 .found {
   margin-bottom: 8px;
 }
@@ -1465,10 +1470,11 @@ h1 {
     color: #333;
   }
 
-  .check-card.fail .status-badge   { background: #fde8e8; color: #b00; }
-  .check-card.warn .status-badge   { background: #fef0e6; color: #8a3800; }
-  .check-card.review .status-badge { background: #fef7e6; color: #6b4500; }
-  .check-card.pass .status-badge   { background: #e8f7ef; color: #155d37; }
+  .check-card.fail .status-badge    { background: #fde8e8; color: #b00; }
+  .check-card.warn .status-badge    { background: #fef0e6; color: #8a3800; }
+  .check-card.review .status-badge  { background: #fef7e6; color: #6b4500; }
+  .check-card.pass .status-badge    { background: #e8f7ef; color: #155d37; }
+  .check-card.skipped .status-badge { background: #e8eaec; color: #555; }
 
   .check-header h3,
   .found {

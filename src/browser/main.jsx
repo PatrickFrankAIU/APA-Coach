@@ -43,6 +43,7 @@ const STATUS_ORDER = {
   warn: 1,
   review: 2,
   pass: 3,
+  skipped: 4,
 };
 
 function sortChecks(checks) {
@@ -544,6 +545,7 @@ function Report({ report }) {
   const warnChecks = sortedChecks.filter((c) => c.status === "warn");
   const reviewChecks = sortedChecks.filter((c) => c.status === "review");
   const passChecks = sortedChecks.filter((c) => c.status === "pass");
+  const skippedChecks = sortedChecks.filter((c) => c.status === "skipped");
 
   const printDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
@@ -595,6 +597,14 @@ function Report({ report }) {
               <CheckCard key={check.rule} check={check} />
             ))}
             <a href="#top" className="back-to-top">↑ Back to top</a>
+          </section>
+        )}
+        {skippedChecks.length > 0 && (
+          <section id="skipped-section" className="check-group" aria-labelledby="skipped-heading">
+            <h3 id="skipped-heading" className="check-group-heading">Not checked (Offline)</h3>
+            {skippedChecks.map((check) => (
+              <CheckCard key={check.rule} check={check} />
+            ))}
           </section>
         )}
       </section>
@@ -754,7 +764,7 @@ function AppInfoCard({ canInstall, triggerInstall }) {
       {canInstall && (
         <div className="install-section">
           <h2>Install APA Coach</h2>
-          <p>Add APA Coach to your device for quick access — it works offline too, so you can check papers without an internet connection.</p>
+          <p>Add APA Coach to your device for quick access. Formatting checks work offline; reference link verification requires a connection.</p>
           <button className="install-button" type="button" onClick={triggerInstall}>
             Install App
           </button>
@@ -849,7 +859,7 @@ function App() {
             </div>
             <h1>Check APA 7 Formatting</h1>
             <p>
-              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded, stored, or saved — your paper will never leave your hard drive.
+              Submit a Word document to verify its compatibility with APA 7. Files are not uploaded, stored, or saved — your paper will never leave your hard drive. Formatting checks work offline; reference link verification requires a connection.
             </p>
           </div>
           <DocxDropZone fileName={fileName} isAnalyzing={isAnalyzing} onFileSelected={analyzeSelectedFile} />
