@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.2] - 2026-05-18
+
+### Fixed
+
+- **Unmatched citation false positive for Word-generated citations** — Multi-author paren citations like "(Smith, Jones, & Brown, 2023)" produced by Word's References feature were keyed on the full author chunk instead of just the first author, causing them to never match their reference entry. The citation parser now correctly reduces these to the first author before matching.
+- **Non-breaking hyphen not extracted** — `<w:noBreakHyphen/>` elements (inserted by Word when splitting hyphenated names across runs) were silently dropped, turning names like "Smith-Jones" into "SmithJones" in extracted text. These are now emitted as a hyphen character.
+
+### Changed
+
+- Removed "AIU" from the "Unapproved source" how-to-fix step that recommends searching library databases, making the wording institution-neutral.
+
 ## [0.9.1] - 2026-05-13
 
 ### Added

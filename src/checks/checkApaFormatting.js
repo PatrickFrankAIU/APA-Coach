@@ -338,7 +338,7 @@ function getHowToFix(rule) {
     return [
       "This source is on AIU's list of websites not approved for academic use.",
       "Replace it with a peer-reviewed article, textbook, or credible institutional source.",
-      "Search your AIU library database (ProQuest, EBSCOhost) for a credible alternative on the same topic.",
+      "Search your library database (ProQuest, EBSCOhost) for a credible alternative on the same topic.",
     ];
   }
 
