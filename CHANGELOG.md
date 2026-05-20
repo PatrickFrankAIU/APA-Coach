@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.4] - 2026-05-20
+
+### Added
+
+- **GoatCounter analytics** — Privacy-friendly, cookieless analytics via GoatCounter. Tracks page visits, papers checked, and PWA installs. No visible UI component; all analysis still runs entirely client-side.
+
 ## [0.9.3] - 2026-05-18
 
 ### Added

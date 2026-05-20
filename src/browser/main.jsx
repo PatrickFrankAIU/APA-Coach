@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 18, 2026",
+  lastUpdated: "May 20, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -32,7 +32,12 @@ function useInstallPrompt() {
   function triggerInstall() {
     if (!prompt) return;
     prompt.prompt();
-    prompt.userChoice.then(() => setPrompt(null));
+    prompt.userChoice.then((choice) => {
+      if (choice.outcome === "accepted") {
+        window.goatcounter?.count({ path: "pwa-installed", title: "PWA Installed", event: true });
+      }
+      setPrompt(null);
+    });
   }
 
   return { canInstall: !!prompt, triggerInstall };
@@ -830,6 +835,7 @@ function App() {
       const result = await analyzeDocxFile(file, (phase) => setAnalyzePhase(phase));
       if (token !== analysisToken.current) return;
       setReport(result);
+      window.goatcounter?.count({ path: "paper-checked", title: "Paper Checked", event: true });
     } catch (analysisError) {
       if (token !== analysisToken.current) return;
       setError(analysisError.message || "APA Coach could not read this .docx file.");
