@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0] - 2026-05-21
+
+### Added
+
+- **CITATION.cff** — Citation metadata file for referencing APA Coach in academic work.
+
+### Changed
+
+- **README disclaimer** — Replaced "Beta" label with "Note"; removed "Checks may miss issues or flag things incorrectly."
+
 ## [0.9.4] - 2026-05-20
 
 ### Added

@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: APA Coach
+version: 1.0.0
+date-released: 2026-05-21
+license: GPL-3.0
+repository-code: https://github.com/PatrickFrankAIU/APA-Coach
+abstract: "A client-side browser tool for checking APA 7th edition formatting in Word documents."
+authors:
+  - family-names: Frank
+    given-names: Patrick
+    affiliation: American InterContinental University
