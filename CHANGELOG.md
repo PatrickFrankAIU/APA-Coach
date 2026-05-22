@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.1.0] - 2026-05-22
+
+### Added
+
+- **Reference author format checks** — `checkReferenceAuthors` now detects all-caps last names (`HALLETT` → `Hallett`), full first names used instead of initials (`Harding, Scharon` → `Harding, S.`), and missing periods after initials (`Caesar, J` → `Caesar, J.`). Each failure shows a concrete "write X not Y" callout.
+- **Reference title capitalization check** — New `checkReferenceTitleCapitalization` flags reference titles that appear to use Title Case instead of APA-required sentence case. Uses a threshold of 2+ mid-title capitalized words (excluding acronyms and post-colon words). Includes a good/bad graphic in the UI.
+- **Unconverted markup symbols check** — New paper-wide `checkUnconvertedMarkup` detects markdown asterisks (`*word*`, `**word**`) that were pasted from AI output or markdown editors without being converted to Word formatting.
+- **Broken reference merging** — Reference entries split across multiple paragraphs (student pressed Enter mid-reference) are now merged before parsing, so all reference checks see the full entry text. Previously these entries were skipped or misclassified.
+- **Tab indent support** — `<w:tab/>` elements are now extracted from run content. Paragraphs that use a leading Tab character for indentation (APA 7 §2.23 explicitly permits this) correctly pass the Body first-line indents check.
+- **Reference punctuation `expectedItems`** — The Reference punctuation card now shows two plain-English bullets explaining the volume/issue and page range rules instead of a single dense summary line.
+- **Reference title capitalization graphic** — Good/bad side-by-side example added to the Reference title capitalization card.
+
+### Changed
+
+- **"References formatting" renamed to "Reference hanging indent"** — More specific name; updated expected text to mention double spacing alongside the hanging indent requirement. Graphic updated to show two double-spaced entries.
+- **Body first-line indents excludes all headings** — Previously only APA Level 1 headings (centered + bold) were excluded. Now all heading-like paragraphs (bold + short + no trailing punctuation, any alignment) are excluded, preventing false positives on Level 2–4 headings formatted without Word heading styles.
+- **Beta notice** — Removed "Beta —" label; text is now centered in the notice card.
+- **Last Updated** date updated to May 22, 2026.
+
+### Fixed
+
+- **Reference author false positives** — `parseReferenceEntry` was stripping trailing periods from `authorsRaw` (e.g. `"Shoam, A."` → `"Shoam, A"`), causing the authors check to incorrectly flag correctly-formatted initials as missing a period. Fixed by preserving trailing periods in the author extraction.
+- **Author token splitting false positives** — Multi-author strings were not being split correctly at author boundaries, causing co-authors' last names to be mistaken for full first names. Replaced naive `&`-split with a lookbehind regex that splits on `.<separator><Capital>` boundaries.
+
 ## [1.0.0] - 2026-05-21
 
 ### Added
