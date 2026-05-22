@@ -395,6 +395,15 @@ function summarizeKnownCheck(label, expected, applicableParagraphs, failures, un
 }
 
 function getHowToFix(rule) {
+  if (rule === "Unconverted markup symbols") {
+    return [
+      "These symbols are markdown formatting codes — they work in apps like Notion or GitHub but not in Word.",
+      "Remove the asterisks or underscores and apply formatting directly in Word instead.",
+      "To italicize: select the text, delete the surrounding * symbols, then press Ctrl+I (Cmd+I on Mac).",
+      "To bold: select the text, delete the surrounding ** symbols, then press Ctrl+B (Cmd+B on Mac).",
+    ];
+  }
+
   if (rule === "Unapproved source") {
     return [
       "This source is on AIU's list of websites not approved for academic use.",
@@ -535,11 +544,23 @@ function getHowToFix(rule) {
 
   if (rule === "Reference authors") {
     return [
-      "List author names in Last, F. M. format (last name, then initials with periods).",
+      "List author names in Last, F. M. format — last name first, then initials with a period after each initial.",
+      "Use only initials, not full first or middle names: write \"Smith, J. A.\" not \"Smith, Jane Ann\".",
+      "Each initial must be followed by a period and a space: \"J. R.\" not \"JR\" or \"J R\".",
+      "Last names use normal title case — capitalize only the first letter: \"Hallett\" not \"HALLETT\".",
       "Separate two authors with \", & \" — use \"&\" not \"and\".",
       "For 3–20 authors, list all of them separated by commas, with \"&\" before the last.",
       "For 21+ authors, list the first 19, then an ellipsis (…), then the last author.",
       "Do not use \"et al.\" in a reference entry — \"et al.\" is only for inline citations.",
+    ];
+  }
+
+  if (rule === "Reference title capitalization") {
+    return [
+      "Reference titles use sentence case: capitalize only the first word, the first word after a colon, and proper nouns.",
+      "Example — correct: \"The effects of social media on academic performance\"",
+      "Example — incorrect: \"The Effects of Social Media on Academic Performance\"",
+      "Proper nouns (names of people, places, organizations, brands) stay capitalized: \"Facebook\", \"United States\", \"COVID-19\".",
     ];
   }
 
@@ -630,15 +651,15 @@ function getHowToFix(rule) {
     ];
   }
 
-  if (rule === "References formatting") {
+  if (rule === "Reference hanging indent") {
     return [
       "If any entries are bare URLs: replace each URL-only line with a full APA reference. A complete reference includes the author's last name and initials, publication year in parentheses, title of the work, and the URL or DOI.",
       "Example: Smith, J. A. (2023). Title of article. Site Name. https://www.example.com/article",
-      "A hanging indent means the first line is flush left and all following lines are indented 0.5\".",
+      "A hanging indent means the first line is flush left and all following lines are indented 0.5\". References must also be double-spaced.",
       "Select all reference entries in Microsoft Word.",
       "Click the Line Spacing button (⇵☰) in the Home toolbar to open its menu.",
       "Click 'Line Spacing Options...'",
-      "In the Paragraph window, under Indentation, set Special to Hanging and By to 0.5\".",
+      "In the Paragraph window: under Indentation, set Special to Hanging and By to 0.5\". Under Spacing, set Line spacing to Double.",
       "Click OK.",
     ];
   }
@@ -989,13 +1010,16 @@ function checkFirstLineIndents(extracted, referencesHeading) {
   const refParagraphs = new Set(referencesHeading ? getReferenceEntryParagraphs(allParagraphs, referencesHeading) : []);
   // Exclude: abstract body (no indent per APA 7), Level 1 headings (centered+bold: correctly no indent), reference entries (covered by hanging-indent check)
   const applicableParagraphs = getParagraphsByRole(extracted, "body").filter(
-    (p) => !isAbstractBodyParagraph(p, allParagraphs) && !looksLikeApaLevel1Heading(p) && !refParagraphs.has(p),
+    (p) => !isAbstractBodyParagraph(p, allParagraphs) && !looksLikeMisformattedHeading(p) && !refParagraphs.has(p),
   );
   const unknowns = splitUnknowns(applicableParagraphs, "firstLineIndentInches");
   const checked = applicableParagraphs.length - unknowns.length;
   const failures = applicableParagraphs.filter((paragraph) => {
     const indent = paragraph.formatting.firstLineIndentInches;
-    return indent.known && !isClose(indent.value, EXPECTED_FIRST_LINE_INDENT_INCHES);
+    if (indent.known && isClose(indent.value, EXPECTED_FIRST_LINE_INDENT_INCHES)) return false;
+    // A leading tab character satisfies APA's 0.5" indent requirement (APA 7, §2.23)
+    if (/^\t/.test(paragraph.text)) return false;
+    return indent.known;
   });
   const matched = checked - failures.length;
   const headingFailures = failures.filter(looksLikeMisformattedHeading);
@@ -1237,7 +1261,7 @@ function parseReferenceEntry(paragraph) {
 
   result.year = yearMatch[1];
 
-  const beforeYear = text.slice(0, yearMatch.index).trim().replace(/[.,;\s]+$/, "").trim();
+  const beforeYear = text.slice(0, yearMatch.index).trim().replace(/[,;\s]+$/, "").trim();
   if (beforeYear) result.authorsRaw = beforeYear;
 
   let afterYear = text.slice(yearMatch.index + yearMatch[0].length).trim();
@@ -1451,6 +1475,28 @@ function groupReferenceEntries(referenceParagraphs) {
   return groups;
 }
 
+function mergeReferenceGroup(group) {
+  if (group.length === 1) return group[0];
+  let text = group[0].text;
+  const runs = [...(group[0].runs || [])];
+  for (let i = 1; i < group.length; i++) {
+    const cont = group[i].text;
+    // Preserve hyphenated word breaks (e.g. "E-" + "Commerce" → "E-Commerce")
+    // otherwise join with a space
+    if (/\-$/.test(text.trimEnd()) && /^[A-Za-z]/.test(cont.trimStart())) {
+      text = text.trimEnd() + cont.trimStart();
+    } else {
+      text = text.trimEnd() + " " + cont.trimStart();
+    }
+    for (const run of (group[i].runs || [])) runs.push(run);
+  }
+  return { ...group[0], text, runs, isMerged: true, mergedFrom: group };
+}
+
+function getMergedReferenceEntries(referenceParagraphs) {
+  return groupReferenceEntries(referenceParagraphs).map(mergeReferenceGroup);
+}
+
 function looksLikeIncompleteEnd(text) {
   const trimmed = text.trim();
   if (!trimmed) return false;
@@ -1594,11 +1640,11 @@ function checkReferencesFormatting(extracted, referencesHeading) {
       : [];
 
   return {
-    rule: "References formatting",
+    rule: "Reference hanging indent",
     status,
     passed: status === "pass",
-    expected: "APA expects references to use hanging indents and consistent formatting.",
-    expectedText: "APA expects references to use hanging indents and consistent formatting.",
+    expected: "APA requires each reference entry to use a 0.5-inch hanging indent and double spacing.",
+    expectedText: "APA requires each reference entry to use a 0.5-inch hanging indent and double spacing.",
     foundText:
       status === "fail"
         ? issues.join(" ")
@@ -1610,11 +1656,11 @@ function checkReferencesFormatting(extracted, referencesHeading) {
     unknown: 0,
     found:
       status === "pass"
-        ? "References formatting detected"
+        ? "Reference hanging indents detected"
         : `Formatting issues detected: ${issues.length}`,
     applicableParagraphs: referenceParagraphs.length,
     details: issues,
-    howToFix: status === "fail" ? getHowToFix("References formatting") : [],
+    howToFix: status === "fail" ? getHowToFix("Reference hanging indent") : [],
     resources,
   };
 }
@@ -1716,7 +1762,7 @@ function checkInlineCitations(extracted, referencesHeading) {
 
 function checkUncitedReferences(extracted, referencesHeading) {
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
     (p) => p.index < referencesHeading.index,
   );
@@ -1772,7 +1818,7 @@ function checkUncitedReferences(extracted, referencesHeading) {
 
 function checkUnmatchedCitations(extracted, referencesHeading) {
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
     (p) => p.index < referencesHeading.index,
   );
@@ -1840,7 +1886,7 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
 
 function checkReferenceDOIs(extracted, referencesHeading) {
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
   if (entryParagraphs.length === 0) {
     return {
@@ -1895,6 +1941,40 @@ function checkReferenceDOIs(extracted, referencesHeading) {
     resources: status === "fail" ? [APA_DOIS_URLS_RESOURCE] : [],
     missingItems: status === "fail" ? missingItems : [],
     missingItemsLabel: "References missing a visible DOI or URL:",
+  };
+}
+
+function checkUnconvertedMarkup(extracted) {
+  const rule = "Unconverted markup symbols";
+  const expected = "All formatting should use Word's built-in styles — not markdown symbols like *asterisks* or **double asterisks**.";
+  const applicableParagraphs = extracted.paragraphs.filter((p) => p.text.trim().length > 0);
+
+  const failures = [];
+  const details = [];
+  const missingItems = [];
+
+  for (const p of applicableParagraphs) {
+    const text = p.text;
+    // Match paired asterisks or double-asterisks around at least one letter
+    // Require a letter immediately after the opening marker to avoid lone * used as a bullet
+    if (/\*\*[A-Za-z][^*\n]*\*\*/.test(text) || /\*[A-Za-z][^*\n]*\*/.test(text)) {
+      failures.push(p);
+      const preview = text.trim().length > 70 ? text.trim().slice(0, 70) + "…" : text.trim();
+      details.push(`Markdown asterisks found: "${preview}"`);
+      missingItems.push(`"${preview}"`);
+    }
+  }
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} paragraph${failures.length === 1 ? "" : "s"} contain${failures.length === 1 ? "s" : ""} markdown asterisks that were not converted to Word formatting.`
+      : "No unconverted markdown symbols found.";
+
+  return {
+    ...finishCheck(rule, expected, foundText, applicableParagraphs, failures, [], details,
+      getHowToFix(rule), []),
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "Paragraphs with markup symbols:" : "",
   };
 }
 
@@ -2075,7 +2155,7 @@ function checkReferenceAuthors(extracted, referencesHeading) {
   const rule = "Reference authors";
   const expected = 'APA requires authors in "Last, F. M." format with "&" (not "and") before the final author.';
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
   if (entryParagraphs.length === 0) {
     return {
@@ -2094,16 +2174,77 @@ function checkReferenceAuthors(extracted, referencesHeading) {
     const parsed = parseReferenceEntry(p);
     if (!parsed.authorsRaw) { unknowns.push(p); continue; }
     const authors = parsed.authorsRaw;
+    const preview = authors.length > 70 ? authors.slice(0, 70) + "…" : authors;
+    let failed = false;
 
     if (/,\s+and\s+[A-Z]/i.test(authors)) {
       failures.push(p);
-      const preview = authors.length > 70 ? authors.slice(0, 70) + "…" : authors;
       details.push(`Use "&" instead of "and" between authors: "${preview}"`);
-      continue;
+      failed = true;
     }
     if (/\bet\.?\s*al\.?\b/i.test(authors)) {
-      failures.push(p);
+      if (!failed) failures.push(p);
       details.push(`"et al." should not appear in a reference entry — list all authors or use the 21+ format.`);
+      failed = true;
+    }
+
+    // Check each individual author token.
+    // APA separates authors with ", " (and ", & " before the last), so the boundary between
+    // two authors always looks like: <initial>., <LastName>... or <initial>. & <LastName>...
+    // Lookbehind keeps the period with the token so "S." doesn't become "S" (false positive).
+    const authorTokens = authors.split(/(?<=\.)(?:,\s*(?:&\s*)?|\s*&\s*)(?=[A-Z])/);
+    for (const token of authorTokens) {
+      const trimmed = token.trim();
+      if (!trimmed) continue;
+
+      // Expect "Last, I." or "Last, I. M." — must have a comma
+      const commaIdx = trimmed.indexOf(",");
+      if (commaIdx === -1) continue; // can't check without comma
+
+      const lastName = trimmed.slice(0, commaIdx).trim();
+      const initialsRaw = trimmed.slice(commaIdx + 1).trim();
+
+      // All-caps last name: e.g. HALLETT
+      if (lastName.length > 1 && lastName === lastName.toUpperCase() && /^[A-Z]/.test(lastName)) {
+        if (!failed) failures.push(p);
+        const titleCased = lastName[0] + lastName.slice(1).toLowerCase();
+        details.push(`Last name is all caps — write "${titleCased}" not "${lastName}"`);
+        failed = true;
+        break;
+      }
+
+      // Last name doesn't start with uppercase
+      if (lastName.length > 0 && !/^[A-Z]/.test(lastName)) {
+        if (!failed) failures.push(p);
+        details.push(`Last name should start with a capital letter: "${lastName}" in "${preview}"`);
+        failed = true;
+        break;
+      }
+
+      // Full first name instead of initial: a word of 2+ letters with no trailing period
+      // e.g. "Scharon" or "Jane" — match a word that is 2+ alpha chars
+      if (/\b[A-Za-z]{2,}(?!\.)/.test(initialsRaw)) {
+        // Allow "Jr." or "Sr." suffixes — ignore those
+        const withoutSuffix = initialsRaw.replace(/\b(Jr|Sr|II|III|IV)\b\.?/gi, "").trim();
+        if (/\b[A-Za-z]{2,}(?!\.)/.test(withoutSuffix)) {
+          const fullNameMatch = withoutSuffix.match(/\b([A-Za-z]{2,})(?!\.)/);
+          const fullName = fullNameMatch ? fullNameMatch[1] : initialsRaw.trim();
+          const suggested = `${lastName}, ${fullName[0].toUpperCase()}.`;
+          if (!failed) failures.push(p);
+          details.push(`Full name used instead of initial — write "${suggested}" not "${lastName}, ${fullName}"`);
+          failed = true;
+          break;
+        }
+      }
+
+      // Missing period after an initial: a single uppercase letter not followed by a period
+      // e.g. "J R" or "J," or trailing "J"
+      if (/\b[A-Z](?!\.)/.test(initialsRaw)) {
+        if (!failed) failures.push(p);
+        details.push(`Initial is missing a period — use "J." not "J": "${preview}"`);
+        failed = true;
+        break;
+      }
     }
   }
 
@@ -2114,15 +2255,19 @@ function checkReferenceAuthors(extracted, referencesHeading) {
         ? "APA Coach could not verify author format for some references — please review manually."
         : "Reference author formatting appears correct.";
 
-  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
-    getHowToFix(rule), [APA_AUTHORS_RESOURCE]);
+  return {
+    ...finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+      getHowToFix(rule), [APA_AUTHORS_RESOURCE]),
+    missingItems: details.length > 0 ? details : [],
+    missingItemsLabel: details.length > 0 ? "Author formatting issues:" : "",
+  };
 }
 
 function checkReferenceYear(extracted, referencesHeading) {
   const rule = "Reference year format";
   const expected = "APA requires the year in parentheses followed by a period: (2020). Title…";
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
   if (entryParagraphs.length === 0) {
     return {
@@ -2159,6 +2304,74 @@ function checkReferenceYear(extracted, referencesHeading) {
     getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]);
 }
 
+function checkReferenceTitleCapitalization(extracted, referencesHeading) {
+  const rule = "Reference title capitalization";
+  const expected = "APA requires sentence case for reference titles — capitalize only the first word, the first word after a colon, and proper nouns.";
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "No reference entries found.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+      missingItems: [], missingItemsLabel: "",
+    };
+  }
+
+  const failures = [];
+  const unknowns = [];
+  const details = [];
+  const missingItems = [];
+
+  for (const p of entryParagraphs) {
+    const parsed = parseReferenceEntry(p);
+    if (!parsed.title) { unknowns.push(p); continue; }
+    // Webpage titles vary too much to check reliably; all other kinds use sentence case
+    if (parsed.kindGuess === "webpage") continue;
+
+    const title = parsed.title;
+    const words = title.split(/\s+/);
+
+    let afterColon = false;
+    let capsCount = 0;
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      // Strip leading/trailing punctuation for the capital check
+      const bare = word.replace(/^["""''([\-–—]+|["""'')\].,!?;:]+$/g, "");
+      const isSkipped = i === 0 || afterColon;
+      afterColon = word.endsWith(":") || word.endsWith("—");
+      if (isSkipped) continue;
+      // Acronyms (all-caps, 2+ chars) are legitimate in any case style
+      if (bare.length > 1 && bare === bare.toUpperCase()) continue;
+      if (/^[A-Z]/.test(bare)) capsCount++;
+    }
+
+    if (capsCount >= 2) {
+      failures.push(p);
+      const preview = title.length > 60 ? title.slice(0, 60) + "…" : title;
+      details.push(`Title appears to use Title Case instead of sentence case: "${preview}"`);
+      missingItems.push(`"${preview}"`);
+    }
+  }
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} reference title${failures.length === 1 ? "" : "s"} appear to use Title Case instead of sentence case.`
+      : unknowns.length > 0
+        ? "APA Coach could not verify title capitalization for some references — please review manually."
+        : "Reference title capitalization appears correct.";
+
+  return {
+    ...finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+      getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]),
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "Titles to review:" : "",
+  };
+}
+
 function checkReferenceItalics(extracted, referencesHeading) {
   const rule = "Reference italics";
   const expected = "APA uses italics in references, but the rules depend on the source type:";
@@ -2168,7 +2381,7 @@ function checkReferenceItalics(extracted, referencesHeading) {
     "Journal articles: do not italicize the article title. Italicize the journal name and the volume number — but not the issue number (the number in parentheses).",
   ];
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
   if (entryParagraphs.length === 0) {
     return {
@@ -2270,9 +2483,9 @@ function checkReferenceItalics(extracted, referencesHeading) {
 
 function checkReferencePunctuation(extracted, referencesHeading) {
   const rule = "Reference punctuation";
-  const expected = 'APA: no "p." or "pp." in journal page ranges; no space between volume and issue: write 15(3) not 15 (3).';
+  const expected = "For journal articles, APA has two punctuation rules for the volume, issue, and page range:";
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
   if (entryParagraphs.length === 0) {
     return {
@@ -2315,15 +2528,23 @@ function checkReferencePunctuation(extracted, referencesHeading) {
         ? "APA Coach could not verify punctuation for some entries — please review manually."
         : "Reference punctuation appears correct.";
 
-  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
-    getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]);
+  const expectedItems = [
+    "Write the volume and issue together with no space: *15*(3) — not *15* (3).",
+    "Write the page range directly after the issue: *15*(3), 45–67 — do not add \"p.\" or \"pp.\" before the numbers.",
+  ];
+
+  return {
+    ...finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+      getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]),
+    expectedItems,
+  };
 }
 
 function checkReferenceDOIFormat(extracted, referencesHeading) {
   const rule = "Reference DOI format";
   const expected = 'APA requires DOIs as full URLs: https://doi.org/10.xxxx — not "doi:" or "http://dx.doi.org/".';
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
   if (entryParagraphs.length === 0) {
     return {
@@ -2794,6 +3015,7 @@ function checkApaFormatting(extracted) {
       checkUnapprovedSources(extracted, referencesHeading),
       checkReferenceAuthors(extracted, referencesHeading),
       checkReferenceYear(extracted, referencesHeading),
+      checkReferenceTitleCapitalization(extracted, referencesHeading),
       checkReferenceItalics(extracted, referencesHeading),
       checkReferencePunctuation(extracted, referencesHeading),
     ] : []),
@@ -2806,6 +3028,7 @@ function checkApaFormatting(extracted) {
     checkFirstLineIndents(extracted, referencesHeading),
     checkAlignment(extracted),
     checkFonts(extracted),
+    checkUnconvertedMarkup(extracted),
   ];
 
   const referenceGroups = referencesHeading
@@ -2835,10 +3058,12 @@ module.exports = {
   checkReferenceShortLinks,
   checkUnapprovedSources,
   checkFonts,
+  checkUnconvertedMarkup,
   parseReferenceEntry,
   classifyReferenceKind,
   checkReferenceAuthors,
   checkReferenceYear,
+  checkReferenceTitleCapitalization,
   checkReferenceItalics,
   checkReferencePunctuation,
   checkReferenceDOIFormat,

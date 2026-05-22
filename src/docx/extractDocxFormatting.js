@@ -172,6 +172,10 @@ function getRunText(run) {
     const count = Array.isArray(run.noBreakHyphen) ? run.noBreakHyphen.length : 1;
     parts.push("-".repeat(count));
   }
+  if (run && run.tab !== undefined) {
+    const count = Array.isArray(run.tab) ? run.tab.length : 1;
+    parts.push("\t".repeat(count));
+  }
   const textNodes = toArray(run.t);
   for (const text of textNodes) {
     if (typeof text === "string") {

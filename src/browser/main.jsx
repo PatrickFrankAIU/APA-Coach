@@ -356,13 +356,35 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
-          {check.rule === "References formatting" ? (
+          {check.rule === "Reference hanging indent" ? (
             <div className="hanging-indent-example">
-              <p className="hanging-indent-example-label">Example of a hanging indent:</p>
+              <p className="hanging-indent-example-label">Example:</p>
               <div className="hanging-indent-demo">
                 <p className="hanging-indent-entry">
                   Smith, J. A. (2023). <em>The title of a really long book that wraps onto a second line to show the indent effect.</em> Publisher Name.
                 </p>
+                <p className="hanging-indent-entry">
+                  Jones, B. C., &amp; Lee, D. E. (2021). Another reference entry that also wraps to demonstrate the spacing between entries. Publisher.
+                </p>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Reference title capitalization" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Reference titles use sentence case — only the first word, the first word after a colon, and proper nouns are capitalized:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ Wrong (Title Case)</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Smith, J. A. (2023). <em>The Effects of Social Media on Student Academic Performance.</em> Publisher.</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Correct (sentence case)</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Smith, J. A. (2023). <em>The effects of social media on student academic performance.</em> Publisher.</p>
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}
@@ -762,7 +784,7 @@ function AppInfoCard({ canInstall, triggerInstall }) {
   return (
     <aside className="app-info-card" aria-label="Application information">
       <div className="beta-notice" role="note">
-        <strong>Beta</strong> — APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
+        APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
       </div>
       <dl className="app-info-list">
         <div>
