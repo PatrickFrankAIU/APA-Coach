@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 21, 2026",
+  lastUpdated: "May 22, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -107,11 +107,18 @@ function Summary({ report }) {
   );
 }
 
+const ITEMS_PREVIEW_COUNT = 5;
+
 function CheckCard({ check }) {
   const fixId = useId();
+  const itemsId = useId();
   const [open, setOpen] = useState(false);
+  const [itemsOpen, setItemsOpen] = useState(false);
   const hasFixes = check.howToFix && check.howToFix.length > 0;
   const hasResources = check.resources && check.resources.length > 0;
+  const allItems = check.missingItems || [];
+  const hasMoreItems = allItems.length > ITEMS_PREVIEW_COUNT;
+  const visibleItems = hasMoreItems && !itemsOpen ? allItems.slice(0, ITEMS_PREVIEW_COUNT) : allItems;
 
   return (
     <article className={`check-card ${check.status}`}>
@@ -121,6 +128,17 @@ function CheckCard({ check }) {
       </div>
       <p className="found">{check.foundText || check.found}</p>
       <p className="expected">{check.expectedText || check.expected}</p>
+      {check.expectedItems && check.expectedItems.length > 0 ? (
+        <ul className="expected-items">
+          {check.expectedItems.map((item, i) => {
+            const text = typeof item === "string" ? item : item.text;
+            const sub = typeof item === "object" && item.sub;
+            const parts = text.split(/\*([^*]+)\*/);
+            const content = parts.map((part, j) => j % 2 === 1 ? <em key={j}>{part}</em> : part);
+            return <li key={i} className={sub ? "expected-item-sub" : undefined}>{content}</li>;
+          })}
+        </ul>
+      ) : null}
       {hasFixes ? (
         <div className="fixes">
           {check.rule === "Page numbering" ? (
@@ -338,13 +356,35 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
-          {check.rule === "References formatting" ? (
+          {check.rule === "Reference hanging indent" ? (
             <div className="hanging-indent-example">
-              <p className="hanging-indent-example-label">Example of a hanging indent:</p>
+              <p className="hanging-indent-example-label">Example:</p>
               <div className="hanging-indent-demo">
                 <p className="hanging-indent-entry">
                   Smith, J. A. (2023). <em>The title of a really long book that wraps onto a second line to show the indent effect.</em> Publisher Name.
                 </p>
+                <p className="hanging-indent-entry">
+                  Jones, B. C., &amp; Lee, D. E. (2021). Another reference entry that also wraps to demonstrate the spacing between entries. Publisher.
+                </p>
+              </div>
+            </div>
+          ) : null}
+          {check.rule === "Reference title capitalization" ? (
+            <div className="citation-example">
+              <p className="citation-example-label">Reference titles use sentence case — only the first word, the first word after a colon, and proper nouns are capitalized:</p>
+              <div className="citation-example-demo">
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--wrong">✗ Wrong (Title Case)</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Smith, J. A. (2023). <em>The Effects of Social Media on Student Academic Performance.</em> Publisher.</p>
+                  </div>
+                </div>
+                <div className="citation-example-col">
+                  <span className="citation-example-tag citation-example-tag--right">✓ Correct (sentence case)</span>
+                  <div className="citation-example-page">
+                    <p className="citation-body-text">Smith, J. A. (2023). <em>The effects of social media on student academic performance.</em> Publisher.</p>
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}
@@ -498,14 +538,25 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
-          {check.missingItems && check.missingItems.length > 0 ? (
+          {allItems.length > 0 ? (
             <div className="missing-items">
               <p className="missing-items-label">{check.missingItemsLabel}</p>
               <ul>
-                {check.missingItems.map((item, i) => (
+                {visibleItems.map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
+              {hasMoreItems ? (
+                <button
+                  className="fix-toggle"
+                  type="button"
+                  aria-expanded={itemsOpen}
+                  aria-controls={itemsId}
+                  onClick={() => setItemsOpen((v) => !v)}
+                >
+                  {itemsOpen ? "Show fewer" : `Show all ${allItems.length}`}
+                </button>
+              ) : null}
             </div>
           ) : null}
           <button
@@ -733,7 +784,7 @@ function AppInfoCard({ canInstall, triggerInstall }) {
   return (
     <aside className="app-info-card" aria-label="Application information">
       <div className="beta-notice" role="note">
-        <strong>Beta</strong> — APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
+        APA Coach is in active development. Checks may miss issues or flag things incorrectly. Always review your paper manually before submitting.
       </div>
       <dl className="app-info-list">
         <div>

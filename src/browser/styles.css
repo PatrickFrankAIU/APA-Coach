@@ -124,6 +124,7 @@ input {
   color: #e8d87a;
   font-size: 0.9rem;
   line-height: 1.5;
+  text-align: center;
 }
 
 .beta-notice strong {
@@ -564,6 +565,21 @@ h1 {
 .expected {
   margin-bottom: 0;
   color: #aab4c1;
+}
+
+.expected-items {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+  color: #aab4c1;
+}
+
+.expected-items li {
+  margin-bottom: 2px;
+}
+
+.expected-item-sub {
+  margin-left: 16px;
+  list-style-type: circle;
 }
 
 .fixes {
@@ -1199,7 +1215,7 @@ h1 {
   margin: 0;
   padding-left: 2em;
   text-indent: -2em;
-  line-height: 1.7;
+  line-height: 2.0;
 }
 
 .heading-alignment-example {
