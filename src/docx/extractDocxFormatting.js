@@ -253,6 +253,7 @@ function buildStyleMap(stylesDocument) {
       name: style.name ? style.name.val || null : null,
       basedOn: style.basedOn ? style.basedOn.val || null : null,
       properties: style.pPr || {},
+      runProperties: style.rPr || {},
     };
 
     if (style.default === "1" || style.default === true) {
@@ -264,6 +265,101 @@ function buildStyleMap(stylesDocument) {
     paragraphStyles,
     defaultParagraphStyleId,
   };
+}
+
+function extractDocumentDefaultRunProperties(stylesDocument) {
+  const defaults = stylesDocument && stylesDocument.styles ? stylesDocument.styles.docDefaults : null;
+  return defaults && defaults.rPrDefault ? defaults.rPrDefault.rPr || {} : {};
+}
+
+// OOXML toggle properties (italic, bold, etc.) may appear as <w:i/>, <w:i w:val="1"/>,
+// or <w:i w:val="0"/>. Returns true (on), false (off), or null (not specified at this level).
+// Note: this returns the explicit/effective value at one level; we do not implement the
+// XOR semantics of true OOXML toggle properties because student docs almost always set
+// italic via direct run formatting (Ctrl+I), not via style inheritance.
+function readToggle(node) {
+  if (node === undefined) return null;
+  if (node === null || node === "") return true;
+  if (typeof node === "string") {
+    const v = node.toLowerCase();
+    return v !== "0" && v !== "false";
+  }
+  if (typeof node === "object") {
+    if (node.val === undefined || node.val === null) return true;
+    const v = String(node.val).toLowerCase();
+    return v !== "0" && v !== "false";
+  }
+  return true;
+}
+
+function getRunToggleFromRPr(rPr, propertyName) {
+  if (!rPr) return null;
+  return readToggle(rPr[propertyName]);
+}
+
+function resolveRunToggleFromStyleChain(styleId, styleMap, propertyName) {
+  let currentStyleId = styleId;
+  const visited = new Set();
+  while (currentStyleId && !visited.has(currentStyleId)) {
+    visited.add(currentStyleId);
+    const style = styleMap.paragraphStyles[currentStyleId];
+    if (!style) return null;
+    const value = getRunToggleFromRPr(style.runProperties, propertyName);
+    if (value !== null) return value;
+    currentStyleId = style.basedOn;
+  }
+  return null;
+}
+
+// Resolution order: (1) direct run rPr, (2) paragraph style's run defaults (and basedOn
+// chain), (3) document default run properties, (4) false (Word's default).
+function resolveRunToggle(run, paragraphStyleId, styleMap, docDefaultRPr, propertyName) {
+  const direct = getRunToggleFromRPr(run.rPr, propertyName);
+  if (direct !== null) return direct;
+
+  const styleValue = resolveRunToggleFromStyleChain(
+    paragraphStyleId || styleMap.defaultParagraphStyleId,
+    styleMap,
+    propertyName,
+  );
+  if (styleValue !== null) return styleValue;
+
+  const docDefault = getRunToggleFromRPr(docDefaultRPr, propertyName);
+  if (docDefault !== null) return docDefault;
+
+  return false;
+}
+
+function buildRunDescriptor(run, paragraphStyleId, styleMap, docDefaultRPr) {
+  const text = getRunText(run);
+  if (text.length === 0) return null;
+  return {
+    text,
+    italic: resolveRunToggle(run, paragraphStyleId, styleMap, docDefaultRPr, "i"),
+    bold: resolveRunToggle(run, paragraphStyleId, styleMap, docDefaultRPr, "b"),
+  };
+}
+
+function collectParagraphRunDescriptors(paragraph, paragraphStyleId, styleMap, docDefaultRPr) {
+  const runs = [];
+  const pushRun = (run) => {
+    const descriptor = buildRunDescriptor(run, paragraphStyleId, styleMap, docDefaultRPr);
+    if (descriptor) runs.push(descriptor);
+  };
+
+  for (const run of toArray(paragraph.r)) pushRun(run);
+  for (const hyperlink of toArray(paragraph["hyperlink"])) {
+    for (const run of toArray(hyperlink.r)) pushRun(run);
+  }
+  for (const sdt of toArray(paragraph.sdt)) {
+    const content = sdt.sdtContent;
+    if (!content) continue;
+    for (const run of toArray(content.r)) pushRun(run);
+    for (const hyperlink of toArray(content["hyperlink"])) {
+      for (const run of toArray(hyperlink.r)) pushRun(run);
+    }
+  }
+  return runs;
 }
 
 function extractDocumentDefaults(stylesDocument) {
@@ -506,7 +602,15 @@ function classifyParagraph(paragraph, nonBlankPosition) {
   return "body";
 }
 
-function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBlankPosition, hyperlinkRels = {}) {
+function extractParagraphFormatting(
+  paragraph,
+  index,
+  styleMap,
+  defaults,
+  nonBlankPosition,
+  hyperlinkRels = {},
+  docDefaultRPr = {},
+) {
   const paragraphProperties = paragraph.pPr || {};
   const explicitStyleId = getStyleId(paragraphProperties);
   const styleId = explicitStyleId || styleMap.defaultParagraphStyleId;
@@ -575,6 +679,7 @@ function extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBla
 
   extracted.role = classifyParagraph(extracted, nonBlankPosition);
   extracted.fonts = extractParagraphFontInfo(paragraph);
+  extracted.runs = collectParagraphRunDescriptors(paragraph, styleId, styleMap, docDefaultRPr);
 
   return extracted;
 }
@@ -589,7 +694,7 @@ function collectParagraphNodes(content, out) {
   }
 }
 
-function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}) {
+function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}, docDefaultRPr = {}) {
   const body = document.document && document.document.body;
   const paragraphs = [];
   if (body) collectParagraphNodes(body, paragraphs);
@@ -600,7 +705,15 @@ function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}) {
       nonBlankPosition += 1;
     }
 
-    return extractParagraphFormatting(paragraph, index, styleMap, defaults, nonBlankPosition, hyperlinkRels);
+    return extractParagraphFormatting(
+      paragraph,
+      index,
+      styleMap,
+      defaults,
+      nonBlankPosition,
+      hyperlinkRels,
+      docDefaultRPr,
+    );
   });
 }
 
@@ -727,6 +840,7 @@ function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = n
   const stylesDocument = stylesXml ? parseXml(stylesXml) : null;
   const styleMap = buildStyleMap(stylesDocument);
   const defaults = extractDocumentDefaults(stylesDocument);
+  const docDefaultRPr = extractDocumentDefaultRunProperties(stylesDocument);
   const sectionProperties = findSectionProperties(document);
   const hyperlinkRels = parseHyperlinkRels(relsXml);
 
@@ -738,7 +852,7 @@ function extractDocxFormattingFromXml(documentXml, stylesXml = null, relsXml = n
     },
     documentDefaults: defaults.formatting,
     fontDefaults: extractDocumentDefaultFont(stylesDocument),
-    paragraphs: extractParagraphs(document, styleMap, defaults, hyperlinkRels),
+    paragraphs: extractParagraphs(document, styleMap, defaults, hyperlinkRels, docDefaultRPr),
     pageNumbering: extractPageNumbering(sectionProperties, headerXmlsByType),
   };
 }

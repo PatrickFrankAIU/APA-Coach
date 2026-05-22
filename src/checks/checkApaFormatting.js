@@ -63,6 +63,23 @@ const INLINE_CITATIONS_OWL_RESOURCE = {
   url: "https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/in_text_citations_the_basics.html",
 };
 
+const APA_REFERENCE_FORMAT_RESOURCE = {
+  label: "APA Style: Reference Examples",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/references/examples",
+};
+const APA_AUTHORS_RESOURCE = {
+  label: "APA Style: Author Format",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/references/author-format",
+};
+const APA_DOI_FORMAT_RESOURCE = {
+  label: "APA Style: DOIs and URLs",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/references/dois-urls",
+};
+const APA_IN_TEXT_FORMAT_RESOURCE = {
+  label: "APA Style: In-Text Citation Format",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles",
+};
+
 const UNAPPROVED_DOMAINS = [
   "123helpme.com","a1-termpaper.com","academic-papers.blogspot.com","academized.com",
   "activant.in","advancedwriters.com","affordablepapers.com","algebra.com",
@@ -236,6 +253,50 @@ function groupByDescription(items, describe) {
 
 function getParagraphsByRole(extracted, role) {
   return extracted.paragraphs.filter((paragraph) => paragraph.role === role);
+}
+
+// Returns 'italic' | 'not-italic' | 'mixed' | 'not-found'.
+// Searches for searchText inside the paragraph's run array (attached by Phase 1).
+function getSpanItalicState(runs, searchText) {
+  if (!runs || runs.length === 0 || !searchText || searchText.trim().length === 0) return "not-found";
+  const fullText = runs.map((r) => r.text).join("");
+  const idx = fullText.indexOf(searchText);
+  if (idx === -1) return "not-found";
+  const end = idx + searchText.length;
+  let pos = 0;
+  const states = [];
+  for (const run of runs) {
+    const runEnd = pos + run.text.length;
+    if (run.text.length > 0 && runEnd > idx && pos < end) {
+      states.push(run.italic);
+    }
+    pos = runEnd;
+  }
+  if (states.length === 0) return "not-found";
+  if (states.every((s) => s)) return "italic";
+  if (states.every((s) => !s)) return "not-italic";
+  return "mixed";
+}
+
+// Parses the source part of a journal reference into its components.
+function parseJournalSourcePart(sourcePart) {
+  if (!sourcePart) return null;
+  const m = sourcePart.match(/^(.*?),\s*(\d+)\s*(\(\s*\d+\s*\))?\s*(?:,\s*(.+))?$/);
+  if (!m) return null;
+  return {
+    journalName: m[1].trim(),
+    volume: m[2],
+    issueWithParens: m[3] ? m[3].trim() : null,
+    issue: m[3] ? m[3].replace(/[()]/g, "").trim() : null,
+    pages: m[4] ? m[4].replace(/\.\s*$/, "").trim() : null,
+  };
+}
+
+function getBodyText(extracted, referencesHeading) {
+  return extracted.paragraphs
+    .filter((p) => p.role !== "blank" && (!referencesHeading || p.index < referencesHeading.index))
+    .map((p) => p.text)
+    .join("\n");
 }
 
 function splitUnknowns(paragraphs, fieldName) {
@@ -469,6 +530,103 @@ function getHowToFix(rule) {
     return [
       "Select the \"References\" heading in Microsoft Word.",
       "In the Home toolbar, click the Center Align button.",
+    ];
+  }
+
+  if (rule === "Reference authors") {
+    return [
+      "List author names in Last, F. M. format (last name, then initials with periods).",
+      "Separate two authors with \", & \" — use \"&\" not \"and\".",
+      "For 3–20 authors, list all of them separated by commas, with \"&\" before the last.",
+      "For 21+ authors, list the first 19, then an ellipsis (…), then the last author.",
+      "Do not use \"et al.\" in a reference entry — \"et al.\" is only for inline citations.",
+    ];
+  }
+
+  if (rule === "Reference year format") {
+    return [
+      "Place the publication year in parentheses immediately after the author(s): Smith, J. A. (2020).",
+      "Follow the closing parenthesis with a period: (2020). Title…",
+      "If there is no date, write (n.d.) — lowercase, with periods after each letter.",
+    ];
+  }
+
+  if (rule === "Reference italics") {
+    return [
+      "Book, report, and standalone work titles should be italicized.",
+      "Journal article and book chapter titles should NOT be italicized — remove any italic formatting.",
+      "For journal articles: italicize only the journal name and volume number. The issue number in parentheses and page range should not be italic.",
+      "In Word, select the text and press Ctrl+I (Cmd+I on Mac) to toggle italic.",
+    ];
+  }
+
+  if (rule === "Reference punctuation") {
+    return [
+      "Each reference must end with the URL or DOI on its last line.",
+      "Journal page ranges do not use \"p.\" or \"pp.\" — write the page range directly: 45–67, not pp. 45–67.",
+      "Write volume and issue with no space: 15(3) not 15 (3).",
+      "Use an en dash (–) for page ranges, not a hyphen (-).",
+    ];
+  }
+
+  if (rule === "Reference DOI format") {
+    return [
+      "DOIs must be formatted as URLs: https://doi.org/10.xxxx/xxxxx",
+      "Do not use the old \"doi:\" prefix — replace it with \"https://doi.org/\".",
+      "Do not use \"http://dx.doi.org/\" — use \"https://doi.org/\" instead.",
+    ];
+  }
+
+  if (rule === "Citation ampersand") {
+    return [
+      "Inside parenthetical citations, use \"&\" between author names: (Smith & Jones, 2020).",
+      "In narrative citations (outside parentheses), spell out \"and\": Smith and Jones (2020) found…",
+    ];
+  }
+
+  if (rule === "Citation et al. format") {
+    return [
+      "Write \"et al.\" with a period after \"al\" and no period after \"et\": et al.",
+      "Do not write \"et. al.\", \"et al\", \"etal\", or \"et. al\".",
+      "\"et al.\" is used in citations when a work has 3 or more authors.",
+    ];
+  }
+
+  if (rule === "Citation no-date format") {
+    return [
+      "When a source has no date, write \"n.d.\" — lowercase, with a period after each letter.",
+      "Do not write \"N.D.\", \"n.d\", \"nd\", or \"no date\".",
+      "Example: (Smith, n.d.) or Smith (n.d.).",
+    ];
+  }
+
+  if (rule === "Citation page format") {
+    return [
+      "Use \"p.\" for a single page and \"pp.\" for a page range in citations.",
+      "Do not use \"pg.\" or \"pgs.\" — these are not APA format.",
+      "Example: (Smith, 2020, p. 45) or (Smith, 2020, pp. 45–47).",
+    ];
+  }
+
+  if (rule === "Citation multiple sources") {
+    return [
+      "When citing multiple sources in one parenthetical, separate them with a semicolon: (Smith, 2020; Jones, 2021).",
+      "List multiple sources in alphabetical order by the first author's last name.",
+    ];
+  }
+
+  if (rule === "Citation year suffix") {
+    return [
+      "When you cite two works by the same author(s) published in the same year, add a letter suffix: (Smith, 2020a) and (Smith, 2020b).",
+      "Make sure the same suffix appears in both the inline citation and the reference entry.",
+    ];
+  }
+
+  if (rule === "Personal communication") {
+    return [
+      "Personal communications (interviews, emails, conversations) are cited in the text only — do not add them to the References list.",
+      "Format: (F. M. Last, personal communication, Month Day, Year) — use the person's full initials and last name.",
+      "Example: (J. A. Smith, personal communication, March 15, 2024).",
     ];
   }
 
@@ -739,21 +897,18 @@ function checkLineSpacingForRole(extracted, role, label) {
 
 function checkParagraphSpacingForRole(extracted, role, label) {
   const applicableParagraphs = getParagraphsByRole(extracted, role);
-  const partialUnknowns = applicableParagraphs.filter((paragraph) => {
-    return (
-      !paragraph.formatting.spacingBeforePoints.known || !paragraph.formatting.spacingAfterPoints.known
-    );
-  });
+  // Fail if any *known* side is non-zero — don't require both sides to be known.
   const failures = applicableParagraphs.filter((paragraph) => {
     const before = paragraph.formatting.spacingBeforePoints;
     const after = paragraph.formatting.spacingAfterPoints;
-
-    return (
-      before.known &&
-      after.known &&
-      (!isClose(before.value, EXPECTED_PARAGRAPH_SPACING_POINTS) ||
-        !isClose(after.value, EXPECTED_PARAGRAPH_SPACING_POINTS))
-    );
+    return (before.known && !isClose(before.value, EXPECTED_PARAGRAPH_SPACING_POINTS)) ||
+           (after.known && !isClose(after.value, EXPECTED_PARAGRAPH_SPACING_POINTS));
+  });
+  const failureSet = new Set(failures);
+  // Unknowns: not already a failure, but at least one side can't be determined.
+  const partialUnknowns = applicableParagraphs.filter((paragraph) => {
+    return !failureSet.has(paragraph) &&
+      (!paragraph.formatting.spacingBeforePoints.known || !paragraph.formatting.spacingAfterPoints.known);
   });
   const details = [];
 
@@ -798,8 +953,44 @@ function checkParagraphSpacingForRole(extracted, role, label) {
   );
 }
 
-function checkFirstLineIndents(extracted) {
-  const applicableParagraphs = getParagraphsByRole(extracted, "body");
+function looksLikeMisformattedHeading(paragraph) {
+  const text = paragraph.text.trim();
+  const bold = paragraph.runs && paragraph.runs.length > 0 && paragraph.runs.every(r => r.bold);
+  return bold && text.length > 0 && text.length <= 100 && !/[.!?;:]$/.test(text);
+}
+
+// APA 7 Level 1 headings are centered and bold — correct alignment, just missing proper Word style.
+function looksLikeApaLevel1Heading(paragraph) {
+  const alignment = paragraph.formatting.alignment;
+  return looksLikeMisformattedHeading(paragraph) &&
+    alignment.known && alignment.value === "center";
+}
+
+// APA 7: abstract body text is flush left — no first-line indent required.
+function isAbstractBodyParagraph(paragraph, allParagraphs) {
+  const idx = allParagraphs.indexOf(paragraph);
+  for (let i = idx - 1; i >= 0; i--) {
+    const p = allParagraphs[i];
+    if (p.text.trim() === "") continue;
+    if (/^abstract$/i.test(p.text.trim())) return true;
+    break;
+  }
+  return false;
+}
+
+function failingParaPreview(paragraph) {
+  const t = paragraph.text.trim();
+  const snippet = t.length > 80 ? t.slice(0, 80) + "…" : t;
+  return looksLikeMisformattedHeading(paragraph) ? `Heading: "${snippet}"` : `Paragraph: "${snippet}"`;
+}
+
+function checkFirstLineIndents(extracted, referencesHeading) {
+  const allParagraphs = extracted.paragraphs;
+  const refParagraphs = new Set(referencesHeading ? getReferenceEntryParagraphs(allParagraphs, referencesHeading) : []);
+  // Exclude: abstract body (no indent per APA 7), Level 1 headings (centered+bold: correctly no indent), reference entries (covered by hanging-indent check)
+  const applicableParagraphs = getParagraphsByRole(extracted, "body").filter(
+    (p) => !isAbstractBodyParagraph(p, allParagraphs) && !looksLikeApaLevel1Heading(p) && !refParagraphs.has(p),
+  );
   const unknowns = splitUnknowns(applicableParagraphs, "firstLineIndentInches");
   const checked = applicableParagraphs.length - unknowns.length;
   const failures = applicableParagraphs.filter((paragraph) => {
@@ -807,6 +998,7 @@ function checkFirstLineIndents(extracted) {
     return indent.known && !isClose(indent.value, EXPECTED_FIRST_LINE_INDENT_INCHES);
   });
   const matched = checked - failures.length;
+  const headingFailures = failures.filter(looksLikeMisformattedHeading);
 
   const details = [];
 
@@ -833,22 +1025,22 @@ function checkFirstLineIndents(extracted) {
   } else if (failures.length === 0 && unknowns.length === 0) {
     status = "pass";
     foundText = "All body paragraphs use a 0.5-inch first-line indent.";
-  } else if (failures.length > 0 && matched === 0) {
+  } else if (failures.length > 0) {
     status = "fail";
     const n = failures.length;
-    foundText =
-      n === applicableParagraphs.length
-        ? "All body paragraphs are missing the required first-line indent."
-        : `${n} body ${n === 1 ? "paragraph is" : "paragraphs are"} missing the required first-line indent.`;
-  } else if (failures.length > 0) {
-    status = "review";
-    foundText =
-      "Some paragraphs may not be using Word's built-in first-line indent. " +
-      "They may appear indented but could be using tabs or spaces instead.";
+    if (headingFailures.length === failures.length) {
+      foundText = `${n} section ${n === 1 ? "heading appears" : "headings appear"} to be formatted as body text without a heading style — these should use Word's built-in heading styles, not manual bold/center formatting.`;
+    } else if (headingFailures.length > 0) {
+      foundText = `${n} ${n === 1 ? "item is" : "items are"} missing the required 0.5-inch first-line indent, including ${headingFailures.length} that ${headingFailures.length === 1 ? "looks like a heading" : "look like headings"} formatted as body text.`;
+    } else {
+      foundText = `${n} body ${n === 1 ? "paragraph is" : "paragraphs are"} missing the required 0.5-inch first-line indent.`;
+    }
   } else {
     status = "review";
     foundText = "These paragraphs appear correct, but may not be using Word's built-in first-line indent.";
   }
+
+  const missingItems = failures.map(failingParaPreview);
 
   return {
     rule: "Body first-line indents",
@@ -870,6 +1062,8 @@ function checkFirstLineIndents(extracted) {
     details: applicableParagraphs.length === 0 ? ["No applicable paragraphs were found for this check."] : details,
     howToFix: status === "fail" ? getHowToFix("Body first-line indents") : [],
     resources: status === "fail" ? [FIRST_LINE_INDENT_MSFT_RESOURCE] : [],
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "Items without a first-line indent:" : "",
   };
 }
 
@@ -890,7 +1084,9 @@ function isBodyTitle(paragraph, position) {
 function checkAlignment(extracted) {
   const bodyParagraphs = getParagraphsByRole(extracted, "body");
   const applicableParagraphs = bodyParagraphs.filter(
-    (paragraph, position) => !isBodyTitle(paragraph, position),
+    // APA 7 Level 1 headings are correctly centered+bold — exclude them from alignment failures.
+    // isBodyTitle handles title-page centered text.
+    (paragraph, position) => !isBodyTitle(paragraph, position) && !looksLikeApaLevel1Heading(paragraph),
   );
   const unknowns = splitUnknowns(applicableParagraphs, "alignment");
   const checked = applicableParagraphs.length - unknowns.length;
@@ -919,22 +1115,30 @@ function checkAlignment(extracted) {
   let status;
   let foundText;
 
+  const headingFailures = failures.filter(looksLikeMisformattedHeading);
+
   if (applicableParagraphs.length === 0) {
     status = "review";
     foundText = "APA Coach did not find any body paragraphs to check.";
   } else if (failures.length === 0 && unknowns.length === 0) {
     status = "pass";
     foundText = "All body paragraphs use left alignment.";
-  } else if (failures.length > 0 && matched === 0) {
-    status = "fail";
-    foundText = "Body paragraphs are not left aligned. APA requires left alignment for all body text.";
   } else if (failures.length > 0) {
-    status = "review";
-    foundText = "Some body paragraphs may not be left aligned.";
+    status = "fail";
+    const n = failures.length;
+    if (headingFailures.length === failures.length) {
+      foundText = `${n} section ${n === 1 ? "heading appears" : "headings appear"} to be formatted as body text with manual center alignment — these should use Word's built-in heading styles instead.`;
+    } else if (headingFailures.length > 0) {
+      foundText = `${n} body ${n === 1 ? "paragraph is" : "paragraphs are"} not left aligned, including ${headingFailures.length} that ${headingFailures.length === 1 ? "looks like a heading" : "look like headings"} formatted as body text.`;
+    } else {
+      foundText = `${n} body ${n === 1 ? "paragraph is" : "paragraphs are"} not left aligned. APA requires left alignment for all body text.`;
+    }
   } else {
     status = "review";
-    foundText = "These paragraphs appear correct, but may not be using Word's built-in alignment setting.";
+    foundText = "These paragraphs appear correct, but alignment could not be fully verified.";
   }
+
+  const missingItems = failures.map(failingParaPreview);
 
   return {
     rule: "Body alignment",
@@ -955,6 +1159,8 @@ function checkAlignment(extracted) {
     applicableParagraphs: applicableParagraphs.length,
     details: applicableParagraphs.length === 0 ? ["No applicable paragraphs were found for this check."] : details,
     howToFix: status === "fail" ? getHowToFix("Body alignment") : [],
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "Items not left aligned:" : "",
   };
 }
 
@@ -1010,6 +1216,90 @@ function extractReferenceKey(text) {
   return { lastName, year, preview };
 }
 
+// Parses a reference paragraph into structural segments. Heuristic and deterministic —
+// when confidence is low, kindGuess is "unknown" so downstream checks return "review".
+function parseReferenceEntry(paragraph) {
+  const text = (paragraph && paragraph.text ? paragraph.text : "").trim();
+  const result = {
+    raw: text,
+    authorsRaw: null,
+    year: null,
+    title: null,
+    sourcePart: null,
+    doiOrUrl: null,
+    kindGuess: "unknown",
+  };
+
+  if (!text) return result;
+
+  const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)(?:,\s*[^)]+)?\)/);
+  if (!yearMatch) return result;
+
+  result.year = yearMatch[1];
+
+  const beforeYear = text.slice(0, yearMatch.index).trim().replace(/[.,;\s]+$/, "").trim();
+  if (beforeYear) result.authorsRaw = beforeYear;
+
+  let afterYear = text.slice(yearMatch.index + yearMatch[0].length).trim();
+  afterYear = afterYear.replace(/^[.\s]+/, "");
+
+  // Match doi: prefix before bare https:// so "doi:https://..." is captured whole
+  const urlMatch = afterYear.match(/\bdoi:\s*\S+/i) || afterYear.match(/\bhttps?:\/\/\S+/i);
+  if (urlMatch) {
+    result.doiOrUrl = urlMatch[0].replace(/[.,;)]+$/, "");
+    afterYear = (afterYear.slice(0, urlMatch.index) + afterYear.slice(urlMatch.index + urlMatch[0].length))
+      .trim()
+      .replace(/[.,;\s]+$/, "");
+  }
+
+  // Split title from source on ". " (normal) or " ." (student typo: space before period)
+  const splitMatch = afterYear.match(/\. | \./);
+  if (splitMatch) {
+    result.title = afterYear.slice(0, splitMatch.index).trim();
+    result.sourcePart = afterYear.slice(splitMatch.index + splitMatch[0].length).trim().replace(/\.\s*$/, "");
+  } else {
+    result.title = afterYear.replace(/\.\s*$/, "").trim();
+  }
+
+  if (!result.title) result.title = null;
+  if (!result.sourcePart) result.sourcePart = null;
+
+  result.kindGuess = classifyReferenceKind(result);
+  return result;
+}
+
+function classifyReferenceKind(parsed) {
+  const source = parsed.sourcePart || "";
+  const title = parsed.title || "";
+
+  // Journal article: "Volume(Issue), pp" or "Volume, pp" pattern in source
+  if (/\b\d+\s*\(\s*\d+\s*\)/.test(source) || /,\s*\d+\s*(?:[–—-]\s*\d+)\b/.test(source)) {
+    return "journal-article";
+  }
+
+  // Book chapter: "In Editor (Ed.), Book Title"
+  if (/\bIn\s+[^.]*\(Eds?\.\)/i.test(source) || /\bIn\s+[^.]*\(Eds?\.\)/i.test(title)) {
+    return "book-chapter";
+  }
+
+  // Webpage: URL present, no source signals
+  if (parsed.doiOrUrl && !source) {
+    return "webpage";
+  }
+
+  // Book: has a publisher-like tail and no journal numbers
+  if (source && !/\d/.test(source)) {
+    return "book";
+  }
+
+  // Standalone number only = page count for a report/book
+  if (/^\d+$/.test(source.trim())) {
+    return "book";
+  }
+
+  return "unknown";
+}
+
 function extractInlineCitationKeys(bodyText) {
   const keys = [];
   const seen = new Set();
@@ -1019,6 +1309,8 @@ function extractInlineCitationKeys(bodyText) {
   while ((m = parenRe.exec(bodyText)) !== null) {
     const content = m[1];
     if (!/\d{4}|n\.d\./.test(content)) continue;
+    if (/\bpersonal\s+communication\b/i.test(content)) continue;
+    if (/\bas\s+cited\s+in\b/i.test(content)) continue;
     const segments = content.split(";");
     for (const seg of segments) {
       const segTrimmed = seg.trim();
@@ -1777,6 +2069,693 @@ function checkUnapprovedSources(extracted, referencesHeading) {
   };
 }
 
+// ─── Phase 2: Reference facet checks ────────────────────────────────────────
+
+function checkReferenceAuthors(extracted, referencesHeading) {
+  const rule = "Reference authors";
+  const expected = 'APA requires authors in "Last, F. M." format with "&" (not "and") before the final author.';
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "APA Coach could not find reference entries to check author formatting.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references found", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const unknowns = [];
+  const details = [];
+
+  for (const p of entryParagraphs) {
+    const parsed = parseReferenceEntry(p);
+    if (!parsed.authorsRaw) { unknowns.push(p); continue; }
+    const authors = parsed.authorsRaw;
+
+    if (/,\s+and\s+[A-Z]/i.test(authors)) {
+      failures.push(p);
+      const preview = authors.length > 70 ? authors.slice(0, 70) + "…" : authors;
+      details.push(`Use "&" instead of "and" between authors: "${preview}"`);
+      continue;
+    }
+    if (/\bet\.?\s*al\.?\b/i.test(authors)) {
+      failures.push(p);
+      details.push(`"et al." should not appear in a reference entry — list all authors or use the 21+ format.`);
+    }
+  }
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} reference${failures.length === 1 ? "" : "s"} appear to have author formatting issues.`
+      : unknowns.length > 0
+        ? "APA Coach could not verify author format for some references — please review manually."
+        : "Reference author formatting appears correct.";
+
+  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+    getHowToFix(rule), [APA_AUTHORS_RESOURCE]);
+}
+
+function checkReferenceYear(extracted, referencesHeading) {
+  const rule = "Reference year format";
+  const expected = "APA requires the year in parentheses followed by a period: (2020). Title…";
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "No reference entries found.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const unknowns = [];
+  const details = [];
+
+  for (const p of entryParagraphs) {
+    const yearM = p.text.match(/\((\d{4}[a-z]?|n\.d\.)(?:,\s*[^)]+)?\)/);
+    if (!yearM) { unknowns.push(p); continue; }
+    const afterParen = p.text.slice(yearM.index + yearM[0].length);
+    if (afterParen.trim().length > 0 && !/^\s*\./.test(afterParen)) {
+      failures.push(p);
+      const preview = p.text.length > 70 ? p.text.slice(0, 70) + "…" : p.text;
+      details.push(`Missing period after year "(${yearM[1]})": "${preview}"`);
+    }
+  }
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} reference${failures.length === 1 ? "" : "s"} appear to be missing a period after the year.`
+      : unknowns.length > 0
+        ? "APA Coach could not verify year format for some references."
+        : "Reference year formatting appears correct.";
+
+  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+    getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]);
+}
+
+function checkReferenceItalics(extracted, referencesHeading) {
+  const rule = "Reference italics";
+  const expected = "APA uses italics in references, but the rules depend on the source type:";
+  const expectedItems = [
+    "Books and reports: the title should be in italics.",
+    { text: "Book *chapters*, if used: do not italicize the chapter title.", sub: true },
+    "Journal articles: do not italicize the article title. Italicize the journal name and the volume number — but not the issue number (the number in parentheses).",
+  ];
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected, expectedItems,
+      foundText: "APA Coach could not find reference entries to check italic formatting.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references found", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const unknowns = [];
+  const details = [];
+
+  for (const p of entryParagraphs) {
+    const parsed = parseReferenceEntry(p);
+    const kind = parsed.kindGuess;
+    let checkedAnything = false;
+
+    // Title italics — applies to journal-article, book, book-chapter
+    if (parsed.title && (kind === "journal-article" || kind === "book" || kind === "book-chapter")) {
+      const titleState = getSpanItalicState(p.runs, parsed.title);
+      if (titleState !== "not-found") {
+        checkedAnything = true;
+        const preview = parsed.title.length > 60 ? parsed.title.slice(0, 60) + "…" : parsed.title;
+        if ((kind === "journal-article" || kind === "book-chapter") && (titleState === "italic" || titleState === "mixed")) {
+          failures.push(p);
+          details.push(`Article/chapter title should not be italicized: "${preview}"`);
+        } else if (kind === "book" && (titleState === "not-italic" || titleState === "mixed")) {
+          failures.push(p);
+          details.push(`Book title should be italicized: "${preview}"`);
+        }
+      }
+    }
+
+    // Journal name + volume/issue italics — journal-article only
+    if (kind === "journal-article") {
+      const journalData = parseJournalSourcePart(parsed.sourcePart);
+      if (journalData) {
+        if (journalData.journalName) {
+          const nameState = getSpanItalicState(p.runs, journalData.journalName);
+          if (nameState !== "not-found") {
+            checkedAnything = true;
+            if (nameState === "not-italic" || nameState === "mixed") {
+              failures.push(p);
+              details.push(`Journal name should be italicized: "${journalData.journalName}"`);
+            }
+          }
+        }
+        if (journalData.volume) {
+          const volState = getSpanItalicState(p.runs, journalData.volume);
+          if (volState !== "not-found") {
+            checkedAnything = true;
+            if (volState === "not-italic") {
+              failures.push(p);
+              details.push(`Volume number "${journalData.volume}" should be italicized.`);
+            }
+          }
+        }
+        if (journalData.issueWithParens) {
+          const issueState = getSpanItalicState(p.runs, journalData.issueWithParens);
+          if (issueState !== "not-found") {
+            checkedAnything = true;
+            if (issueState === "italic") {
+              failures.push(p);
+              details.push(`Issue number "${journalData.issueWithParens}" should not be italicized — only the volume number is italic.`);
+            }
+          }
+        }
+      }
+    }
+
+    if (!checkedAnything && kind === "unknown") unknowns.push(p);
+  }
+
+  const failedParagraphs = [...new Set(failures)];
+  const missingItems = failedParagraphs.map((p) => {
+    const t = p.text.trim();
+    return t.length > 80 ? t.slice(0, 80) + "…" : t;
+  });
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} italic formatting issue${failures.length === 1 ? "" : "s"} found across reference entries.`
+      : unknowns.length === entryParagraphs.length
+        ? "APA Coach could not verify italic formatting — reference types could not be determined."
+        : unknowns.length > 0
+          ? `Italic formatting appears correct for ${entryParagraphs.length - unknowns.length} reference${entryParagraphs.length - unknowns.length === 1 ? "" : "s"}; ${unknowns.length} could not be verified.`
+          : "Reference italic formatting appears correct.";
+
+  return {
+    ...finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+      getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]),
+    expectedItems,
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "References with italic issues:" : "",
+  };
+}
+
+function checkReferencePunctuation(extracted, referencesHeading) {
+  const rule = "Reference punctuation";
+  const expected = 'APA: no "p." or "pp." in journal page ranges; no space between volume and issue: write 15(3) not 15 (3).';
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "No reference entries found.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const unknowns = [];
+  const details = [];
+
+  for (const p of entryParagraphs) {
+    const parsed = parseReferenceEntry(p);
+    if (parsed.kindGuess === "unknown") { unknowns.push(p); continue; }
+
+    if (parsed.kindGuess === "journal-article" && parsed.sourcePart) {
+      // No p./pp. in journal page ranges
+      if (/\bpp?\.\s*\d/i.test(parsed.sourcePart)) {
+        failures.push(p);
+        const src = parsed.sourcePart.length > 60 ? parsed.sourcePart.slice(0, 60) + "…" : parsed.sourcePart;
+        details.push(`Journal page ranges should not use "p." or "pp.": "${src}"`);
+        continue;
+      }
+      // No space between volume and issue: 15(3) not 15 (3)
+      if (/\d\s+\(\s*\d/.test(parsed.sourcePart)) {
+        failures.push(p);
+        const src = parsed.sourcePart.length > 60 ? parsed.sourcePart.slice(0, 60) + "…" : parsed.sourcePart;
+        details.push(`Write volume and issue with no space: "15(3)" not "15 (3)": "${src}"`);
+      }
+    }
+  }
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} reference${failures.length === 1 ? "" : "s"} appear to have punctuation issues.`
+      : unknowns.length > 0
+        ? "APA Coach could not verify punctuation for some entries — please review manually."
+        : "Reference punctuation appears correct.";
+
+  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+    getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]);
+}
+
+function checkReferenceDOIFormat(extracted, referencesHeading) {
+  const rule = "Reference DOI format";
+  const expected = 'APA requires DOIs as full URLs: https://doi.org/10.xxxx — not "doi:" or "http://dx.doi.org/".';
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = referenceParagraphs.filter(looksLikeReferenceEntryStart);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "No reference entries found.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const details = [];
+
+  for (const p of entryParagraphs) {
+    const text = p.text;
+    if (/\bdoi:\s*10\./i.test(text)) {
+      failures.push(p);
+      details.push(`Use "https://doi.org/10.xxx" not "doi:10.xxx" — found in: "${text.slice(0, 70)}"`);
+      continue;
+    }
+    if (/\bhttp:\/\/(?:dx\.)?doi\.org\//i.test(text)) {
+      failures.push(p);
+      details.push(`Use "https://doi.org/" not "http://dx.doi.org/" — found in: "${text.slice(0, 70)}"`);
+    }
+  }
+
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} reference${failures.length === 1 ? "" : "s"} use an outdated or incorrect DOI format.`
+      : "Reference DOI formatting appears correct.";
+
+  return finishCheck(rule, expected, foundText, entryParagraphs, failures, [], details,
+    getHowToFix(rule), [APA_DOI_FORMAT_RESOURCE]);
+}
+
+// ─── Phase 2.5: Citation facet checks ───────────────────────────────────────
+
+// Checks body text (before references) for personal communication citations and
+// returns their raw strings so checkUnmatchedCitations can exempt them.
+function extractPersonalCommunicationStrings(extracted, referencesHeading) {
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const results = [];
+  const re = /\(([^)]*\bpersonal\s+communication\b[^)]*)\)/gi;
+  let m;
+  while ((m = re.exec(bodyText)) !== null) results.push(m[1]);
+  return results;
+}
+
+function checkPersonalCommunications(extracted, referencesHeading) {
+  const rule = "Personal communication";
+  const expected = "Personal communications use the format: (F. M. Last, personal communication, Month Day, Year).";
+  const bodyText = getBodyText(extracted, referencesHeading);
+
+  const re = /\(([^)]*\bpersonal\s+communication\b[^)]*)\)/gi;
+  const found = [];
+  let m;
+  while ((m = re.exec(bodyText)) !== null) found.push({ inner: m[1], raw: m[0] });
+
+  if (found.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "No personal communication citations found.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No personal communications", applicableParagraphs: 0,
+      details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const details = [];
+
+  for (const { inner, raw } of found) {
+    const issues = [];
+    // Must have initials + last name before "personal communication"
+    const beforePhrase = inner.replace(/\bpersonal\s+communication\b.*/i, "").trim().replace(/,\s*$/, "");
+    if (!/^[A-Z]\.\s/.test(beforePhrase)) {
+      issues.push("include the person's full initials and last name (e.g., J. A. Smith)");
+    }
+    // Must have a specific date (month + day or month alone + year) after the phrase
+    const afterPhrase = inner.replace(/.*\bpersonal\s+communication\b,?\s*/i, "");
+    if (!/\b(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d/i.test(afterPhrase)) {
+      issues.push("include the specific date (e.g., March 15, 2024)");
+    }
+    if (issues.length > 0) {
+      failures.push(raw);
+      details.push(`Personal communication "${raw}" — please ${issues.join(" and ")}.`);
+    }
+  }
+
+  const total = found.length;
+  const passed = total - failures.length;
+  const status = failures.length > 0 ? "fail" : "pass";
+
+  return {
+    rule, status, passed: status === "pass", expected, expectedText: expected,
+    foundText:
+      status === "pass"
+        ? `${total} personal communication citation${total === 1 ? "" : "s"} found and formatted correctly.`
+        : `${failures.length} personal communication citation${failures.length === 1 ? "" : "s"} appear to have formatting issues.`,
+    applicable: total, checked: total, matched: passed, failed: failures.length, unknown: 0,
+    found: `${total} personal communication(s) found`,
+    applicableParagraphs: 0, details,
+    howToFix: status === "fail" ? getHowToFix(rule) : [], resources: [],
+  };
+}
+
+function checkCitationAmpersandUsage(extracted, referencesHeading) {
+  const rule = "Citation ampersand";
+  const expected = 'Use "&" inside parenthetical citations; spell out "and" in narrative citations.';
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+
+  // Wrong: "and" inside a parenthetical citation — (Smith and Jones, YYYY)
+  const parenAndRe = /\(([^()]{2,200})\)/g;
+  let m;
+  while ((m = parenAndRe.exec(bodyText)) !== null) {
+    const inner = m[1];
+    if (!/\b\d{4}[a-z]?\b|n\.d\./.test(inner)) continue;
+    if (/\bpersonal\s+communication\b/i.test(inner)) continue;
+    if (/\band\s+[A-Z]/i.test(inner)) {
+      const preview = m[0].length > 60 ? m[0].slice(0, 60) + "…)" : m[0];
+      issues.push({ type: "and-in-parens", preview });
+    }
+  }
+
+  // Wrong: "&" in narrative before (Year) — Author & Author (YYYY)
+  const narrativeAmpRe = /([A-Z][a-zA-Z'-]+)\s+&\s+([A-Z][a-zA-Z'-]+)\s+\((?:\d{4}[a-z]?|n\.d\.)/g;
+  while ((m = narrativeAmpRe.exec(bodyText)) !== null) {
+    const preview = bodyText.slice(m.index, m.index + 60) + (m[0].length > 60 ? "…" : "");
+    issues.push({ type: "amp-in-narrative", preview });
+  }
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "Ampersand usage in citations appears correct.",
+      applicable: issues.length, checked: issues.length, matched: issues.length,
+      failed: 0, unknown: 0, found: "Ampersand usage OK",
+      applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const details = issues.map(({ type, preview }) =>
+    type === "and-in-parens"
+      ? `Use "&" not "and" inside parenthetical citation: "${preview}"`
+      : `Use "and" not "&" in narrative citation: "${preview}"`,
+  );
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} citation${issues.length === 1 ? "" : "s"} appear to use the wrong form of "and"/"&".`,
+    applicable: issues.length, checked: issues.length, matched: 0,
+    failed: issues.length, unknown: 0,
+    found: `${issues.length} ampersand issue(s)`,
+    applicableParagraphs: 0, details,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
+function checkCitationEtAl(extracted, referencesHeading) {
+  const rule = "Citation et al. format";
+  const expected = 'Write "et al." with a period after "al" only — not "et. al.", "et al", or "etal".';
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+
+  // Malformed variants near a year (to avoid flagging random prose)
+  const badEtAlForms = [
+    { re: /\bet\.\s+al\.?\b/g, label: 'Use "et al." not "et. al."' },
+    { re: /\betal\b/g, label: 'Use "et al." not "etal"' },
+    { re: /\bet\s+al\b(?!\.)/g, label: 'Write "et al." with a period: "et al."' },
+  ];
+
+  for (const { re, label } of badEtAlForms) {
+    let m;
+    while ((m = re.exec(bodyText)) !== null) {
+      const context = bodyText.slice(Math.max(0, m.index - 20), m.index + m[0].length + 20);
+      if (/\d{4}|n\.d\./.test(context)) {
+        issues.push(`${label} — found near: "…${context.trim()}…"`);
+      }
+    }
+  }
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: '"et al." formatting appears correct.',
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "et al. OK", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} instance${issues.length === 1 ? "" : "s"} of malformed "et al." detected.`,
+    applicable: issues.length, checked: issues.length, matched: 0,
+    failed: issues.length, unknown: 0, found: `${issues.length} et al. issue(s)`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
+function checkCitationNoDate(extracted, referencesHeading) {
+  const rule = "Citation no-date format";
+  const expected = 'Write "n.d." — lowercase with periods after each letter — when a source has no date.';
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+
+  // Wrong forms of n.d. near a citation context (inside parens)
+  const badNdForms = [
+    { re: /\bN\.D\.\b/g, label: 'Write "n.d." (lowercase) not "N.D."' },
+    { re: /\bn\.d\b(?!\.)/g, label: 'Write "n.d." with a period after "d"' },
+    { re: /\bno\s+date\b/gi, label: 'Write "n.d." not "no date" in a citation' },
+    { re: /\bn\.?\s*d\b(?!\.)/g, label: 'Write "n.d." — both letters need periods' },
+  ];
+
+  for (const { re, label } of badNdForms) {
+    let m;
+    while ((m = re.exec(bodyText)) !== null) {
+      // Only flag when inside or near a parenthetical citation context
+      const surrounding = bodyText.slice(Math.max(0, m.index - 30), m.index + m[0].length + 30);
+      if (/[()]/.test(surrounding)) {
+        const preview = surrounding.trim().replace(/\s+/g, " ");
+        issues.push(`${label}: "…${preview}…"`);
+      }
+    }
+  }
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: '"n.d." formatting appears correct.',
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "n.d. OK", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} instance${issues.length === 1 ? "" : "s"} of incorrectly formatted "n.d." detected.`,
+    applicable: issues.length, checked: issues.length, matched: 0,
+    failed: issues.length, unknown: 0, found: `${issues.length} n.d. issue(s)`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
+function checkCitationPageFormat(extracted, referencesHeading) {
+  const rule = "Citation page format";
+  const expected = 'APA uses "p." for single page and "pp." for a page range in citations — not "pg.", "pgs.", etc.';
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+
+  // Scan inside parenthetical citation context for wrong page prefix
+  const parenRe = /\(([^()]{2,200})\)/g;
+  let m;
+  while ((m = parenRe.exec(bodyText)) !== null) {
+    const inner = m[1];
+    if (!/\b\d{4}[a-z]?\b|n\.d\./.test(inner)) continue;
+    if (/\bpgs?\.\s*\d/i.test(inner)) {
+      const preview = m[0].length > 70 ? m[0].slice(0, 70) + "…)" : m[0];
+      issues.push(`Use "p." or "pp." not "pg."/"pgs.": "${preview}"`);
+    }
+  }
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "Citation page number formatting appears correct.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Citation page format OK", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} citation${issues.length === 1 ? "" : "s"} appear to use an incorrect page prefix.`,
+    applicable: issues.length, checked: issues.length, matched: 0,
+    failed: issues.length, unknown: 0, found: `${issues.length} page format issue(s)`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
+function checkCitationMultipleSources(extracted, referencesHeading) {
+  const rule = "Citation multiple sources";
+  const expected = "When citing multiple sources in one parenthetical, separate them with semicolons: (Smith, 2020; Jones, 2021).";
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+
+  // Look for (Author, YYYY, Author, YYYY) — two years separated by comma + author, not semicolon
+  const parenRe = /\(([^()]{2,300})\)/g;
+  let m;
+  while ((m = parenRe.exec(bodyText)) !== null) {
+    const inner = m[1];
+    if (!/\b\d{4}[a-z]?\b|n\.d\./.test(inner)) continue;
+    if (/\bpersonal\s+communication\b/i.test(inner)) continue;
+    // If there's a year followed by comma+space+capital letter (suggests another author, not page/issue)
+    if (/\d{4}[a-z]?,\s+[A-Z]/.test(inner) && !inner.includes(";")) {
+      const preview = m[0].length > 80 ? m[0].slice(0, 80) + "…)" : m[0];
+      issues.push(`Use ";" to separate multiple citations: "${preview}"`);
+    }
+  }
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "Multiple-source citation formatting appears correct.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Multiple source citations OK", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} parenthetical citation${issues.length === 1 ? "" : "s"} appear to use a comma instead of a semicolon between sources.`,
+    applicable: issues.length, checked: issues.length, matched: 0,
+    failed: issues.length, unknown: 0, found: `${issues.length} multiple-source issue(s)`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
+function checkCitationYearSuffixes(extracted, referencesHeading) {
+  const rule = "Citation year suffix";
+  const expected = 'When citing two works by the same author in the same year, add a letter suffix: (Smith, 2020a) and (Smith, 2020b). The suffix must also appear in the reference entry.';
+  const bodyText = getBodyText(extracted, referencesHeading);
+
+  // Find all citation year suffixes in body text
+  const suffixRe = /\b(\d{4})([a-z])\b/g;
+  const citationSuffixes = new Map(); // "Smith-2020" → ["a", "b"]
+  const parenRe = /\(([^()]{2,300})\)/g;
+  let m;
+  while ((m = parenRe.exec(bodyText)) !== null) {
+    const inner = m[1];
+    if (/\bpersonal\s+communication\b/i.test(inner)) continue;
+    for (const seg of inner.split(";")) {
+      const yearSuffixM = seg.match(/\b(\d{4})([a-z])\b/);
+      if (!yearSuffixM) continue;
+      const year = yearSuffixM[1];
+      const suffix = yearSuffixM[2];
+      const beforeYear = seg.slice(0, seg.search(/\b\d{4}/)).replace(/[,\s]+$/, "").trim();
+      if (!beforeYear) continue;
+      const key = `${beforeYear}-${year}`;
+      if (!citationSuffixes.has(key)) citationSuffixes.set(key, new Set());
+      citationSuffixes.get(key).add(suffix);
+    }
+  }
+
+  if (citationSuffixes.size === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "No year-suffix citations detected.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No year suffixes found", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  // Build reference key set for cross-checking
+  const referenceParagraphs = referencesHeading
+    ? getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading).filter(looksLikeReferenceEntryStart)
+    : [];
+  const refKeys = new Set(
+    referenceParagraphs.map((p) => {
+      const k = extractReferenceKey(p.text);
+      return k ? `${k.lastName}-${k.year}` : null;
+    }).filter(Boolean),
+  );
+
+  const failures = [];
+  const details = [];
+
+  for (const [key, suffixSet] of citationSuffixes) {
+    for (const suffix of suffixSet) {
+      const fullKey = `${key}${suffix}`;
+      // Check if a reference entry with this year+suffix exists
+      if (refKeys.size > 0 && !refKeys.has(fullKey)) {
+        failures.push(key);
+        details.push(`Citation suffix "${key}${suffix}" has no matching reference entry — add a reference with year "${key.split("-")[1]}${suffix}".`);
+      }
+    }
+  }
+
+  const total = citationSuffixes.size;
+  const status = failures.length > 0 ? "fail" : "pass";
+
+  return {
+    rule, status, passed: status === "pass", expected, expectedText: expected,
+    foundText:
+      status === "pass"
+        ? `Year-suffix citations detected and reference entries appear to match.`
+        : `${failures.length} year-suffix citation${failures.length === 1 ? "" : "s"} appear to have no matching reference entry.`,
+    applicable: total, checked: total, matched: total - failures.length,
+    failed: failures.length, unknown: 0,
+    found: status === "pass" ? "Year suffixes matched" : `${failures.length} suffix(es) unmatched`,
+    applicableParagraphs: 0, details,
+    howToFix: status === "fail" ? getHowToFix(rule) : [], resources: [],
+  };
+}
+
+// Detects secondary citations ("as cited in") and returns them as "review" warnings.
+function checkSecondaryCitations(extracted, referencesHeading) {
+  const rule = "Secondary citations";
+  const expected = 'APA discourages secondary citations ("as cited in"). Locate the original source when possible.';
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const re = /\bas\s+cited\s+in\b[^)]{0,100}/gi;
+  const found = [];
+  let m;
+  while ((m = re.exec(bodyText)) !== null) {
+    found.push(bodyText.slice(m.index, m.index + Math.min(80, m[0].length + 20)).trim());
+  }
+
+  if (found.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "No secondary citations detected.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No secondary citations", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "review", passed: false, expected, expectedText: expected,
+    foundText: `${found.length} secondary citation${found.length === 1 ? "" : "s"} ("as cited in") detected. APA discourages these — try to find and cite the original source.`,
+    applicable: found.length, checked: found.length, matched: 0,
+    failed: 0, unknown: found.length,
+    found: `${found.length} secondary citation(s)`,
+    applicableParagraphs: 0,
+    details: found.map((s) => `Secondary citation: "…${s}…"`),
+    howToFix: [], resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
 function checkApaFormatting(extracted) {
   const referencesHeading = findReferencesHeadingNearEnd(extracted.paragraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
@@ -1794,6 +2773,14 @@ function checkApaFormatting(extracted) {
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
     checkInlineCitations(extracted, referencesHeading),
+    checkPersonalCommunications(extracted, referencesHeading),
+    checkSecondaryCitations(extracted, referencesHeading),
+    checkCitationAmpersandUsage(extracted, referencesHeading),
+    checkCitationEtAl(extracted, referencesHeading),
+    checkCitationNoDate(extracted, referencesHeading),
+    checkCitationPageFormat(extracted, referencesHeading),
+    checkCitationMultipleSources(extracted, referencesHeading),
+    checkCitationYearSuffixes(extracted, referencesHeading),
     ...(referencesHeading ? [
       ...(referencesHeading.synthetic ? [] : [checkReferencesHeadingAlignment(referencesHeading)]),
       checkReferencesFormatting(extracted, referencesHeading),
@@ -1802,8 +2789,13 @@ function checkApaFormatting(extracted) {
         checkUnmatchedCitations(extracted, referencesHeading),
       ] : []),
       checkReferenceDOIs(extracted, referencesHeading),
+      checkReferenceDOIFormat(extracted, referencesHeading),
       checkReferenceShortLinks(extracted, referencesHeading),
       checkUnapprovedSources(extracted, referencesHeading),
+      checkReferenceAuthors(extracted, referencesHeading),
+      checkReferenceYear(extracted, referencesHeading),
+      checkReferenceItalics(extracted, referencesHeading),
+      checkReferencePunctuation(extracted, referencesHeading),
     ] : []),
     checkMargins(extracted),
     checkLineSpacingForParagraphs(bodyParagraphs, "Body line spacing", "Body"),
@@ -1811,7 +2803,7 @@ function checkApaFormatting(extracted) {
     ...(referencesHeading ? [checkReferencesLineSpacing(extracted, referencesHeading)] : []),
     checkParagraphSpacingForRole(extracted, "body", "Body"),
     checkParagraphSpacingForRole(extracted, "heading", "Heading"),
-    checkFirstLineIndents(extracted),
+    checkFirstLineIndents(extracted, referencesHeading),
     checkAlignment(extracted),
     checkFonts(extracted),
   ];
@@ -1843,4 +2835,19 @@ module.exports = {
   checkReferenceShortLinks,
   checkUnapprovedSources,
   checkFonts,
+  parseReferenceEntry,
+  classifyReferenceKind,
+  checkReferenceAuthors,
+  checkReferenceYear,
+  checkReferenceItalics,
+  checkReferencePunctuation,
+  checkReferenceDOIFormat,
+  checkPersonalCommunications,
+  checkSecondaryCitations,
+  checkCitationAmpersandUsage,
+  checkCitationEtAl,
+  checkCitationNoDate,
+  checkCitationPageFormat,
+  checkCitationMultipleSources,
+  checkCitationYearSuffixes,
 };

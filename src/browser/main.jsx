@@ -107,11 +107,18 @@ function Summary({ report }) {
   );
 }
 
+const ITEMS_PREVIEW_COUNT = 5;
+
 function CheckCard({ check }) {
   const fixId = useId();
+  const itemsId = useId();
   const [open, setOpen] = useState(false);
+  const [itemsOpen, setItemsOpen] = useState(false);
   const hasFixes = check.howToFix && check.howToFix.length > 0;
   const hasResources = check.resources && check.resources.length > 0;
+  const allItems = check.missingItems || [];
+  const hasMoreItems = allItems.length > ITEMS_PREVIEW_COUNT;
+  const visibleItems = hasMoreItems && !itemsOpen ? allItems.slice(0, ITEMS_PREVIEW_COUNT) : allItems;
 
   return (
     <article className={`check-card ${check.status}`}>
@@ -121,6 +128,17 @@ function CheckCard({ check }) {
       </div>
       <p className="found">{check.foundText || check.found}</p>
       <p className="expected">{check.expectedText || check.expected}</p>
+      {check.expectedItems && check.expectedItems.length > 0 ? (
+        <ul className="expected-items">
+          {check.expectedItems.map((item, i) => {
+            const text = typeof item === "string" ? item : item.text;
+            const sub = typeof item === "object" && item.sub;
+            const parts = text.split(/\*([^*]+)\*/);
+            const content = parts.map((part, j) => j % 2 === 1 ? <em key={j}>{part}</em> : part);
+            return <li key={i} className={sub ? "expected-item-sub" : undefined}>{content}</li>;
+          })}
+        </ul>
+      ) : null}
       {hasFixes ? (
         <div className="fixes">
           {check.rule === "Page numbering" ? (
@@ -498,14 +516,25 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
-          {check.missingItems && check.missingItems.length > 0 ? (
+          {allItems.length > 0 ? (
             <div className="missing-items">
               <p className="missing-items-label">{check.missingItemsLabel}</p>
               <ul>
-                {check.missingItems.map((item, i) => (
+                {visibleItems.map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
+              {hasMoreItems ? (
+                <button
+                  className="fix-toggle"
+                  type="button"
+                  aria-expanded={itemsOpen}
+                  aria-controls={itemsId}
+                  onClick={() => setItemsOpen((v) => !v)}
+                >
+                  {itemsOpen ? "Show fewer" : `Show all ${allItems.length}`}
+                </button>
+              ) : null}
             </div>
           ) : null}
           <button
