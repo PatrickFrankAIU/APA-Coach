@@ -2222,6 +2222,15 @@ function checkReferenceAuthors(extracted, referencesHeading) {
       const lastName = trimmed.slice(0, commaIdx).trim();
       const initialsRaw = trimmed.slice(commaIdx + 1).trim();
 
+      // "First Last" format: last name contains a space, suggesting the whole author
+      // string is in First Last order rather than Last, F. order
+      if (/\s/.test(lastName)) {
+        if (!failed) failures.push(p);
+        details.push(`Author appears to be in "First Last" order — use "Last, F." format: "${preview}"`);
+        failed = true;
+        break;
+      }
+
       // All-caps last name: e.g. HALLETT
       if (lastName.length > 1 && lastName === lastName.toUpperCase() && /^[A-Z]/.test(lastName)) {
         if (!failed) failures.push(p);
