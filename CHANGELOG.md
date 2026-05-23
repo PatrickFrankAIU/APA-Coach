@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.2.0] - 2026-05-23
+
+### Added
+
+- **Missing space between initials** — `checkReferenceAuthors` now catches `J.R.` (no space) and flags it as `J. R.` required.
+- **"First Last" author order detection** — Authors listed as "First Last" instead of "Last, F." now produce a clear message ("Authors appear to be listed first-name first") rather than a confusing suggested fix.
+- **Lowercase name particles** — Names like `da Silva Ramos Dias` no longer false-positive on the "last name must start with uppercase" check. Recognized particles: da, de, del, della, di, do, dos, du, van, van der, von, le, la, al, bin, binti, bt.
+- **Per-reference callouts in Reference authors** — Each failing entry now shows `Author (Year): issue description` in the missingItems list.
+- **Per-reference callouts in Reference year format** — Failing entries now show `Author (Year): preview` in the missingItems list.
+- **Author/year prefix in Reference title capitalization callouts** — Titles to review now read `Balan (2014): "Dave Chaffey, Digital…"` instead of just the raw title.
+
+### Changed
+
+- **Short link graphic URL shortened** — The "Full article URL" example in the Reference short link card now uses a shorter URL that fits within the demo box.
+
+### Fixed
+
+- **Run boundary spaces preserved** — Set `trimValues: false` in XMLParser so spaces at the boundary between differently-formatted runs (e.g. plain → italic) are no longer silently dropped. Previously produced fused text like `"InWeb"` instead of `"In Web"`.
+- **Book-chapter classification without editor** — `classifyReferenceKind` now recognizes `In Book Title. Publisher.` (no editor) as a book-chapter, not a book. Fixes a false positive where the chapter title was flagged as a book title needing italics.
+- **DOI-only references no longer classified as webpage** — References with a `doi.org` URL but no source part (missing journal name/volume/issue) now classify as `journal-article`.
+- **Volume number false positive matching year digits** — `getSpanItalicState` now searches for `volume+issue` together (e.g. `21(1)`) so it doesn't find `"21"` inside `"(2021)"` and falsely flag the volume as not italic.
+- **Centered headings excluded from Body first-line indents** — `looksLikeMisformattedHeading` now treats centered alignment as a sufficient heading signal even without bold formatting.
+- **Word list paragraphs excluded from Body first-line indents** — Paragraphs using Word's built-in `ListParagraph` style are no longer flagged for missing a 0.5-inch first-line indent.
+- **Split reference continuations in Unconverted markup symbols** — The check now uses merged reference entries for the references section, so a reference split across paragraphs no longer appears as a confusing fragment like `"Commerce. *Journal of…"`.
+
 ## [1.1.0] - 2026-05-22
 
 ### Added
