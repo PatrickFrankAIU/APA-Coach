@@ -2187,22 +2187,27 @@ function checkReferenceAuthors(extracted, referencesHeading) {
   const failures = [];
   const unknowns = [];
   const details = [];
+  const missingItems = [];
 
   for (const p of entryParagraphs) {
     const parsed = parseReferenceEntry(p);
     if (!parsed.authorsRaw) { unknowns.push(p); continue; }
     const authors = parsed.authorsRaw;
     const preview = authors.length > 70 ? authors.slice(0, 70) + "…" : authors;
+    const refLabel = parsed.authorsRaw.split(",")[0] + (parsed.year ? ` (${parsed.year})` : "");
     let failed = false;
+    let failureDetail = null;
 
     if (/,\s+and\s+[A-Z]/i.test(authors)) {
       failures.push(p);
-      details.push(`Use "&" instead of "and" between authors: "${preview}"`);
+      failureDetail = `Use "&" instead of "and" between authors: "${preview}"`;
+      details.push(failureDetail);
       failed = true;
     }
     if (/\bet\.?\s*al\.?\b/i.test(authors)) {
       if (!failed) failures.push(p);
-      details.push(`"et al." should not appear in a reference entry — list all authors or use the 21+ format.`);
+      failureDetail = `"et al." should not appear in a reference entry — list all authors or use the 21+ format.`;
+      details.push(failureDetail);
       failed = true;
     }
 
@@ -2226,7 +2231,8 @@ function checkReferenceAuthors(extracted, referencesHeading) {
       // string is in First Last order rather than Last, F. order
       if (/\s/.test(lastName)) {
         if (!failed) failures.push(p);
-        details.push(`Author appears to be in "First Last" order — use "Last, F." format: "${preview}"`);
+        failureDetail = `Authors appear to be listed first-name first — use "Last, F." format instead.`;
+        details.push(failureDetail);
         failed = true;
         break;
       }
@@ -2235,7 +2241,8 @@ function checkReferenceAuthors(extracted, referencesHeading) {
       if (lastName.length > 1 && lastName === lastName.toUpperCase() && /^[A-Z]/.test(lastName)) {
         if (!failed) failures.push(p);
         const titleCased = lastName[0] + lastName.slice(1).toLowerCase();
-        details.push(`Last name is all caps — write "${titleCased}" not "${lastName}"`);
+        failureDetail = `Last name is all caps — write "${titleCased}" not "${lastName}"`;
+        details.push(failureDetail);
         failed = true;
         break;
       }
@@ -2245,7 +2252,8 @@ function checkReferenceAuthors(extracted, referencesHeading) {
         const hasParticle = /^(?:da|de|del|della|di|do|dos|du|van|van der|von|le|la|l'|al|bin|binti|bt)\s+[A-Z]/i.test(lastName);
         if (!hasParticle) {
           if (!failed) failures.push(p);
-          details.push(`Last name should start with a capital letter: "${lastName}" in "${preview}"`);
+          failureDetail = `Last name should start with a capital letter: "${lastName}" in "${preview}"`;
+          details.push(failureDetail);
           failed = true;
           break;
         }
@@ -2261,7 +2269,8 @@ function checkReferenceAuthors(extracted, referencesHeading) {
           const fullName = fullNameMatch ? fullNameMatch[1] : initialsRaw.trim();
           const suggested = `${lastName}, ${fullName[0].toUpperCase()}.`;
           if (!failed) failures.push(p);
-          details.push(`Full name used instead of initial — write "${suggested}" not "${lastName}, ${fullName}"`);
+          failureDetail = `Full name used instead of initial — write "${suggested}" not "${lastName}, ${fullName}"`;
+          details.push(failureDetail);
           failed = true;
           break;
         }
@@ -2271,7 +2280,8 @@ function checkReferenceAuthors(extracted, referencesHeading) {
       // e.g. "J R" or "J," or trailing "J"
       if (/\b[A-Z](?!\.)/.test(initialsRaw)) {
         if (!failed) failures.push(p);
-        details.push(`Initial is missing a period — use "J." not "J": "${preview}"`);
+        failureDetail = `Initial is missing a period — use "J." not "J": "${preview}"`;
+        details.push(failureDetail);
         failed = true;
         break;
       }
@@ -2279,10 +2289,15 @@ function checkReferenceAuthors(extracted, referencesHeading) {
       // Missing space between initials: "J.R." should be "J. R."
       if (/\.[A-Z]/.test(initialsRaw)) {
         if (!failed) failures.push(p);
-        details.push(`Missing space between initials — use "J. R." not "J.R.": "${preview}"`);
+        failureDetail = `Missing space between initials — use "J. R." not "J.R.": "${preview}"`;
+        details.push(failureDetail);
         failed = true;
         break;
       }
+    }
+
+    if (failed && failureDetail) {
+      missingItems.push(`${refLabel}: ${failureDetail}`);
     }
   }
 
@@ -2296,8 +2311,8 @@ function checkReferenceAuthors(extracted, referencesHeading) {
   return {
     ...finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
       getHowToFix(rule), [APA_AUTHORS_RESOURCE]),
-    missingItems: details.length > 0 ? details : [],
-    missingItemsLabel: details.length > 0 ? "Author formatting issues:" : "",
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "Author formatting issues:" : "",
   };
 }
 
