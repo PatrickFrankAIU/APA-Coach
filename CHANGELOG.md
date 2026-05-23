@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-05-23
+
+### Fixed
+
+- **Paragraph spacing false positive when only one side is set** — If a student used Ctrl+A → set "Space After" to 0 but left "Space Before" blank (Word's default is already 0), APA Coach previously flagged both Body and Heading paragraph spacing as Review because it couldn't verify the unset side. It now treats an unset side as passing when the explicitly-set side is already correct.
+
 ## [1.3.0] - 2026-05-23
 
 ### Added

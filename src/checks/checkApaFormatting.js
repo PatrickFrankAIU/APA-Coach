@@ -927,9 +927,19 @@ function checkParagraphSpacingForRole(extracted, role, label) {
   });
   const failureSet = new Set(failures);
   // Unknowns: not already a failure, but at least one side can't be determined.
+  // Exception: if one side is explicitly 0 (correct) and the other is simply unset
+  // (source "unknown" with no explicit value), treat as passing. This covers the common
+  // Word workflow of Ctrl+A → set "Space After" to 0, leaving "Space Before" blank.
   const partialUnknowns = applicableParagraphs.filter((paragraph) => {
-    return !failureSet.has(paragraph) &&
-      (!paragraph.formatting.spacingBeforePoints.known || !paragraph.formatting.spacingAfterPoints.known);
+    const before = paragraph.formatting.spacingBeforePoints;
+    const after = paragraph.formatting.spacingAfterPoints;
+    if (failureSet.has(paragraph)) return false;
+    if (before.known && after.known) return false;
+    // One side is unknown — pass if the other side is explicitly correct
+    const knownSideCorrect =
+      (before.known && isClose(before.value, EXPECTED_PARAGRAPH_SPACING_POINTS)) ||
+      (after.known && isClose(after.value, EXPECTED_PARAGRAPH_SPACING_POINTS));
+    return !knownSideCorrect;
   });
   const details = [];
 
