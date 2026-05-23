@@ -977,7 +977,8 @@ function checkParagraphSpacingForRole(extracted, role, label) {
 function looksLikeMisformattedHeading(paragraph) {
   const text = paragraph.text.trim();
   const bold = paragraph.runs && paragraph.runs.length > 0 && paragraph.runs.every(r => r.bold);
-  return bold && text.length > 0 && text.length <= 100 && !/[.!?;:]$/.test(text);
+  const centered = paragraph.formatting.alignment.known && paragraph.formatting.alignment.value === "center";
+  return (bold || centered) && text.length > 0 && text.length <= 100 && !/[.!?;:]$/.test(text);
 }
 
 // APA 7 Level 1 headings are centered and bold — correct alignment, just missing proper Word style.
