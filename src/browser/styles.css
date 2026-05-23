@@ -673,6 +673,12 @@ h1 {
   margin-top: 16px;
 }
 
+.fix-note {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
 .fix-toggle {
   min-height: 40px;
   padding: 8px 12px;

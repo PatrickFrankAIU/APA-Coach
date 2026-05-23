@@ -687,10 +687,13 @@ function CheckCard({ check }) {
           </button>
           <div id={fixId} hidden={!open}>
             <ol>
-              {check.howToFix.map((step) => (
+              {check.howToFix.filter((s) => !s.startsWith("Note:")).map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
+            {check.howToFix.filter((s) => s.startsWith("Note:")).map((note) => (
+              <p key={note} className="fix-note"><em>{note}</em></p>
+            ))}
             {hasResources ? (
               <div className="check-resources">
                 <h4>Additional help</h4>
