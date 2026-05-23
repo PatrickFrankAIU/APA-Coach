@@ -2296,6 +2296,7 @@ function checkReferenceYear(extracted, referencesHeading) {
   const failures = [];
   const unknowns = [];
   const details = [];
+  const missingItems = [];
 
   for (const p of entryParagraphs) {
     const yearM = p.text.match(/\((\d{4}[a-z]?|n\.d\.)(?:,\s*[^)]+)?\)/);
@@ -2305,6 +2306,11 @@ function checkReferenceYear(extracted, referencesHeading) {
       failures.push(p);
       const preview = p.text.length > 70 ? p.text.slice(0, 70) + "…" : p.text;
       details.push(`Missing period after year "(${yearM[1]})": "${preview}"`);
+      const parsed = parseReferenceEntry(p);
+      const authorLabel = parsed.authorsRaw
+        ? `${parsed.authorsRaw.split(",")[0]}${parsed.year ? ` (${parsed.year})` : ""}: `
+        : "";
+      missingItems.push(`${authorLabel}"${preview}"`);
     }
   }
 
@@ -2315,8 +2321,12 @@ function checkReferenceYear(extracted, referencesHeading) {
         ? "APA Coach could not verify year format for some references."
         : "Reference year formatting appears correct.";
 
-  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
-    getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]);
+  return {
+    ...finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+      getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]),
+    missingItems: missingItems.length > 0 ? missingItems : [],
+    missingItemsLabel: missingItems.length > 0 ? "References with year format issues:" : "",
+  };
 }
 
 function checkReferenceTitleCapitalization(extracted, referencesHeading) {
