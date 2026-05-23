@@ -2446,7 +2446,9 @@ function checkReferenceItalics(extracted, referencesHeading) {
           }
         }
         if (journalData.volume) {
-          const volState = getSpanItalicState(p.runs, journalData.volume);
+          // Include issue in search to avoid matching year digits (e.g. "21" in "(2021)")
+          const volSearchText = journalData.volume + (journalData.issueWithParens || "");
+          const volState = getSpanItalicState(p.runs, volSearchText);
           if (volState !== "not-found") {
             checkedAnything = true;
             if (volState === "not-italic") {
