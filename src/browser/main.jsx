@@ -732,21 +732,21 @@ function Report({ report }) {
       <section className="checks" aria-label="APA checks">
         {failChecks.length > 0 && (
           <section id="fail-section" className="check-group" aria-labelledby="fail-heading">
-            <h3 id="fail-heading" className="check-group-heading">Issues to fix (Required)</h3>
+            <h3 id="fail-heading" className="check-group-heading">Failed</h3>
             <p className="fail-intro">These items should be corrected before you submit your paper.</p>
             <CheckList checks={failChecks} status="fail" />
           </section>
         )}
         {warnChecks.length > 0 && (
           <section id="warn-section" className="check-group" aria-labelledby="warn-heading">
-            <h3 id="warn-heading" className="check-group-heading">Warnings — verify before submitting</h3>
+            <h3 id="warn-heading" className="check-group-heading">Warnings</h3>
             <p className="warn-intro">These items may indicate a problem. Open each link and confirm it leads to the source you intended.</p>
             <CheckList checks={warnChecks} status="warn" />
           </section>
         )}
         {reviewChecks.length > 0 && (
           <section id="review-section" className="check-group" aria-labelledby="review-heading">
-            <h3 id="review-heading" className="check-group-heading">Optional checks (Review)</h3>
+            <h3 id="review-heading" className="check-group-heading">Review</h3>
             <p className="review-intro">
               These items may not require changes, but are worth double-checking.
             </p>
@@ -755,7 +755,7 @@ function Report({ report }) {
         )}
         {passChecks.length > 0 && (
           <section id="pass-section" className="check-group" aria-labelledby="pass-heading">
-            <h3 id="pass-heading" className="check-group-heading">Looks good (Passed)</h3>
+            <h3 id="pass-heading" className="check-group-heading">Passed</h3>
             <p className="pass-intro">These items meet APA expectations.</p>
             <CheckList checks={passChecks} status="pass" />
             <a href="#top" className="back-to-top">↑ Back to top</a>

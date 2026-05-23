@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.2] - 2026-05-23
+
+### Changed
+
+- **Section headings match summary cards** — Report section headings renamed from "Issues to fix (Required)", "Optional checks (Review)", and "Looks good (Passed)" to "Failed", "Review", and "Passed" to match the labels in the Report Summary navigation cards.
+
 ## [1.3.1] - 2026-05-23
 
 ### Fixed
