@@ -2248,6 +2248,14 @@ function checkReferenceAuthors(extracted, referencesHeading) {
         failed = true;
         break;
       }
+
+      // Missing space between initials: "J.R." should be "J. R."
+      if (/\.[A-Z]/.test(initialsRaw)) {
+        if (!failed) failures.push(p);
+        details.push(`Missing space between initials — use "J. R." not "J.R.": "${preview}"`);
+        failed = true;
+        break;
+      }
     }
   }
 
