@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0] - 2026-05-23
+
+### Added
+
+- **Report Summary navigation index** — The three summary cards (Failed / Review / Passed) now show a per-category breakdown (Paper formatting, References, Citations) with counts instead of a single total number. Each row is a clickable link that jumps directly to that category's cards in the report.
+- **Color-coded summary cards** — Failed card has a red left border, Review amber, Passed green, consistent with the check card convention.
+- **Category headings with Back to top** — Every group of cards within a status section is headed by its category name (e.g. "REFERENCES") with a "Back to top" link on the right, replacing the old standalone back-to-top links at the bottom of each section.
+
+### Fixed
+
+- **Long filenames no longer overflow** — Added `overflow-wrap: break-word` to the summary copy line so filenames with no natural break points wrap rather than overflow their container.
+
 ## [1.2.0] - 2026-05-23
 
 ### Added

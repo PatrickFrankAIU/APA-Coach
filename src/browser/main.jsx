@@ -51,26 +51,143 @@ const STATUS_ORDER = {
   skipped: 4,
 };
 
+const CHECK_CATEGORY = {
+  // Paper formatting
+  "Page numbering": "Paper formatting",
+  "Title page": "Paper formatting",
+  "Margins": "Paper formatting",
+  "Body line spacing": "Paper formatting",
+  "Heading line spacing": "Paper formatting",
+  "Body paragraph spacing": "Paper formatting",
+  "Heading paragraph spacing": "Paper formatting",
+  "Body first-line indents": "Paper formatting",
+  "Body alignment": "Paper formatting",
+  "Font": "Paper formatting",
+  "Unconverted markup symbols": "Paper formatting",
+  // References
+  "References page": "References",
+  "References heading alignment": "References",
+  "References line spacing": "References",
+  "Reference hanging indent": "References",
+  "Reference DOI/URL": "References",
+  "Reference short link": "References",
+  "Unapproved source": "References",
+  "Reference authors": "References",
+  "Reference year format": "References",
+  "Reference title capitalization": "References",
+  "Reference italics": "References",
+  "Reference punctuation": "References",
+  "Reference DOI format": "References",
+  "Reference link verification": "References",
+  // Citations
+  "Inline citations": "Citations",
+  "Uncited references": "Citations",
+  "Unmatched citations": "Citations",
+  "Personal communication": "Citations",
+  "Citation ampersand": "Citations",
+  "Citation et al. format": "Citations",
+  "Citation no-date format": "Citations",
+  "Citation page format": "Citations",
+  "Citation multiple sources": "Citations",
+  "Citation year suffix": "Citations",
+  "Secondary citations": "Citations",
+};
+
+const CATEGORY_ORDER = ["Paper formatting", "References", "Citations"];
+
 function sortChecks(checks) {
   return [...checks].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
 }
 
-function SummaryCell({ count, label, href }) {
-  const Tag = href ? "a" : "div";
+function categorySlug(label) {
+  return label.toLowerCase().replace(/\s+/g, "-");
+}
+
+function getCategoryLinksForStatuses(checks, statuses) {
+  const groups = new Map();
+  for (const check of checks) {
+    if (!statuses.includes(check.status)) continue;
+    const cat = CHECK_CATEGORY[check.rule] ?? "Other";
+    if (!groups.has(cat)) groups.set(cat, { count: 0, primaryStatus: check.status });
+    const g = groups.get(cat);
+    g.count++;
+    if (STATUS_ORDER[check.status] < STATUS_ORDER[g.primaryStatus]) g.primaryStatus = check.status;
+  }
+  const links = [];
+  for (const cat of [...CATEGORY_ORDER, "Other"]) {
+    if (groups.has(cat)) {
+      const { count, primaryStatus } = groups.get(cat);
+      links.push({ label: cat, count, href: `#${primaryStatus}-${categorySlug(cat)}` });
+    }
+  }
+  return links;
+}
+
+function CheckList({ checks, status }) {
+  const categories = useMemo(() => {
+    const groups = new Map();
+    for (const check of checks) {
+      const cat = CHECK_CATEGORY[check.rule] ?? "Other";
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat).push(check);
+    }
+    const ordered = [];
+    for (const cat of [...CATEGORY_ORDER, "Other"]) {
+      if (groups.has(cat)) ordered.push({ label: cat, checks: groups.get(cat) });
+    }
+    return ordered;
+  }, [checks]);
+
   return (
-    <Tag className={`summary-cell${href ? " summary-cell-link" : ""}`} href={href || undefined}>
-      <dt>{label}</dt>
-      <dd>{count}</dd>
-    </Tag>
+    <>
+      {categories.map(({ label, checks: catChecks }) => (
+        <React.Fragment key={label}>
+          <div id={`${status}-${categorySlug(label)}`} className="check-category-label">
+            <span>{label}</span>
+            <a href="#top" className="check-category-top">Back to top</a>
+          </div>
+          {catChecks.map((check) => (
+            <CheckCard key={check.rule} check={check} />
+          ))}
+        </React.Fragment>
+      ))}
+    </>
   );
 }
 
-function Summary({ report }) {
-  const { failed, warn = 0, review, passed } = report.summary;
+function SummaryCell({ label, links, colorClass }) {
+  return (
+    <div className={`summary-cell summary-cell--${colorClass}`}>
+      <dt>{label}</dt>
+      <dd>
+        {links.length === 0 ? (
+          <span className="summary-cell-zero">—</span>
+        ) : (
+          <ul className="summary-cat-links" role="list">
+            {links.map(({ label: catLabel, count, href }) => (
+              <li key={catLabel}>
+                <a href={href} className="summary-cat-link">
+                  <span className="summary-cat-name">{catLabel}</span>
+                  <span className="summary-cat-count">{count}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </dd>
+    </div>
+  );
+}
+
+function Summary({ report, checks }) {
+  const { failed, warn = 0, review } = report.summary;
   const issueCount = failed + warn;
   const isReady = issueCount === 0;
   const issueText = issueCount === 1 ? "issue" : "issues";
-  const failHref = failed > 0 ? "#fail-section" : warn > 0 ? "#warn-section" : null;
+
+  const failLinks = useMemo(() => getCategoryLinksForStatuses(checks, ["fail", "warn"]), [checks]);
+  const reviewLinks = useMemo(() => getCategoryLinksForStatuses(checks, ["review"]), [checks]);
+  const passLinks = useMemo(() => getCategoryLinksForStatuses(checks, ["pass"]), [checks]);
 
   return (
     <section className="summary" aria-labelledby="summary-heading">
@@ -99,9 +216,9 @@ function Summary({ report }) {
         </button>
       </div>
       <dl className="summary-grid" aria-label="Check totals">
-        <SummaryCell count={issueCount} label="Failed" href={failHref} />
-        <SummaryCell count={review} label="Review" href={review > 0 ? "#review-section" : null} />
-        <SummaryCell count={passed} label="Passed" href={passed > 0 ? "#pass-section" : null} />
+        <SummaryCell label="Failed" links={failLinks} colorClass="fail" />
+        <SummaryCell label="Review" links={reviewLinks} colorClass="review" />
+        <SummaryCell label="Passed" links={passLinks} colorClass="pass" />
       </dl>
     </section>
   );
@@ -611,26 +728,20 @@ function Report({ report }) {
         <p className="print-report-title">APA Formatting Report</p>
         <p className="print-report-meta">{report.file} &mdash; Checked {printDate} &mdash; APA Coach v{APP_INFO.version}</p>
       </div>
-      <Summary report={report} />
+      <Summary report={report} checks={report.checks} />
       <section className="checks" aria-label="APA checks">
         {failChecks.length > 0 && (
           <section id="fail-section" className="check-group" aria-labelledby="fail-heading">
             <h3 id="fail-heading" className="check-group-heading">Issues to fix (Required)</h3>
             <p className="fail-intro">These items should be corrected before you submit your paper.</p>
-            {failChecks.map((check) => (
-              <CheckCard key={check.rule} check={check} />
-            ))}
-            <a href="#top" className="back-to-top">↑ Back to top</a>
+            <CheckList checks={failChecks} status="fail" />
           </section>
         )}
         {warnChecks.length > 0 && (
           <section id="warn-section" className="check-group" aria-labelledby="warn-heading">
             <h3 id="warn-heading" className="check-group-heading">Warnings — verify before submitting</h3>
             <p className="warn-intro">These items may indicate a problem. Open each link and confirm it leads to the source you intended.</p>
-            {warnChecks.map((check) => (
-              <CheckCard key={check.rule} check={check} />
-            ))}
-            <a href="#top" className="back-to-top">↑ Back to top</a>
+            <CheckList checks={warnChecks} status="warn" />
           </section>
         )}
         {reviewChecks.length > 0 && (
@@ -639,28 +750,20 @@ function Report({ report }) {
             <p className="review-intro">
               These items may not require changes, but are worth double-checking.
             </p>
-            {reviewChecks.map((check) => (
-              <CheckCard key={check.rule} check={check} />
-            ))}
-            <a href="#top" className="back-to-top">↑ Back to top</a>
+            <CheckList checks={reviewChecks} status="review" />
           </section>
         )}
         {passChecks.length > 0 && (
           <section id="pass-section" className="check-group" aria-labelledby="pass-heading">
             <h3 id="pass-heading" className="check-group-heading">Looks good (Passed)</h3>
             <p className="pass-intro">These items meet APA expectations.</p>
-            {passChecks.map((check) => (
-              <CheckCard key={check.rule} check={check} />
-            ))}
-            <a href="#top" className="back-to-top">↑ Back to top</a>
+            <CheckList checks={passChecks} status="pass" />
           </section>
         )}
         {skippedChecks.length > 0 && (
           <section id="skipped-section" className="check-group" aria-labelledby="skipped-heading">
             <h3 id="skipped-heading" className="check-group-heading">Not checked (Offline)</h3>
-            {skippedChecks.map((check) => (
-              <CheckCard key={check.rule} check={check} />
-            ))}
+            <CheckList checks={skippedChecks} status="skipped" />
           </section>
         )}
       </section>
