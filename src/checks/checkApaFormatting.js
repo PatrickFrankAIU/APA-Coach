@@ -2217,12 +2217,15 @@ function checkReferenceAuthors(extracted, referencesHeading) {
         break;
       }
 
-      // Last name doesn't start with uppercase
+      // Last name doesn't start with uppercase — allow lowercase particles (da, de, di, van, von, le, la, etc.)
       if (lastName.length > 0 && !/^[A-Z]/.test(lastName)) {
-        if (!failed) failures.push(p);
-        details.push(`Last name should start with a capital letter: "${lastName}" in "${preview}"`);
-        failed = true;
-        break;
+        const hasParticle = /^(?:da|de|del|della|di|do|dos|du|van|van der|von|le|la|l'|al|bin|binti|bt)\s+[A-Z]/i.test(lastName);
+        if (!hasParticle) {
+          if (!failed) failures.push(p);
+          details.push(`Last name should start with a capital letter: "${lastName}" in "${preview}"`);
+          failed = true;
+          break;
+        }
       }
 
       // Full first name instead of initial: a word of 2+ letters with no trailing period
