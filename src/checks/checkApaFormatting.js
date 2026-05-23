@@ -561,6 +561,7 @@ function getHowToFix(rule) {
       "Example — correct: \"The effects of social media on academic performance\"",
       "Example — incorrect: \"The Effects of Social Media on Academic Performance\"",
       "Proper nouns (names of people, places, organizations, brands) stay capitalized: \"Facebook\", \"United States\", \"COVID-19\".",
+      "Note: This check may flag titles containing correctly capitalized proper nouns (e.g., \"African American\"), and may miss titles where every word is capitalized with no lowercase words in between. When in doubt, review manually.",
     ];
   }
 
