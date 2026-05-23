@@ -1011,7 +1011,8 @@ function checkFirstLineIndents(extracted, referencesHeading) {
   const refParagraphs = new Set(referencesHeading ? getReferenceEntryParagraphs(allParagraphs, referencesHeading) : []);
   // Exclude: abstract body (no indent per APA 7), Level 1 headings (centered+bold: correctly no indent), reference entries (covered by hanging-indent check)
   const applicableParagraphs = getParagraphsByRole(extracted, "body").filter(
-    (p) => !isAbstractBodyParagraph(p, allParagraphs) && !looksLikeMisformattedHeading(p) && !refParagraphs.has(p),
+    (p) => !isAbstractBodyParagraph(p, allParagraphs) && !looksLikeMisformattedHeading(p) && !refParagraphs.has(p)
+      && p.style.id !== "ListParagraph",
   );
   const unknowns = splitUnknowns(applicableParagraphs, "firstLineIndentInches");
   const checked = applicableParagraphs.length - unknowns.length;
