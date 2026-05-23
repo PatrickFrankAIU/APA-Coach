@@ -1948,10 +1948,24 @@ function checkReferenceDOIs(extracted, referencesHeading) {
   };
 }
 
-function checkUnconvertedMarkup(extracted) {
+function checkUnconvertedMarkup(extracted, referencesHeading) {
   const rule = "Unconverted markup symbols";
   const expected = "All formatting should use Word's built-in styles — not markdown symbols like *asterisks* or **double asterisks**.";
-  const applicableParagraphs = extracted.paragraphs.filter((p) => p.text.trim().length > 0);
+
+  // For reference paragraphs, use merged entries so split references show as one unit
+  const refParaSet = new Set();
+  const mergedRefParagraphs = [];
+  if (referencesHeading) {
+    const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+    const merged = getMergedReferenceEntries(referenceParagraphs);
+    for (const m of merged) {
+      mergedRefParagraphs.push(m);
+      if (m.mergedFrom) { for (const src of m.mergedFrom) refParaSet.add(src); }
+      else refParaSet.add(m);
+    }
+  }
+  const nonRefParagraphs = extracted.paragraphs.filter((p) => p.text.trim().length > 0 && !refParaSet.has(p));
+  const applicableParagraphs = [...nonRefParagraphs, ...mergedRefParagraphs];
 
   const failures = [];
   const details = [];
@@ -3058,7 +3072,7 @@ function checkApaFormatting(extracted) {
     checkFirstLineIndents(extracted, referencesHeading),
     checkAlignment(extracted),
     checkFonts(extracted),
-    checkUnconvertedMarkup(extracted),
+    checkUnconvertedMarkup(extracted, referencesHeading),
   ];
 
   const referenceGroups = referencesHeading
