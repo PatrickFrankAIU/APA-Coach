@@ -2364,7 +2364,10 @@ function checkReferenceTitleCapitalization(extracted, referencesHeading) {
       failures.push(p);
       const preview = title.length > 60 ? title.slice(0, 60) + "…" : title;
       details.push(`Title appears to use Title Case instead of sentence case: "${preview}"`);
-      missingItems.push(`"${preview}"`);
+      const authorLabel = parsed.authorsRaw
+        ? `${parsed.authorsRaw.split(",")[0]}${parsed.year ? ` (${parsed.year})` : ""}: `
+        : "";
+      missingItems.push(`${authorLabel}"${preview}"`);
     }
   }
 
