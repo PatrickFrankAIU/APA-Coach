@@ -1301,8 +1301,11 @@ function classifyReferenceKind(parsed) {
     return "journal-article";
   }
 
-  // Book chapter: "In Editor (Ed.), Book Title"
+  // Book chapter: "In Editor (Ed.), Book Title" or bare "In Book Title. Publisher."
   if (/\bIn\s+[^.]*\(Eds?\.\)/i.test(source) || /\bIn\s+[^.]*\(Eds?\.\)/i.test(title)) {
+    return "book-chapter";
+  }
+  if (/^\s*In\s+[A-Z]/.test(source)) {
     return "book-chapter";
   }
 

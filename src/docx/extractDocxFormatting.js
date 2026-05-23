@@ -64,6 +64,7 @@ function parseXml(xml) {
     ignoreAttributes: false,
     attributeNamePrefix: "",
     removeNSPrefix: true,
+    trimValues: false,
   });
 
   return parser.parse(xml);

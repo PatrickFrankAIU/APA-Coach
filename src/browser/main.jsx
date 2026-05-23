@@ -488,7 +488,7 @@ function CheckCard({ check }) {
                 <div className="citation-example-col">
                   <span className="citation-example-tag citation-example-tag--right">✓ Full article URL</span>
                   <div className="citation-example-page">
-                    <p className="citation-ref-entry">Intel. (2023). <em>Thermal design in modern processors.</em> https://www.intel.com/content/www/us/en/gaming/resources/cpu-cooler.html</p>
+                    <p className="citation-ref-entry">Intel. (2023). <em>Thermal design in modern processors.</em> https://www.intel.com/gaming/cpu-cooler.html</p>
                   </div>
                 </div>
               </div>
