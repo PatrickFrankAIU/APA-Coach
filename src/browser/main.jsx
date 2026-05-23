@@ -758,12 +758,14 @@ function Report({ report }) {
             <h3 id="pass-heading" className="check-group-heading">Looks good (Passed)</h3>
             <p className="pass-intro">These items meet APA expectations.</p>
             <CheckList checks={passChecks} status="pass" />
+            <a href="#top" className="back-to-top">↑ Back to top</a>
           </section>
         )}
         {skippedChecks.length > 0 && (
           <section id="skipped-section" className="check-group" aria-labelledby="skipped-heading">
             <h3 id="skipped-heading" className="check-group-heading">Not checked (Offline)</h3>
             <CheckList checks={skippedChecks} status="skipped" />
+            <a href="#top" className="back-to-top">↑ Back to top</a>
           </section>
         )}
       </section>
