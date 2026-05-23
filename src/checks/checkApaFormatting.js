@@ -1309,9 +1309,9 @@ function classifyReferenceKind(parsed) {
     return "book-chapter";
   }
 
-  // Webpage: URL present, no source signals
+  // Webpage: URL present, no source signals — but doi.org links are journal articles
   if (parsed.doiOrUrl && !source) {
-    return "webpage";
+    return /\bdoi\.org\/10\./i.test(parsed.doiOrUrl) ? "journal-article" : "webpage";
   }
 
   // Book: has a publisher-like tail and no journal numbers
