@@ -6,6 +6,8 @@ A client-side tool for checking APA 7 formatting in Word documents. Upload a `.d
 
 > **Note:** APA Coach is in active development. Always review your paper manually before submitting.
 
+**Version 1.4.0** — Last updated June 27, 2026
+
 Contact pfrank@aiuniv.edu with questions, comments, or bug reports.
 
 Licensed under the [GNU General Public License v3.0](LICENSE). You are free to use, modify, and distribute this software, but any distributed version — including modified versions — must also be released under the GPL v3.0 with source code available. It may not be used as the basis for proprietary closed-source software.
@@ -139,3 +141,31 @@ Copyright (C) 2026 Patrick Frank
 APA Coach is licensed under the GNU General Public License v3.0 (GPL-3.0).
 
 See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Changelog
+
+**v1.4.0** — June 27, 2026
+Added 9 new checks based on library reviewer testing: heading numbering, heading capitalization, heading bold, heading level alignment, references start on new page, references numbered, citation comma, reference DOI format, and reference forbidden phrases. Fixed false positives in citation matching, reference italics, and title-case detection. Renamed "Inline citations" to "In-text citations". Full details in [edgecases.md](edgecases.md) and [CHANGELOG.md](CHANGELOG.md).
+
+**v1.3.0–1.3.2** — May 23, 2026
+Report Summary navigation index with per-category counts and clickable links. Color-coded summary cards. Category headings with Back to top links. Fixed paragraph spacing false positive when only one spacing side is explicitly set.
+
+**v1.2.0** — May 23, 2026
+Reference author checks expanded: detects missing space between initials, first-name-first order, lowercase name particles, all-caps last names, and full first names instead of initials. Per-reference callouts in author, year, and title capitalization cards. Fixed run boundary spaces and book-chapter classification.
+
+**v1.1.0** — May 22, 2026
+Added reference author format checks, reference title capitalization, unconverted markup symbols detection, and broken reference merging. Renamed "References formatting" to "Reference hanging indent."
+
+**v1.0.0** — May 21, 2026
+First stable release. Added CITATION.cff. Removed Beta label.
+
+**v0.9.x** — May 11–20, 2026
+PWA support and offline mode, print/save as PDF, reference link verification via CrossRef API, GoatCounter analytics, and session restore.
+
+**v0.8.x** — May 10–11, 2026
+Reference link verification (DOI via CrossRef, URL liveness). Fixed URL verification false positive for CORP-blocked sites.
+
+**v0.1.0–0.7.x** — May 1–9, 2026
+Initial release through PWA launch. Core APA checks, visual examples on fail cards, page numbering check, unapproved source check, compact header, and session restore.
