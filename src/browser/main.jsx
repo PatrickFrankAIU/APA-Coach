@@ -70,6 +70,8 @@ const CHECK_CATEGORY = {
   "Unconverted markup symbols": "Paper formatting",
   // References
   "References page": "References",
+  "References start on new page": "References",
+  "References numbered": "References",
   "References heading alignment": "References",
   "References line spacing": "References",
   "Reference hanging indent": "References",
@@ -82,6 +84,7 @@ const CHECK_CATEGORY = {
   "Reference italics": "References",
   "Reference punctuation": "References",
   "Reference DOI format": "References",
+  "Reference forbidden phrases": "References",
   "Reference link verification": "References",
   // Citations
   "In-text citations": "Citations",

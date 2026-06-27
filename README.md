@@ -38,6 +38,8 @@ The report can be printed or saved as a PDF directly from the browser using the 
 | Heading bold | Level 1–3 headings are bold |
 | Heading level alignment | Level 1 headings are centered; lower levels are flush left |
 | References page | Detects a References page near the end of the document |
+| References start on new page | References section begins on a new page (hard page break before the heading) |
+| References numbered | Flags automatic list numbering or bullets on reference entries — APA uses plain hanging indents |
 | In-text citations | At least one (Author, Year) citation found in the body |
 | References heading alignment | "References" heading is centered |
 | References formatting | Hanging indents on reference entries; flags broken or bare-URL entries |

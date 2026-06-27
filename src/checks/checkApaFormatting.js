@@ -651,6 +651,24 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "References start on new page") {
+    return [
+      "Place your cursor at the very end of the last paragraph before the References section.",
+      "Press Ctrl+Enter (Cmd+Enter on Mac) to insert a page break.",
+      "The References heading should now appear at the top of the next page.",
+      "Do not press Enter repeatedly to push References to a new page — use a hard page break instead.",
+    ];
+  }
+
+  if (rule === "References numbered") {
+    return [
+      "Select all reference entries in your References section.",
+      "In the Home toolbar, click the Numbered List button (or Bulleted List button) to turn off list formatting.",
+      "APA references use a plain hanging indent, not list numbers or bullets.",
+      "If the hanging indent is lost after removing the list, select all references, open Home > Paragraph settings, and under Indentation set Special to Hanging, By to 0.5\".",
+    ];
+  }
+
   if (rule === "Citation ampersand") {
     return [
       "Inside parenthetical citations, use \"&\" between author names: (Smith & Jones, 2020).",
@@ -1799,6 +1817,92 @@ function checkReferencesLineSpacing(extracted, referencesHeading) {
     details,
     getHowToFix("References line spacing"),
     [LINE_SPACING_MSFT_RESOURCE],
+  );
+}
+
+function checkReferencesStartNewPage(extracted, referencesHeading) {
+  const rule = "References start on new page";
+  const expected = "The References section must begin on a new page, separated from the body of the paper with a hard page break.";
+
+  if (referencesHeading.synthetic) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "References heading location is uncertain — could not verify whether it starts on a new page.",
+      applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
+      found: "Unable to verify", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const allParas = extracted.paragraphs;
+  const refPos = allParas.findIndex((p) => p.index === referencesHeading.index);
+  const precedingPara = refPos > 0 ? allParas[refPos - 1] : null;
+
+  const startsOnNewPage =
+    referencesHeading.pageBreakBefore === true ||
+    (precedingPara && precedingPara.endsWithPageBreak === true);
+
+  if (startsOnNewPage) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "References section begins on a new page.",
+      applicable: 1, checked: 1, matched: 1, failed: 0, unknown: 0,
+      found: "New page detected", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  if (!precedingPara) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "Could not determine whether the References section starts on a new page — please verify manually.",
+      applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
+      found: "Unable to verify", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return finishCheck(
+    rule,
+    expected,
+    "The References section does not appear to start on a new page.",
+    [referencesHeading],
+    [referencesHeading],
+    [],
+    ["No hard page break was found before the References heading. Insert a page break at the end of the last body paragraph."],
+    getHowToFix(rule),
+    [],
+  );
+}
+
+function checkReferencesNumbered(extracted, referencesHeading) {
+  const rule = "References numbered";
+  const expected = "Reference entries must not use numbered or bulleted lists. APA uses a plain hanging-indent format with no list markers.";
+
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const numbered = referenceParagraphs.filter((p) => p.numPr !== null && p.numPr !== undefined);
+
+  if (numbered.length === 0) {
+    return finishCheck(
+      rule,
+      expected,
+      "No list numbering or bullets detected on reference entries.",
+      referenceParagraphs,
+      [],
+      [],
+      [],
+      [],
+      [],
+    );
+  }
+
+  return finishCheck(
+    rule,
+    expected,
+    `${numbered.length} reference ${numbered.length === 1 ? "entry" : "entries"} appear to use automatic list numbering or bullets.`,
+    referenceParagraphs,
+    numbered,
+    [],
+    numbered.map((p) => `Paragraph ${p.index}: "${p.text.slice(0, 60)}${p.text.length > 60 ? "…" : ""}"`),
+    getHowToFix(rule),
+    [],
   );
 }
 
@@ -3405,6 +3509,8 @@ function checkApaFormatting(extracted) {
     checkCitationYearSuffixes(extracted, referencesHeading),
     ...(referencesHeading ? [
       ...(referencesHeading.synthetic ? [] : [checkReferencesHeadingAlignment(referencesHeading)]),
+      checkReferencesStartNewPage(extracted, referencesHeading),
+      checkReferencesNumbered(extracted, referencesHeading),
       checkReferencesFormatting(extracted, referencesHeading),
       ...(hasCitations ? [
         checkUncitedReferences(extracted, referencesHeading),
@@ -3474,6 +3580,8 @@ module.exports = {
   checkHeadingTitleCase,
   checkHeadingBold,
   checkHeadingLevelFormat,
+  checkReferencesStartNewPage,
+  checkReferencesNumbered,
   checkPersonalCommunications,
   checkSecondaryCitations,
   checkCitationAmpersandUsage,

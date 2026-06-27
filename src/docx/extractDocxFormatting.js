@@ -556,6 +556,18 @@ function isTitleCaseWord(word) {
   return /^[A-Z][a-z0-9'’-]*$/.test(word) || /^[A-Z0-9]+$/.test(word);
 }
 
+// Returns true when a toggle paragraph property (e.g. pageBreakBefore) is switched on.
+// Handles the three forms fast-xml-parser may produce: absent, empty string "", or { val: "..." }.
+function isParagraphPropertyOn(value) {
+  if (value === undefined || value === null || value === false) return false;
+  if (typeof value === "string") return value !== "false" && value !== "0";
+  if (typeof value === "object") {
+    const v = value.val;
+    return v !== "false" && v !== "0";
+  }
+  return Boolean(value);
+}
+
 function isLikelyHeadingText(text) {
   const trimmed = text.trim();
   if (!trimmed || trimmed.length > 80 || /[.!?;:]$/.test(trimmed)) {
@@ -716,6 +728,32 @@ function extractParagraphFormatting(
   }
   extracted.fonts = extractParagraphFontInfo(paragraph);
   extracted.runs = collectParagraphRunDescriptors(paragraph, styleId, styleMap, docDefaultRPr);
+
+  // Page break signals
+  extracted.pageBreakBefore = isParagraphPropertyOn(paragraphProperties.pageBreakBefore);
+  extracted.endsWithPageBreak = toArray(paragraph.r).some((run) =>
+    toArray(run.br).some((b) => b.type === "page"),
+  );
+
+  // Word list/numbering (w:numPr) — null when not a list paragraph
+  const numPrEl = paragraphProperties.numPr;
+  if (numPrEl && numPrEl.numId) {
+    const numId = String(
+      typeof numPrEl.numId === "object" ? (numPrEl.numId.val ?? "") : numPrEl.numId,
+    );
+    if (numId && numId !== "0") {
+      const ilvlRaw = numPrEl.ilvl;
+      const ilvl =
+        ilvlRaw !== undefined
+          ? Number(typeof ilvlRaw === "object" ? (ilvlRaw.val ?? 0) : ilvlRaw)
+          : 0;
+      extracted.numPr = { numId, ilvl };
+    } else {
+      extracted.numPr = null;
+    }
+  } else {
+    extracted.numPr = null;
+  }
 
   return extracted;
 }
