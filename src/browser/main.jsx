@@ -80,12 +80,13 @@ const CHECK_CATEGORY = {
   "Reference DOI format": "References",
   "Reference link verification": "References",
   // Citations
-  "Inline citations": "Citations",
+  "In-text citations": "Citations",
   "Uncited references": "Citations",
   "Unmatched citations": "Citations",
   "Personal communication": "Citations",
   "Citation ampersand": "Citations",
   "Citation et al. format": "Citations",
+  "Citation comma": "Citations",
   "Citation no-date format": "Citations",
   "Citation page format": "Citations",
   "Citation multiple sources": "Citations",
@@ -526,7 +527,7 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
-          {check.rule === "Inline citations" ? (
+          {check.rule === "In-text citations" ? (
             <div className="citation-example">
               <p className="citation-example-label">Cite every source you use in the body of your paper:</p>
               <div className="citation-example-demo">
@@ -547,7 +548,7 @@ function CheckCard({ check }) {
           ) : null}
           {check.rule === "Uncited references" ? (
             <div className="citation-example">
-              <p className="citation-example-label">Each reference needs a matching inline citation:</p>
+              <p className="citation-example-label">Each reference needs a matching in-text citation:</p>
               <div className="citation-example-demo">
                 <div className="citation-example-col">
                   <span className="citation-example-tag citation-example-tag--wrong">✗ Missing citation</span>
@@ -570,7 +571,7 @@ function CheckCard({ check }) {
           ) : null}
           {check.rule === "Unmatched citations" ? (
             <div className="citation-example">
-              <p className="citation-example-label">Each inline citation needs a matching reference entry:</p>
+              <p className="citation-example-label">Each in-text citation needs a matching reference entry:</p>
               <div className="citation-example-demo">
                 <div className="citation-example-col">
                   <span className="citation-example-tag citation-example-tag--wrong">✗ No reference</span>
