@@ -33,6 +33,10 @@ The report can be printed or saved as a PDF directly from the browser using the 
 |---|---|
 | Page numbering | Plain page number in the upper-right header on every page, starting at 1 on the title page; no "Page" or "Pg" label |
 | Title page | Detects a standard APA title page at the start of the document |
+| Heading numbering | Flags section numbers (1, 3.1, 3.1.1, …) on headings — APA headings are not numbered |
+| Heading capitalization | Headings use Title Case, not sentence case |
+| Heading bold | Level 1–3 headings are bold |
+| Heading level alignment | Level 1 headings are centered; lower levels are flush left |
 | References page | Detects a References page near the end of the document |
 | In-text citations | At least one (Author, Year) citation found in the body |
 | References heading alignment | "References" heading is centered |

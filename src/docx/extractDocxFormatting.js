@@ -571,6 +571,29 @@ function isLikelyHeadingText(text) {
   return titleCaseWords / words.length >= 0.8;
 }
 
+// Parses a leading section number such as "1", "3.1", or "3.1.1" off a heading.
+// Returns the numbering string, the implied APA level (depth of the dotted number),
+// and the remaining heading text — or null when the text does not start with one.
+function parseHeadingNumber(text) {
+  const m = (text || "").trim().match(/^(\d+(?:\.\d+)*)\s+([A-ZÀ-Ÿ].*)$/);
+  if (!m) return null;
+  return { numbering: m[1], level: m[1].split(".").length, headingText: m[2].trim() };
+}
+
+// A numbered heading is a short, capitalized line beginning with a section number
+// and lacking terminal sentence punctuation. The number prefix lets us catch
+// headings that Word never styled and that use sentence case (so the title-case
+// heuristic in isLikelyHeadingText misses them).
+function isNumberedHeadingText(text) {
+  const info = parseHeadingNumber(text);
+  if (!info) return false;
+  const rest = info.headingText;
+  if (rest.length === 0 || rest.length > 100) return false;
+  if (/[.!?;]$/.test(rest)) return false;
+  if (rest.split(/\s+/).length > 16) return false;
+  return true;
+}
+
 function isLikelyTitlePageParagraph(paragraph, nonBlankPosition) {
   const styleId = (paragraph.style.id || "").toLowerCase();
   const styleName = (paragraph.style.name || "").toLowerCase();
@@ -600,7 +623,7 @@ function classifyParagraph(paragraph, nonBlankPosition) {
     return "titlePage";
   }
 
-  if (isHeading(paragraph.style) || isLikelyHeadingText(paragraph.text)) {
+  if (isHeading(paragraph.style) || isLikelyHeadingText(paragraph.text) || isNumberedHeadingText(paragraph.text)) {
     return "heading";
   }
 
@@ -683,6 +706,14 @@ function extractParagraphFormatting(
   };
 
   extracted.role = classifyParagraph(extracted, nonBlankPosition);
+  if (extracted.role === "heading") {
+    const headingNumber = parseHeadingNumber(extracted.text);
+    if (headingNumber) {
+      extracted.headingNumber = headingNumber.numbering;
+      extracted.headingLevel = headingNumber.level;
+      extracted.headingTextOnly = headingNumber.headingText;
+    }
+  }
   extracted.fonts = extractParagraphFontInfo(paragraph);
   extracted.runs = collectParagraphRunDescriptors(paragraph, styleId, styleMap, docDefaultRPr);
 

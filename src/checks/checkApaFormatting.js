@@ -79,6 +79,10 @@ const APA_IN_TEXT_FORMAT_RESOURCE = {
   label: "APA Style: In-Text Citation Format",
   url: "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles",
 };
+const APA_HEADINGS_RESOURCE = {
+  label: "APA Style: Headings",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/paper-format/headings",
+};
 
 const UNAPPROVED_DOMAINS = [
   "123helpme.com","a1-termpaper.com","academic-papers.blogspot.com","academized.com",
@@ -608,6 +612,37 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "Heading numbering") {
+    return [
+      "Remove the section numbers (1, 2, 3.1, 3.1.1, …) from the start of each heading.",
+      "APA uses formatting — not numbers — to show heading levels: bold, capitalization, and placement.",
+      "Select each number at the start of a heading and delete it, leaving just the heading text.",
+    ];
+  }
+
+  if (rule === "Heading capitalization") {
+    return [
+      "APA headings use Title Case: capitalize the first word and all major words (nouns, verbs, adjectives, adverbs, pronouns).",
+      "Lowercase only minor words of three letters or fewer (a, an, the, and, of, in, to, …) unless they are the first word.",
+      'Example: "Current Educational Strategies to Counter Unethical Use of LLMs" — not "Current educational strategies to counter unethical use of LLMs".',
+    ];
+  }
+
+  if (rule === "Heading bold") {
+    return [
+      "Select the heading text and press Ctrl+B (Cmd+B on Mac) to make it bold.",
+      "Level 1, 2, and 3 headings are all bold in APA.",
+    ];
+  }
+
+  if (rule === "Heading level alignment") {
+    return [
+      "Level 1 headings: bold, Title Case, and centered.",
+      "Level 2 and Level 3 headings: bold, Title Case, and flush with the left margin.",
+      "Select each heading and set its alignment in the Home toolbar (Center for Level 1, Align Left for lower levels).",
+    ];
+  }
+
   if (rule === "Reference forbidden phrases") {
     return [
       "APA does not use \"Available at\" before a URL — write the URL directly without that phrase.",
@@ -749,8 +784,12 @@ function checkPageNumbering(extracted) {
 function checkTitlePage(extracted) {
   const titlePageParagraphs = getParagraphsByRole(extracted, "titlePage");
   const firstTextParagraph = extracted.paragraphs.find((paragraph) => paragraph.role !== "blank");
-  const beginsWithBodyText = firstTextParagraph ? firstTextParagraph.role === "body" : false;
-  const status = titlePageParagraphs.length === 0 && beginsWithBodyText ? "fail" : "pass";
+  // A document that opens directly with body text or a heading (rather than centered
+  // title-page text) has no title page.
+  const beginsWithContent = firstTextParagraph
+    ? firstTextParagraph.role === "body" || firstTextParagraph.role === "heading"
+    : false;
+  const status = titlePageParagraphs.length === 0 && beginsWithContent ? "fail" : "pass";
 
   return {
     rule: "Title page",
@@ -3219,6 +3258,118 @@ function checkSecondaryCitations(extracted, referencesHeading) {
   };
 }
 
+// ─── Heading checks (numbered section headings) ──────────────────────────────
+
+// Minor words that may stay lowercase in Title Case (except as the first word).
+const TITLE_CASE_MINOR_WORDS = new Set([
+  "a", "an", "the", "and", "but", "or", "nor", "for", "so", "yet", "as", "at",
+  "by", "in", "of", "off", "on", "per", "to", "up", "via", "with", "from",
+  "into", "onto", "over", "than", "that",
+]);
+
+// True when every major word in the heading text starts with a capital letter.
+function isTitleCaseHeading(text) {
+  const words = (text || "").split(/\s+/).filter(Boolean);
+  for (let i = 0; i < words.length; i++) {
+    const bare = words[i].replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ]+$/g, "");
+    if (!bare) continue;
+    if (i !== 0 && TITLE_CASE_MINOR_WORDS.has(bare.toLowerCase())) continue;
+    if (bare.length > 1 && bare === bare.toUpperCase()) continue; // acronym
+    if (/^[a-zà-ÿ]/.test(bare)) return false;
+  }
+  return true;
+}
+
+function isHeadingBold(paragraph) {
+  const runs = paragraph.runs || [];
+  return runs.length > 0 && runs.every((r) => r.bold);
+}
+
+function isLeftAligned(paragraph) {
+  const a = paragraph.formatting.alignment.value;
+  return a === null || a === undefined || a === "left" || a === "start" || a === "both";
+}
+
+// Numbered content headings (excludes the References heading and any heading after it).
+function getNumberedHeadings(extracted, referencesHeading) {
+  return extracted.paragraphs.filter(
+    (p) =>
+      p.role === "heading" &&
+      p.headingNumber &&
+      (!referencesHeading || p.index < referencesHeading.index),
+  );
+}
+
+function headingPreview(p) {
+  const t = (p.text || "").trim();
+  return t.length > 60 ? t.slice(0, 60) + "…" : t;
+}
+
+function checkHeadingNumbering(extracted, referencesHeading) {
+  const rule = "Heading numbering";
+  const expected = 'APA headings are not numbered — remove section numbers such as "1", "3.1", or "3.1.1".';
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const details = headings.map((p) => `Heading should not be numbered: "${headingPreview(p)}"`);
+  const foundText =
+    headings.length > 0
+      ? `${headings.length} heading${headings.length === 1 ? "" : "s"} use section numbering, which APA does not use.`
+      : "No numbered headings found.";
+  return finishCheck(rule, expected, foundText, headings, headings, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
+function checkHeadingTitleCase(extracted, referencesHeading) {
+  const rule = "Heading capitalization";
+  const expected = "APA headings use Title Case — capitalize the first word and all major words.";
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const failures = headings.filter((p) => !isTitleCaseHeading(p.headingTextOnly || p.text));
+  const details = failures.map((p) => `Heading should use Title Case, not sentence case: "${headingPreview(p)}"`);
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} heading${failures.length === 1 ? "" : "s"} use sentence case instead of Title Case.`
+      : "Heading capitalization appears correct.";
+  return finishCheck(rule, expected, foundText, headings, failures, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
+function checkHeadingBold(extracted, referencesHeading) {
+  const rule = "Heading bold";
+  const expected = "APA headings (levels 1–3) are bold.";
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const failures = headings.filter((p) => !isHeadingBold(p));
+  const details = failures.map((p) => `Heading should be bold: "${headingPreview(p)}"`);
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} heading${failures.length === 1 ? "" : "s"} are not bold.`
+      : "Heading bold formatting appears correct.";
+  return finishCheck(rule, expected, foundText, headings, failures, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
+function checkHeadingLevelFormat(extracted, referencesHeading) {
+  const rule = "Heading level alignment";
+  const expected = "APA Level 1 headings are centered; Level 2 and lower are flush left.";
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const failures = [];
+  const details = [];
+  for (const p of headings) {
+    const centered = p.formatting.alignment.value === "center";
+    if (p.headingLevel === 1 && !centered) {
+      failures.push(p);
+      details.push(`Level 1 heading should be centered: "${headingPreview(p)}"`);
+    } else if (p.headingLevel >= 2 && centered) {
+      failures.push(p);
+      details.push(`Level ${p.headingLevel} heading should be flush left, not centered: "${headingPreview(p)}"`);
+    }
+  }
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} heading${failures.length === 1 ? "" : "s"} use the wrong alignment for their level.`
+      : "Heading alignment matches the heading levels.";
+  return finishCheck(rule, expected, foundText, headings, failures, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
 function checkApaFormatting(extracted) {
   const referencesHeading = findReferencesHeadingNearEnd(extracted.paragraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
@@ -3230,11 +3381,18 @@ function checkApaFormatting(extracted) {
     .map((p) => p.text)
     .join(" ");
   const hasCitations = extractInlineCitationKeys(bodyText).length > 0;
+  const hasNumberedHeadings = getNumberedHeadings(extracted, referencesHeading).length > 0;
 
   const checks = [
     checkPageNumbering(extracted),
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
+    ...(hasNumberedHeadings ? [
+      checkHeadingNumbering(extracted, referencesHeading),
+      checkHeadingTitleCase(extracted, referencesHeading),
+      checkHeadingBold(extracted, referencesHeading),
+      checkHeadingLevelFormat(extracted, referencesHeading),
+    ] : []),
     checkInlineCitations(extracted, referencesHeading),
     checkPersonalCommunications(extracted, referencesHeading),
     checkSecondaryCitations(extracted, referencesHeading),
@@ -3312,6 +3470,10 @@ module.exports = {
   checkReferencePunctuation,
   checkReferenceDOIFormat,
   checkReferenceForbiddenPhrases,
+  checkHeadingNumbering,
+  checkHeadingTitleCase,
+  checkHeadingBold,
+  checkHeadingLevelFormat,
   checkPersonalCommunications,
   checkSecondaryCitations,
   checkCitationAmpersandUsage,

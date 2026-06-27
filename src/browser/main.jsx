@@ -55,6 +55,10 @@ const CHECK_CATEGORY = {
   // Paper formatting
   "Page numbering": "Paper formatting",
   "Title page": "Paper formatting",
+  "Heading numbering": "Paper formatting",
+  "Heading capitalization": "Paper formatting",
+  "Heading bold": "Paper formatting",
+  "Heading level alignment": "Paper formatting",
   "Margins": "Paper formatting",
   "Body line spacing": "Paper formatting",
   "Heading line spacing": "Paper formatting",
