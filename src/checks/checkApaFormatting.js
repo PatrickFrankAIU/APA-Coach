@@ -1864,12 +1864,21 @@ function checkReferencesStartNewPage(extracted, referencesHeading) {
     };
   }
 
-  if (!precedingPara || !precedingOrderReliable) {
+  if (!precedingPara) {
     return {
       rule, status: "review", passed: false, expected, expectedText: expected,
       foundText: "Could not determine whether the References section starts on a new page — please verify manually.",
       applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
       found: "Unable to verify", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  if (!precedingOrderReliable) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "Could not verify page break placement — your References section appears to use Word's built-in bibliography tool, which wraps references in a content control that APA Coach cannot fully inspect. Please verify manually that References starts on a new page, and consider rebuilding your references list by typing it directly in the document rather than using Word's built-in tool.",
+      applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
+      found: "Unable to verify (Word bibliography tool detected)", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
     };
   }
 
