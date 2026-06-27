@@ -14,11 +14,10 @@ Licensed under the [GNU General Public License v3.0](LICENSE). You are free to u
 
 ## What it does
 
-APA Coach reads the formatting metadata inside a `.docx` file and checks it against APA 7th edition requirements. It produces a report organized into four categories:
+APA Coach reads the formatting metadata inside a `.docx` file and checks it against APA 7th edition requirements. It produces a report organized into three categories:
 
-- **Required fixes** — formatting errors that should be corrected before submission
-- **Warnings** — items that may indicate a problem and should be verified (e.g., a DOI that resolves to a different source)
-- **Optional review** — items that may be correct but couldn't be fully verified from the file alone
+- **Failed** — formatting errors that should be corrected before submission
+- **Review** — items that may be correct but couldn't be fully verified from the file alone (e.g., a DOI that resolves to a different source, or a page break that couldn't be confirmed)
 - **Passed** — items that meet APA expectations
 
 Each result card explains what was found, what APA expects, and (for failures) step-by-step instructions for fixing the issue in Microsoft Word.
@@ -74,7 +73,6 @@ The report can be printed or saved as a PDF directly from the browser using the 
 | Heading paragraph spacing | 0 pt before and after headings |
 | Body first-line indents | 0.5-inch first-line indent on body paragraphs |
 | Body alignment | Left alignment on body text |
-| Citation comma | Commas are present between author and year: (Author, Year); no trailing commas after year |
 | Font | 12pt Times New Roman throughout; flags mixed sizes or families |
 
 ---
