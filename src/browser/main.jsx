@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 23, 2026",
+  lastUpdated: "June 27, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {

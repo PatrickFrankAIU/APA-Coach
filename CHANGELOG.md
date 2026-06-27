@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.4.0] - 2026-06-27
+
+### Added
+
+- **Heading numbering** — Flags section numbers (1, 2, 3.1, 3.1.1, …) prefixed to headings; APA headings are not numbered.
+- **Heading capitalization** — Detects headings in sentence case that should be Title Case.
+- **Heading bold** — Flags Level 1–3 headings that are missing bold formatting.
+- **Heading level alignment** — Flags Level 1 headings that are not centered, and Level 2/3 headings that are not flush left.
+- **References start on new page** — Detects whether the References section begins on a hard page break. Returns a review note (with a warning about Word's built-in bibliography tool) when the heading is inside a content control and ordering cannot be reliably determined.
+- **References numbered** — Flags reference entries that use Word's automatic list numbering or bullets; APA uses plain hanging indents.
+- **Citation comma** — Flags missing commas between author and year (`(Li 2024)` → `(Li, 2024)`), including the `et al.` case, and catches stray trailing commas after the year (`(2023,)`).
+- **Reference DOI format** — Flags bare DOIs (`10.xxxx/…`) and the old `doi:` prefix; all DOIs must use the full `https://doi.org/` URL form.
+- **Reference forbidden phrases** — Flags `Available at` and `accessed [date]` in reference entries; APA uses neither.
+
+### Changed
+
+- **"Inline citations" renamed "In-text citations"** — Matches the terminology used in the APA Manual throughout the UI, check cards, and README.
+- **Bare DOI recognition** — `checkReferenceDOIs` now recognizes bare `10.xxxx/…` strings as DOIs, so references with bare DOIs no longer falsely report a missing DOI/URL.
+- **Numbered heading detection** — Paragraphs beginning with a section number (`1`, `3.1`, `3.1.1`, …) are now classified as headings even when no Word heading style is applied, enabling the four new heading checks above.
+
+### Fixed
+
+- **All-uncited / all-unmatched false positives** — Mangled author strings like `CambFierroJ.` now yield a clean surname via a lowercase→uppercase boundary split in `extractReferenceKey`, eliminating floods of false "uncited reference" and "unmatched citation" reports.
+- **Italics false positive on article titles** — A non-breaking space (U+00A0) between the article title and journal name prevented the title/journal boundary split, causing the journal's italic span to be attributed to the title. Fixed by using `\s` (which matches U+00A0) in the split pattern.
+- **Title-case false positives** — Reduced from ~10 to ~1 by requiring two or more *consecutive* capitalized words and skipping words that follow sentence-ending punctuation.
+- **Lowercase subtitle not flagged** — `checkReferenceTitleCapitalization` now also flags a lowercase first word after a colon in the title (e.g., `well-being: an empirical` → should be `An`).
+
+*Full details, including root-cause analysis and affected functions for all 19 items, are in [edgecases.md](edgecases.md).*
+
 ## [1.3.2] - 2026-05-23
 
 ### Changed
