@@ -33,13 +33,21 @@ The report can be printed or saved as a PDF directly from the browser using the 
 |---|---|
 | Page numbering | Plain page number in the upper-right header on every page, starting at 1 on the title page; no "Page" or "Pg" label |
 | Title page | Detects a standard APA title page at the start of the document |
+| Heading numbering | Flags section numbers (1, 3.1, 3.1.1, …) on headings — APA headings are not numbered |
+| Heading capitalization | Headings use Title Case, not sentence case |
+| Heading bold | Level 1–3 headings are bold |
+| Heading level alignment | Level 1 headings are centered; lower levels are flush left |
 | References page | Detects a References page near the end of the document |
-| Inline citations | At least one (Author, Year) citation found in the body |
+| References start on new page | References section begins on a new page (hard page break before the heading) |
+| References numbered | Flags automatic list numbering or bullets on reference entries — APA uses plain hanging indents |
+| In-text citations | At least one (Author, Year) citation found in the body |
 | References heading alignment | "References" heading is centered |
 | References formatting | Hanging indents on reference entries; flags broken or bare-URL entries |
-| Uncited references | Every reference entry has a matching inline citation |
-| Unmatched citations | Every inline citation has a matching reference entry |
+| Uncited references | Every reference entry has a matching in-text citation |
+| Unmatched citations | Every in-text citation has a matching reference entry |
 | Reference DOI/URL | Each reference includes a visible DOI or URL |
+| Reference DOI format | DOIs use the full https://doi.org/ URL format; flags bare DOIs (10.xxxx/...) and old doi: prefix |
+| Reference forbidden phrases | References do not use non-APA phrases such as "Available at" or "accessed [date]" |
 | Reference short link | Reference URLs link to a specific page, not just a domain homepage |
 | Unapproved source | References do not use sources on [AIU's list of 145+ unapproved domains](https://careered.libguides.com/AIUS/unacceptablewebsites) |
 | Reference link verification | DOIs are verified against CrossRef — flags mismatches where the DOI resolves to a different source than the reference claims; URLs cannot be verified from the browser (status codes are inaccessible via cross-origin fetch) and are noted for manual review |
@@ -51,6 +59,7 @@ The report can be printed or saved as a PDF directly from the browser using the 
 | Heading paragraph spacing | 0 pt before and after headings |
 | Body first-line indents | 0.5-inch first-line indent on body paragraphs |
 | Body alignment | Left alignment on body text |
+| Citation comma | Commas are present between author and year: (Author, Year); no trailing commas after year |
 | Font | 12pt Times New Roman throughout; flags mixed sizes or families |
 
 ---

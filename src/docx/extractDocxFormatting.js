@@ -556,6 +556,18 @@ function isTitleCaseWord(word) {
   return /^[A-Z][a-z0-9'’-]*$/.test(word) || /^[A-Z0-9]+$/.test(word);
 }
 
+// Returns true when a toggle paragraph property (e.g. pageBreakBefore) is switched on.
+// Handles the three forms fast-xml-parser may produce: absent, empty string "", or { val: "..." }.
+function isParagraphPropertyOn(value) {
+  if (value === undefined || value === null || value === false) return false;
+  if (typeof value === "string") return value !== "false" && value !== "0";
+  if (typeof value === "object") {
+    const v = value.val;
+    return v !== "false" && v !== "0";
+  }
+  return Boolean(value);
+}
+
 function isLikelyHeadingText(text) {
   const trimmed = text.trim();
   if (!trimmed || trimmed.length > 80 || /[.!?;:]$/.test(trimmed)) {
@@ -569,6 +581,29 @@ function isLikelyHeadingText(text) {
 
   const titleCaseWords = words.filter(isTitleCaseWord).length;
   return titleCaseWords / words.length >= 0.8;
+}
+
+// Parses a leading section number such as "1", "3.1", or "3.1.1" off a heading.
+// Returns the numbering string, the implied APA level (depth of the dotted number),
+// and the remaining heading text — or null when the text does not start with one.
+function parseHeadingNumber(text) {
+  const m = (text || "").trim().match(/^(\d+(?:\.\d+)*)\s+([A-ZÀ-Ÿ].*)$/);
+  if (!m) return null;
+  return { numbering: m[1], level: m[1].split(".").length, headingText: m[2].trim() };
+}
+
+// A numbered heading is a short, capitalized line beginning with a section number
+// and lacking terminal sentence punctuation. The number prefix lets us catch
+// headings that Word never styled and that use sentence case (so the title-case
+// heuristic in isLikelyHeadingText misses them).
+function isNumberedHeadingText(text) {
+  const info = parseHeadingNumber(text);
+  if (!info) return false;
+  const rest = info.headingText;
+  if (rest.length === 0 || rest.length > 100) return false;
+  if (/[.!?;]$/.test(rest)) return false;
+  if (rest.split(/\s+/).length > 16) return false;
+  return true;
 }
 
 function isLikelyTitlePageParagraph(paragraph, nonBlankPosition) {
@@ -600,7 +635,7 @@ function classifyParagraph(paragraph, nonBlankPosition) {
     return "titlePage";
   }
 
-  if (isHeading(paragraph.style) || isLikelyHeadingText(paragraph.text)) {
+  if (isHeading(paragraph.style) || isLikelyHeadingText(paragraph.text) || isNumberedHeadingText(paragraph.text)) {
     return "heading";
   }
 
@@ -683,34 +718,73 @@ function extractParagraphFormatting(
   };
 
   extracted.role = classifyParagraph(extracted, nonBlankPosition);
+  if (extracted.role === "heading") {
+    const headingNumber = parseHeadingNumber(extracted.text);
+    if (headingNumber) {
+      extracted.headingNumber = headingNumber.numbering;
+      extracted.headingLevel = headingNumber.level;
+      extracted.headingTextOnly = headingNumber.headingText;
+    }
+  }
   extracted.fonts = extractParagraphFontInfo(paragraph);
   extracted.runs = collectParagraphRunDescriptors(paragraph, styleId, styleMap, docDefaultRPr);
+
+  // Page break signals
+  extracted.pageBreakBefore = isParagraphPropertyOn(paragraphProperties.pageBreakBefore);
+  extracted.endsWithPageBreak = toArray(paragraph.r).some((run) =>
+    toArray(run.br).some((b) => b.type === "page"),
+  );
+
+  // Word list/numbering (w:numPr) — null when not a list paragraph
+  const numPrEl = paragraphProperties.numPr;
+  if (numPrEl && numPrEl.numId) {
+    const numId = String(
+      typeof numPrEl.numId === "object" ? (numPrEl.numId.val ?? "") : numPrEl.numId,
+    );
+    if (numId && numId !== "0") {
+      const ilvlRaw = numPrEl.ilvl;
+      const ilvl =
+        ilvlRaw !== undefined
+          ? Number(typeof ilvlRaw === "object" ? (ilvlRaw.val ?? 0) : ilvlRaw)
+          : 0;
+      extracted.numPr = { numId, ilvl };
+    } else {
+      extracted.numPr = null;
+    }
+  } else {
+    extracted.numPr = null;
+  }
 
   return extracted;
 }
 
-function collectParagraphNodes(content, out) {
+// collectParagraphNodes gathers paragraph XML nodes for extraction.
+// Because fast-xml-parser separates w:p and w:sdt into distinct arrays, the
+// interleaved document order between direct-child <w:p> and <w:sdt> elements
+// is lost. We tag each node with fromSdt so callers can avoid making ordering
+// assumptions when paragraphs from sdts are mixed with body paragraphs.
+function collectParagraphNodes(content, out, fromSdt = false) {
   for (const p of toArray(content.p)) {
-    out.push(p);
+    out.push({ node: p, fromSdt });
   }
   for (const sdt of toArray(content.sdt)) {
     const inner = sdt.sdtContent;
-    if (inner) collectParagraphNodes(inner, out);
+    if (inner) collectParagraphNodes(inner, out, true);
   }
 }
 
 function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}, docDefaultRPr = {}) {
   const body = document.document && document.document.body;
-  const paragraphs = [];
-  if (body) collectParagraphNodes(body, paragraphs);
+  const items = [];
+  if (body) collectParagraphNodes(body, items);
   let nonBlankPosition = 0;
 
-  return paragraphs.map((paragraph, index) => {
+  return items.map(({ node: paragraph, fromSdt }, index) => {
     if (getParagraphText(paragraph).trim().length > 0) {
       nonBlankPosition += 1;
     }
 
-    return extractParagraphFormatting(
+    const extracted = extractParagraphFormatting(
       paragraph,
       index,
       styleMap,
@@ -719,6 +793,8 @@ function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}, doc
       hyperlinkRels,
       docDefaultRPr,
     );
+    extracted.fromSdt = fromSdt;
+    return extracted;
   });
 }
 

@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "May 23, 2026",
+  lastUpdated: "June 27, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -55,6 +55,10 @@ const CHECK_CATEGORY = {
   // Paper formatting
   "Page numbering": "Paper formatting",
   "Title page": "Paper formatting",
+  "Heading numbering": "Paper formatting",
+  "Heading capitalization": "Paper formatting",
+  "Heading bold": "Paper formatting",
+  "Heading level alignment": "Paper formatting",
   "Margins": "Paper formatting",
   "Body line spacing": "Paper formatting",
   "Heading line spacing": "Paper formatting",
@@ -66,6 +70,8 @@ const CHECK_CATEGORY = {
   "Unconverted markup symbols": "Paper formatting",
   // References
   "References page": "References",
+  "References start on new page": "References",
+  "References numbered": "References",
   "References heading alignment": "References",
   "References line spacing": "References",
   "Reference hanging indent": "References",
@@ -78,14 +84,16 @@ const CHECK_CATEGORY = {
   "Reference italics": "References",
   "Reference punctuation": "References",
   "Reference DOI format": "References",
+  "Reference forbidden phrases": "References",
   "Reference link verification": "References",
   // Citations
-  "Inline citations": "Citations",
+  "In-text citations": "Citations",
   "Uncited references": "Citations",
   "Unmatched citations": "Citations",
   "Personal communication": "Citations",
   "Citation ampersand": "Citations",
   "Citation et al. format": "Citations",
+  "Citation comma": "Citations",
   "Citation no-date format": "Citations",
   "Citation page format": "Citations",
   "Citation multiple sources": "Citations",
@@ -526,7 +534,7 @@ function CheckCard({ check }) {
               </div>
             </div>
           ) : null}
-          {check.rule === "Inline citations" ? (
+          {check.rule === "In-text citations" ? (
             <div className="citation-example">
               <p className="citation-example-label">Cite every source you use in the body of your paper:</p>
               <div className="citation-example-demo">
@@ -547,7 +555,7 @@ function CheckCard({ check }) {
           ) : null}
           {check.rule === "Uncited references" ? (
             <div className="citation-example">
-              <p className="citation-example-label">Each reference needs a matching inline citation:</p>
+              <p className="citation-example-label">Each reference needs a matching in-text citation:</p>
               <div className="citation-example-demo">
                 <div className="citation-example-col">
                   <span className="citation-example-tag citation-example-tag--wrong">✗ Missing citation</span>
@@ -570,7 +578,7 @@ function CheckCard({ check }) {
           ) : null}
           {check.rule === "Unmatched citations" ? (
             <div className="citation-example">
-              <p className="citation-example-label">Each inline citation needs a matching reference entry:</p>
+              <p className="citation-example-label">Each in-text citation needs a matching reference entry:</p>
               <div className="citation-example-demo">
                 <div className="citation-example-col">
                   <span className="citation-example-tag citation-example-tag--wrong">✗ No reference</span>

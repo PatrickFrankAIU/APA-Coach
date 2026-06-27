@@ -79,6 +79,10 @@ const APA_IN_TEXT_FORMAT_RESOURCE = {
   label: "APA Style: In-Text Citation Format",
   url: "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles",
 };
+const APA_HEADINGS_RESOURCE = {
+  label: "APA Style: Headings",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/paper-format/headings",
+};
 
 const UNAPPROVED_DOMAINS = [
   "123helpme.com","a1-termpaper.com","academic-papers.blogspot.com","academized.com",
@@ -471,17 +475,25 @@ function getHowToFix(rule) {
     ];
   }
 
-  if (rule === "Inline citations") {
+  if (rule === "In-text citations") {
     return [
-      "Add an inline citation every time you use information from a source.",
+      "Add an in-text citation every time you use information from a source.",
       "Parenthetical format: place (Author, Year) at the end of the sentence before the period.",
       "Narrative format: use Author (Year) at the start of the sentence.",
     ];
   }
 
+  if (rule === "Citation comma") {
+    return [
+      "APA citations require a comma between the author name and the year.",
+      "Parenthetical: (Li, 2024) not (Li 2024); (Smith et al., 2022) not (Smith et al 2022).",
+      "Narrative: Smith et al. (2023) not Smith et al. (2023,) — no comma after the year.",
+    ];
+  }
+
   if (rule === "Uncited references") {
     return [
-      "For each reference listed, find where you used that source and add an inline citation.",
+      "For each reference listed, find where you used that source and add an in-text citation.",
       "Parenthetical format: place (Author, Year) at the end of the sentence before the period.",
       "Narrative format: use Author (Year) at the start of the sentence.",
       "Note: abbreviated organization names (e.g., APA) may not be detected automatically — check those manually.",
@@ -551,7 +563,7 @@ function getHowToFix(rule) {
       "Separate two authors with \", & \" — use \"&\" not \"and\".",
       "For 3–20 authors, list all of them separated by commas, with \"&\" before the last.",
       "For 21+ authors, list the first 19, then an ellipsis (…), then the last author.",
-      "Do not use \"et al.\" in a reference entry — \"et al.\" is only for inline citations.",
+      "Do not use \"et al.\" in a reference entry — \"et al.\" is only for in-text citations.",
     ];
   }
 
@@ -593,9 +605,67 @@ function getHowToFix(rule) {
 
   if (rule === "Reference DOI format") {
     return [
-      "DOIs must be formatted as URLs: https://doi.org/10.xxxx/xxxxx",
+      "DOIs must be formatted as full URLs: https://doi.org/10.xxxx/xxxxx",
+      "A bare DOI (e.g., 10.1007/xxxxx) must be preceded by https://doi.org/ — write https://doi.org/10.1007/xxxxx",
       "Do not use the old \"doi:\" prefix — replace it with \"https://doi.org/\".",
       "Do not use \"http://dx.doi.org/\" — use \"https://doi.org/\" instead.",
+    ];
+  }
+
+  if (rule === "Heading numbering") {
+    return [
+      "Remove the section numbers (1, 2, 3.1, 3.1.1, …) from the start of each heading.",
+      "APA uses formatting — not numbers — to show heading levels: bold, capitalization, and placement.",
+      "Select each number at the start of a heading and delete it, leaving just the heading text.",
+    ];
+  }
+
+  if (rule === "Heading capitalization") {
+    return [
+      "APA headings use Title Case: capitalize the first word and all major words (nouns, verbs, adjectives, adverbs, pronouns).",
+      "Lowercase only minor words of three letters or fewer (a, an, the, and, of, in, to, …) unless they are the first word.",
+      'Example: "Current Educational Strategies to Counter Unethical Use of LLMs" — not "Current educational strategies to counter unethical use of LLMs".',
+    ];
+  }
+
+  if (rule === "Heading bold") {
+    return [
+      "Select the heading text and press Ctrl+B (Cmd+B on Mac) to make it bold.",
+      "Level 1, 2, and 3 headings are all bold in APA.",
+    ];
+  }
+
+  if (rule === "Heading level alignment") {
+    return [
+      "Level 1 headings: bold, Title Case, and centered.",
+      "Level 2 and Level 3 headings: bold, Title Case, and flush with the left margin.",
+      "Select each heading and set its alignment in the Home toolbar (Center for Level 1, Align Left for lower levels).",
+    ];
+  }
+
+  if (rule === "Reference forbidden phrases") {
+    return [
+      "APA does not use \"Available at\" before a URL — write the URL directly without that phrase.",
+      "APA does not require an access date for most sources — remove \"accessed\" and the date that follows.",
+      "Example: instead of \"Available at: https://example.com (accessed July 10, 2024)\" write just \"https://example.com\"",
+    ];
+  }
+
+  if (rule === "References start on new page") {
+    return [
+      "Place your cursor at the very end of the last paragraph before the References section.",
+      "Press Ctrl+Enter (Cmd+Enter on Mac) to insert a page break.",
+      "The References heading should now appear at the top of the next page.",
+      "Do not press Enter repeatedly to push References to a new page — use a hard page break instead.",
+    ];
+  }
+
+  if (rule === "References numbered") {
+    return [
+      "Select all reference entries in your References section.",
+      "In the Home toolbar, click the Numbered List button (or Bulleted List button) to turn off list formatting.",
+      "APA references use a plain hanging indent, not list numbers or bullets.",
+      "If the hanging indent is lost after removing the list, select all references, open Home > Paragraph settings, and under Indentation set Special to Hanging, By to 0.5\".",
     ];
   }
 
@@ -640,7 +710,7 @@ function getHowToFix(rule) {
   if (rule === "Citation year suffix") {
     return [
       "When you cite two works by the same author(s) published in the same year, add a letter suffix: (Smith, 2020a) and (Smith, 2020b).",
-      "Make sure the same suffix appears in both the inline citation and the reference entry.",
+      "Make sure the same suffix appears in both the in-text citation and the reference entry.",
     ];
   }
 
@@ -732,8 +802,12 @@ function checkPageNumbering(extracted) {
 function checkTitlePage(extracted) {
   const titlePageParagraphs = getParagraphsByRole(extracted, "titlePage");
   const firstTextParagraph = extracted.paragraphs.find((paragraph) => paragraph.role !== "blank");
-  const beginsWithBodyText = firstTextParagraph ? firstTextParagraph.role === "body" : false;
-  const status = titlePageParagraphs.length === 0 && beginsWithBodyText ? "fail" : "pass";
+  // A document that opens directly with body text or a heading (rather than centered
+  // title-page text) has no title page.
+  const beginsWithContent = firstTextParagraph
+    ? firstTextParagraph.role === "body" || firstTextParagraph.role === "heading"
+    : false;
+  const status = titlePageParagraphs.length === 0 && beginsWithContent ? "fail" : "pass";
 
   return {
     rule: "Title page",
@@ -1241,13 +1315,22 @@ function extractReferenceKey(text) {
   const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)[,)]/);
   if (!yearMatch) return null;
   const year = yearMatch[1];
-  const beforeYear = text.substring(0, yearMatch.index).trim().replace(/\.\s*$/, "").trim();
+  const rawBefore = text.substring(0, yearMatch.index).trim(); // keep periods for glued match
+  const beforeYear = rawBefore.replace(/\.\s*$/, "").trim();
   const commaIdx = beforeYear.indexOf(",");
   // Strip trailing initials glued without comma (e.g., "Laudon K.C." → "Laudon")
-  const lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear)
+  let lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear)
     .trim()
     .replace(/\s+[A-Z]\.(?:[A-Z]\.)*$/, "")
     .trim();
+  // Recover a surname glued directly to initials with no comma, e.g.
+  // "Cambra-FierroJ. J.BlascoM. F. …" → "Cambra-Fierro", "LiM." → "Li", "YangW." → "Yang".
+  // The first initial is the first capital-then-period that follows a lowercase letter
+  // (optionally with a space, to also handle "Smith J.").
+  if (commaIdx <= 0) {
+    const glued = rawBefore.match(/^(.*?[a-zà-ÿ])(?=\s?[A-ZÀ-Ÿ]\.)/);
+    if (glued && glued[1].length >= 2) lastName = glued[1].trim();
+  }
   if (!lastName || lastName.length < 2) return null;
   const preview = text.length > 80 ? text.substring(0, 80) + "…" : text;
   return { lastName, year, preview };
@@ -1280,8 +1363,11 @@ function parseReferenceEntry(paragraph) {
   let afterYear = text.slice(yearMatch.index + yearMatch[0].length).trim();
   afterYear = afterYear.replace(/^[.\s]+/, "");
 
-  // Match doi: prefix before bare https:// so "doi:https://..." is captured whole
-  const urlMatch = afterYear.match(/\bdoi:\s*\S+/i) || afterYear.match(/\bhttps?:\/\/\S+/i);
+  // Match doi: prefix before bare https:// so "doi:https://..." is captured whole.
+  // Bare DOIs (10.xxxx/…) are captured last so a full doi.org URL wins when present.
+  const urlMatch = afterYear.match(/\bdoi:\s*\S+/i)
+    || afterYear.match(/\bhttps?:\/\/\S+/i)
+    || afterYear.match(/\b10\.\d{4,}\/\S+/i);
   if (urlMatch) {
     result.doiOrUrl = urlMatch[0].replace(/[.,;)]+$/, "");
     afterYear = (afterYear.slice(0, urlMatch.index) + afterYear.slice(urlMatch.index + urlMatch[0].length))
@@ -1289,8 +1375,11 @@ function parseReferenceEntry(paragraph) {
       .replace(/[.,;\s]+$/, "");
   }
 
-  // Split title from source on ". " (normal) or " ." (student typo: space before period)
-  const splitMatch = afterYear.match(/\. | \./);
+  // Split title from source on period+space (normal) or space+period (student typo).
+  // \s matches a non-breaking space ( ), which some converted documents place
+  // between the title and the journal name — without it the split lands inside the
+  // journal abbreviation (e.g. "Educ. Inf. Technol.") and over-captures into the title.
+  const splitMatch = afterYear.match(/\.\s|\s\./);
   if (splitMatch) {
     result.title = afterYear.slice(0, splitMatch.index).trim();
     result.sourcePart = afterYear.slice(splitMatch.index + splitMatch[0].length).trim().replace(/\.\s*$/, "");
@@ -1444,7 +1533,7 @@ function isCitationMatched(citKey, referenceKeys) {
 }
 
 function hasDOIOrURL(text) {
-  return /https?:\/\/|doi\.org|\bdoi:\s*10\./i.test(text);
+  return /https?:\/\/|doi\.org|\bdoi:\s*10\.|\b10\.\d{4,}\//i.test(text);
 }
 
 function groupHasVisibleDOIOrURL(group) {
@@ -1731,9 +1820,118 @@ function checkReferencesLineSpacing(extracted, referencesHeading) {
   );
 }
 
+function checkReferencesStartNewPage(extracted, referencesHeading) {
+  const rule = "References start on new page";
+  const expected = "The References section must begin on a new page, separated from the body of the paper with a hard page break.";
+
+  if (referencesHeading.synthetic) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "References heading location is uncertain — could not verify whether it starts on a new page.",
+      applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
+      found: "Unable to verify", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const allParas = extracted.paragraphs;
+  const refPos = allParas.findIndex((p) => p.index === referencesHeading.index);
+  const precedingPara = refPos > 0 ? allParas[refPos - 1] : null;
+
+  // pageBreakBefore on the heading itself is always reliable
+  if (referencesHeading.pageBreakBefore === true) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "References section begins on a new page.",
+      applicable: 1, checked: 1, matched: 1, failed: 0, unknown: 0,
+      found: "New page detected", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  // endsWithPageBreak on the preceding paragraph is only reliable when both
+  // the heading and that paragraph are direct body children (not from sdts).
+  // collectParagraphNodes does not preserve interleave order between body.p
+  // and body.sdt, so a page break inside an sdt may appear adjacent to the
+  // References heading in our list even when it isn't in the real document.
+  const precedingOrderReliable =
+    precedingPara && !referencesHeading.fromSdt && !precedingPara.fromSdt;
+
+  if (precedingOrderReliable && precedingPara.endsWithPageBreak) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "References section begins on a new page.",
+      applicable: 1, checked: 1, matched: 1, failed: 0, unknown: 0,
+      found: "New page detected", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  if (!precedingPara) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "Could not determine whether the References section starts on a new page — please verify manually.",
+      applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
+      found: "Unable to verify", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  if (!precedingOrderReliable) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "Could not verify page break placement — your References section appears to use Word's built-in bibliography tool, which wraps references in a content control that APA Coach cannot fully inspect. Please verify manually that References starts on a new page, and consider rebuilding your references list by typing it directly in the document rather than using Word's built-in tool.",
+      applicable: 1, checked: 0, matched: 0, failed: 0, unknown: 1,
+      found: "Unable to verify (Word bibliography tool detected)", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return finishCheck(
+    rule,
+    expected,
+    "The References section does not appear to start on a new page.",
+    [referencesHeading],
+    [referencesHeading],
+    [],
+    ["No hard page break was found before the References heading. Insert a page break at the end of the last body paragraph."],
+    getHowToFix(rule),
+    [],
+  );
+}
+
+function checkReferencesNumbered(extracted, referencesHeading) {
+  const rule = "References numbered";
+  const expected = "Reference entries must not use numbered or bulleted lists. APA uses a plain hanging-indent format with no list markers.";
+
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const numbered = referenceParagraphs.filter((p) => p.numPr !== null && p.numPr !== undefined);
+
+  if (numbered.length === 0) {
+    return finishCheck(
+      rule,
+      expected,
+      "No list numbering or bullets detected on reference entries.",
+      referenceParagraphs,
+      [],
+      [],
+      [],
+      [],
+      [],
+    );
+  }
+
+  return finishCheck(
+    rule,
+    expected,
+    `${numbered.length} reference ${numbered.length === 1 ? "entry" : "entries"} appear to use automatic list numbering or bullets.`,
+    referenceParagraphs,
+    numbered,
+    [],
+    numbered.map((p) => `Paragraph ${p.index}: "${p.text.slice(0, 60)}${p.text.length > 60 ? "…" : ""}"`),
+    getHowToFix(rule),
+    [],
+  );
+}
+
 function checkInlineCitations(extracted, referencesHeading) {
-  const rule = "Inline citations";
-  const expected = "Each source used in the paper should have an inline citation.";
+  const rule = "In-text citations";
+  const expected = "Each source used in the paper should have an in-text citation.";
 
   const allText = extracted.paragraphs
     .filter((p) => p.role !== "blank" && (!referencesHeading || p.index < referencesHeading.index))
@@ -1745,9 +1943,9 @@ function checkInlineCitations(extracted, referencesHeading) {
     return {
       rule, status: "pass", passed: true,
       expected, expectedText: expected,
-      foundText: `APA Coach found ${citationKeys.length} inline citation(s) in the document.`,
+      foundText: `APA Coach found ${citationKeys.length} in-text citation(s) in the document.`,
       applicable: citationKeys.length, checked: citationKeys.length, matched: citationKeys.length,
-      failed: 0, unknown: 0, found: `${citationKeys.length} inline citation(s) found`,
+      failed: 0, unknown: 0, found: `${citationKeys.length} in-text citation(s) found`,
       applicableParagraphs: 0, details: [], howToFix: [], resources: [],
     };
   }
@@ -1760,7 +1958,7 @@ function checkInlineCitations(extracted, referencesHeading) {
     return {
       rule, status: "review", passed: false,
       expected, expectedText: expected,
-      foundText: "APA Coach did not find enough content to check for inline citations.",
+      foundText: "APA Coach did not find enough content to check for in-text citations.",
       applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
       found: "Not enough content", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
     };
@@ -1769,9 +1967,9 @@ function checkInlineCitations(extracted, referencesHeading) {
   return {
     rule, status: "fail", passed: false,
     expected, expectedText: expected,
-    foundText: "APA Coach did not find any inline citations. If you used sources, add (Author, Year) citations throughout the body.",
+    foundText: "APA Coach did not find any in-text citations. If you used sources, add (Author, Year) citations throughout the body.",
     applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
-    found: "No inline citations found", applicableParagraphs: 0,
+    found: "No in-text citations found", applicableParagraphs: 0,
     details: [], howToFix: getHowToFix(rule), resources: [INLINE_CITATIONS_APA_RESOURCE, INLINE_CITATIONS_OWL_RESOURCE],
   };
 }
@@ -1790,9 +1988,9 @@ function checkUncitedReferences(extracted, referencesHeading) {
       rule: "Uncited references",
       status: "review",
       passed: false,
-      expected: "Each reference should have at least one matching inline citation.",
-      expectedText: "Each reference should have at least one matching inline citation.",
-      foundText: "APA Coach could not parse the reference entries to check for inline citations.",
+      expected: "Each reference should have at least one matching in-text citation.",
+      expectedText: "Each reference should have at least one matching in-text citation.",
+      foundText: "APA Coach could not parse the reference entries to check for in-text citations.",
       applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
       found: "Could not parse references",
       applicableParagraphs: 0,
@@ -1809,14 +2007,14 @@ function checkUncitedReferences(extracted, referencesHeading) {
     rule: "Uncited references",
     status,
     passed: status === "pass",
-    expected: "Each reference should have at least one matching inline citation.",
-    expectedText: "Each reference should have at least one matching inline citation.",
+    expected: "Each reference should have at least one matching in-text citation.",
+    expectedText: "Each reference should have at least one matching in-text citation.",
     foundText:
       status === "pass"
-        ? `All ${referenceKeys.length} references appear to have a matching inline citation.`
+        ? `All ${referenceKeys.length} references appear to have a matching in-text citation.`
         : !bodyHasCitations
-          ? "APA Coach could not find any inline citations in the body. If your paper uses citations, check that they follow APA format: (Author, Year)."
-          : `${uncited.length} of ${referenceKeys.length} reference${referenceKeys.length === 1 ? "" : "s"} appear to have no matching inline citation.`,
+          ? "APA Coach could not find any in-text citations in the body. If your paper uses citations, check that they follow APA format: (Author, Year)."
+          : `${uncited.length} of ${referenceKeys.length} reference${referenceKeys.length === 1 ? "" : "s"} appear to have no matching in-text citation.`,
     applicable: referenceKeys.length,
     checked: referenceKeys.length,
     matched: referenceKeys.length - uncited.length,
@@ -1847,11 +2045,11 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
       rule: "Unmatched citations",
       status: "review",
       passed: false,
-      expected: "Each inline citation should have a matching entry in the References list.",
-      expectedText: "Each inline citation should have a matching entry in the References list.",
-      foundText: "APA Coach could not find any inline citations in the body to check.",
+      expected: "Each in-text citation should have a matching entry in the References list.",
+      expectedText: "Each in-text citation should have a matching entry in the References list.",
+      foundText: "APA Coach could not find any in-text citations in the body to check.",
       applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
-      found: "No inline citations found",
+      found: "No in-text citations found",
       applicableParagraphs: 0,
       details: [], howToFix: [], resources: [],
     };
@@ -1862,9 +2060,9 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
       rule: "Unmatched citations",
       status: "review",
       passed: false,
-      expected: "Each inline citation should have a matching entry in the References list.",
-      expectedText: "Each inline citation should have a matching entry in the References list.",
-      foundText: "APA Coach could not parse the References list to check against inline citations.",
+      expected: "Each in-text citation should have a matching entry in the References list.",
+      expectedText: "Each in-text citation should have a matching entry in the References list.",
+      foundText: "APA Coach could not parse the References list to check against in-text citations.",
       applicable: citationKeys.length, checked: 0, matched: 0, failed: 0, unknown: citationKeys.length,
       found: "Could not parse references",
       applicableParagraphs: 0,
@@ -1883,8 +2081,8 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
     expectedText: "Each inline citation should have a matching entry in the References list.",
     foundText:
       status === "pass"
-        ? `All ${citationKeys.length} inline citations appear to have a matching reference.`
-        : `${unmatched.length} of ${citationKeys.length} inline citation${citationKeys.length === 1 ? "" : "s"} appear to have no matching reference entry.`,
+        ? `All ${citationKeys.length} in-text citations appear to have a matching reference.`
+        : `${unmatched.length} of ${citationKeys.length} in-text citation${citationKeys.length === 1 ? "" : "s"} appear to have no matching reference entry.`,
     applicable: citationKeys.length,
     checked: citationKeys.length,
     matched: citationKeys.length - unmatched.length,
@@ -2410,34 +2608,61 @@ function checkReferenceTitleCapitalization(extracted, referencesHeading) {
     const words = title.split(/\s+/);
 
     let afterColon = false;
-    let capsCount = 0;
+    // Title Case capitalizes every major word, producing runs of consecutive
+    // capitalized words. Sentence case only capitalizes scattered words (proper
+    // nouns, post-colon, post-question-mark), so 2+ consecutive caps is the signal —
+    // far fewer false positives than counting every capital (which trips on repeated
+    // proper nouns like "ChatGPT … ChatGPT").
+    let consecutiveCaps = 0;
+    let maxConsecutiveCaps = 0;
+    let subtitleLowercase = false;
 
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
       // Strip leading/trailing punctuation for the capital check
       const bare = word.replace(/^["""''([\-–—]+|["""'')\].,!?;:]+$/g, "");
-      const isSkipped = i === 0 || afterColon;
+      const wasAfterColon = afterColon;
+      // A word that starts a new sentence (previous word ended in . ? !) is
+      // legitimately capitalized in sentence case — treat it like the first word.
+      const prevBare = i > 0 ? words[i - 1].replace(/["""'')\]]+$/g, "") : "";
+      const startsNewSentence = /[.?!]$/.test(prevBare);
+      const isSkipped = i === 0 || wasAfterColon || startsNewSentence;
       afterColon = word.endsWith(":") || word.endsWith("—");
-      if (isSkipped) continue;
+
+      // First word after a colon should be capitalized (subtitle start).
+      if (wasAfterColon && /^[a-zà-ÿ]/.test(bare)) subtitleLowercase = true;
+
+      if (isSkipped) { consecutiveCaps = 0; continue; }
       // Acronyms (all-caps, 2+ chars) are legitimate in any case style
-      if (bare.length > 1 && bare === bare.toUpperCase()) continue;
-      if (/^[A-Z]/.test(bare)) capsCount++;
+      if (bare.length > 1 && bare === bare.toUpperCase()) { consecutiveCaps = 0; continue; }
+      if (/^[A-ZÀ-Ÿ]/.test(bare)) {
+        consecutiveCaps++;
+        if (consecutiveCaps > maxConsecutiveCaps) maxConsecutiveCaps = consecutiveCaps;
+      } else {
+        consecutiveCaps = 0;
+      }
     }
 
-    if (capsCount >= 2) {
+    const isTitleCase = maxConsecutiveCaps >= 2;
+    if (isTitleCase || subtitleLowercase) {
       failures.push(p);
       const preview = title.length > 60 ? title.slice(0, 60) + "…" : title;
-      details.push(`Title appears to use Title Case instead of sentence case: "${preview}"`);
       const authorLabel = parsed.authorsRaw
         ? `${parsed.authorsRaw.split(",")[0]}${parsed.year ? ` (${parsed.year})` : ""}: `
         : "";
+      if (isTitleCase) {
+        details.push(`Title appears to use Title Case instead of sentence case: "${preview}"`);
+      }
+      if (subtitleLowercase) {
+        details.push(`First word after the colon should be capitalized: "${preview}"`);
+      }
       missingItems.push(`${authorLabel}"${preview}"`);
     }
   }
 
   const foundText =
     failures.length > 0
-      ? `${failures.length} reference title${failures.length === 1 ? "" : "s"} appear to use Title Case instead of sentence case.`
+      ? `${failures.length} reference title${failures.length === 1 ? " has" : "s have"} capitalization issues (Title Case, or a lowercase word after a colon).`
       : unknowns.length > 0
         ? "APA Coach could not verify title capitalization for some references — please review manually."
         : "Reference title capitalization appears correct.";
@@ -2648,6 +2873,17 @@ function checkReferenceDOIFormat(extracted, referencesHeading) {
     if (/\bhttp:\/\/(?:dx\.)?doi\.org\//i.test(text)) {
       failures.push(p);
       details.push(`Use "https://doi.org/" not "http://dx.doi.org/" — found in: "${text.slice(0, 70)}"`);
+      continue;
+    }
+    // Bare DOI: 10.xxxx/... not already preceded by https://doi.org/ or doi:
+    const bareDoiMatch = text.match(/\b(10\.\d{4,}\/\S+)/);
+    if (bareDoiMatch) {
+      const before = text.slice(0, text.indexOf(bareDoiMatch[1]));
+      if (!/https?:\/\/(?:dx\.)?doi\.org\/$/i.test(before) && !/doi:\s*$/i.test(before)) {
+        const doi = bareDoiMatch[1].replace(/[.,;)]+$/, "");
+        failures.push(p);
+        details.push(`Bare DOI must be a full URL — replace "${doi}" with "https://doi.org/${doi}"`);
+      }
     }
   }
 
@@ -2658,6 +2894,43 @@ function checkReferenceDOIFormat(extracted, referencesHeading) {
 
   return finishCheck(rule, expected, foundText, entryParagraphs, failures, [], details,
     getHowToFix(rule), [APA_DOI_FORMAT_RESOURCE]);
+}
+
+function checkReferenceForbiddenPhrases(extracted, referencesHeading) {
+  const rule = "Reference forbidden phrases";
+  const expected = 'APA references do not use "Available at" or "accessed" — write the URL directly.';
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
+
+  if (entryParagraphs.length === 0) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: "No reference entries found.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "No references", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const failures = [];
+  const details = [];
+
+  for (const p of entryParagraphs) {
+    const text = p.text;
+    if (/\bavailable\s+at\b/i.test(text)) {
+      failures.push(p);
+      details.push(`Remove "Available at" — write the URL directly: "${text.slice(0, 80)}…"`);
+    } else if (/\baccessed\b/i.test(text)) {
+      failures.push(p);
+      details.push(`Remove "accessed" and the access date — APA does not use this: "${text.slice(0, 80)}…"`);
+    }
+  }
+
+  const foundText = failures.length === 0
+    ? `All ${entryParagraphs.length} references use correct URL phrasing.`
+    : `${failures.length} reference${failures.length === 1 ? "" : "s"} use non-APA phrases ("Available at" or "accessed").`;
+
+  return finishCheck(rule, expected, foundText, entryParagraphs, failures, [], details,
+    getHowToFix(rule), []);
 }
 
 // ─── Phase 2.5: Citation facet checks ───────────────────────────────────────
@@ -2821,6 +3094,61 @@ function checkCitationEtAl(extracted, referencesHeading) {
     foundText: `${issues.length} instance${issues.length === 1 ? "" : "s"} of malformed "et al." detected.`,
     applicable: issues.length, checked: issues.length, matched: 0,
     failed: issues.length, unknown: 0, found: `${issues.length} et al. issue(s)`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
+function checkCitationComma(extracted, referencesHeading) {
+  const rule = "Citation comma";
+  const expected = "APA citations require a comma between the author name and the year: (Author, Year).";
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+  const seen = new Set();
+
+  const parenRe = /\(([^()]{2,200})\)/g;
+  let m;
+  while ((m = parenRe.exec(bodyText)) !== null) {
+    const content = m[1].trim();
+    if (!/\d{4}|n\.d\./.test(content)) continue;
+    if (/\bpersonal\s+communication\b/i.test(content)) continue;
+    if (/\bas\s+cited\s+in\b/i.test(content)) continue;
+
+    // Missing comma: author-like content starts with a capital letter,
+    // and a non-comma char is followed directly by a space and the year.
+    if (/^[A-ZÀ-Ÿ]/.test(content) && /[^,\s]\s+\d{4}[a-z]?/.test(content)) {
+      const key = `comma:${m[0]}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        issues.push(`Missing comma before year — found: "${m[0]}"`);
+      }
+    }
+
+    // Stray trailing comma after year: (Author, 2023,) or (2023,)
+    if (/\d{4}[a-z]?,\s*$/.test(content)) {
+      const context = bodyText.slice(Math.max(0, m.index - 20), m.index + m[0].length + 5).trim();
+      const key = `stray:${m[0]}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        issues.push(`Trailing comma after year — remove the comma near: "…${context}…"`);
+      }
+    }
+  }
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "Citation comma formatting appears correct.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Citation commas OK", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} citation${issues.length === 1 ? "" : "s"} appear to have a missing or extra comma.`,
+    applicable: issues.length, checked: issues.length, matched: 0,
+    failed: issues.length, unknown: 0, found: `${issues.length} citation comma issue(s)`,
     applicableParagraphs: 0, details: issues,
     howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
   };
@@ -3057,6 +3385,118 @@ function checkSecondaryCitations(extracted, referencesHeading) {
   };
 }
 
+// ─── Heading checks (numbered section headings) ──────────────────────────────
+
+// Minor words that may stay lowercase in Title Case (except as the first word).
+const TITLE_CASE_MINOR_WORDS = new Set([
+  "a", "an", "the", "and", "but", "or", "nor", "for", "so", "yet", "as", "at",
+  "by", "in", "of", "off", "on", "per", "to", "up", "via", "with", "from",
+  "into", "onto", "over", "than", "that",
+]);
+
+// True when every major word in the heading text starts with a capital letter.
+function isTitleCaseHeading(text) {
+  const words = (text || "").split(/\s+/).filter(Boolean);
+  for (let i = 0; i < words.length; i++) {
+    const bare = words[i].replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ]+$/g, "");
+    if (!bare) continue;
+    if (i !== 0 && TITLE_CASE_MINOR_WORDS.has(bare.toLowerCase())) continue;
+    if (bare.length > 1 && bare === bare.toUpperCase()) continue; // acronym
+    if (/^[a-zà-ÿ]/.test(bare)) return false;
+  }
+  return true;
+}
+
+function isHeadingBold(paragraph) {
+  const runs = paragraph.runs || [];
+  return runs.length > 0 && runs.every((r) => r.bold);
+}
+
+function isLeftAligned(paragraph) {
+  const a = paragraph.formatting.alignment.value;
+  return a === null || a === undefined || a === "left" || a === "start" || a === "both";
+}
+
+// Numbered content headings (excludes the References heading and any heading after it).
+function getNumberedHeadings(extracted, referencesHeading) {
+  return extracted.paragraphs.filter(
+    (p) =>
+      p.role === "heading" &&
+      p.headingNumber &&
+      (!referencesHeading || p.index < referencesHeading.index),
+  );
+}
+
+function headingPreview(p) {
+  const t = (p.text || "").trim();
+  return t.length > 60 ? t.slice(0, 60) + "…" : t;
+}
+
+function checkHeadingNumbering(extracted, referencesHeading) {
+  const rule = "Heading numbering";
+  const expected = 'APA headings are not numbered — remove section numbers such as "1", "3.1", or "3.1.1".';
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const details = headings.map((p) => `Heading should not be numbered: "${headingPreview(p)}"`);
+  const foundText =
+    headings.length > 0
+      ? `${headings.length} heading${headings.length === 1 ? "" : "s"} use section numbering, which APA does not use.`
+      : "No numbered headings found.";
+  return finishCheck(rule, expected, foundText, headings, headings, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
+function checkHeadingTitleCase(extracted, referencesHeading) {
+  const rule = "Heading capitalization";
+  const expected = "APA headings use Title Case — capitalize the first word and all major words.";
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const failures = headings.filter((p) => !isTitleCaseHeading(p.headingTextOnly || p.text));
+  const details = failures.map((p) => `Heading should use Title Case, not sentence case: "${headingPreview(p)}"`);
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} heading${failures.length === 1 ? "" : "s"} use sentence case instead of Title Case.`
+      : "Heading capitalization appears correct.";
+  return finishCheck(rule, expected, foundText, headings, failures, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
+function checkHeadingBold(extracted, referencesHeading) {
+  const rule = "Heading bold";
+  const expected = "APA headings (levels 1–3) are bold.";
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const failures = headings.filter((p) => !isHeadingBold(p));
+  const details = failures.map((p) => `Heading should be bold: "${headingPreview(p)}"`);
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} heading${failures.length === 1 ? "" : "s"} are not bold.`
+      : "Heading bold formatting appears correct.";
+  return finishCheck(rule, expected, foundText, headings, failures, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
+function checkHeadingLevelFormat(extracted, referencesHeading) {
+  const rule = "Heading level alignment";
+  const expected = "APA Level 1 headings are centered; Level 2 and lower are flush left.";
+  const headings = getNumberedHeadings(extracted, referencesHeading);
+  const failures = [];
+  const details = [];
+  for (const p of headings) {
+    const centered = p.formatting.alignment.value === "center";
+    if (p.headingLevel === 1 && !centered) {
+      failures.push(p);
+      details.push(`Level 1 heading should be centered: "${headingPreview(p)}"`);
+    } else if (p.headingLevel >= 2 && centered) {
+      failures.push(p);
+      details.push(`Level ${p.headingLevel} heading should be flush left, not centered: "${headingPreview(p)}"`);
+    }
+  }
+  const foundText =
+    failures.length > 0
+      ? `${failures.length} heading${failures.length === 1 ? "" : "s"} use the wrong alignment for their level.`
+      : "Heading alignment matches the heading levels.";
+  return finishCheck(rule, expected, foundText, headings, failures, [], details,
+    getHowToFix(rule), [APA_HEADINGS_RESOURCE]);
+}
+
 function checkApaFormatting(extracted) {
   const referencesHeading = findReferencesHeadingNearEnd(extracted.paragraphs);
   const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
@@ -3068,22 +3508,32 @@ function checkApaFormatting(extracted) {
     .map((p) => p.text)
     .join(" ");
   const hasCitations = extractInlineCitationKeys(bodyText).length > 0;
+  const hasNumberedHeadings = getNumberedHeadings(extracted, referencesHeading).length > 0;
 
   const checks = [
     checkPageNumbering(extracted),
     checkTitlePage(extracted),
     checkReferencesPage(extracted),
+    ...(hasNumberedHeadings ? [
+      checkHeadingNumbering(extracted, referencesHeading),
+      checkHeadingTitleCase(extracted, referencesHeading),
+      checkHeadingBold(extracted, referencesHeading),
+      checkHeadingLevelFormat(extracted, referencesHeading),
+    ] : []),
     checkInlineCitations(extracted, referencesHeading),
     checkPersonalCommunications(extracted, referencesHeading),
     checkSecondaryCitations(extracted, referencesHeading),
     checkCitationAmpersandUsage(extracted, referencesHeading),
     checkCitationEtAl(extracted, referencesHeading),
+    checkCitationComma(extracted, referencesHeading),
     checkCitationNoDate(extracted, referencesHeading),
     checkCitationPageFormat(extracted, referencesHeading),
     checkCitationMultipleSources(extracted, referencesHeading),
     checkCitationYearSuffixes(extracted, referencesHeading),
     ...(referencesHeading ? [
       ...(referencesHeading.synthetic ? [] : [checkReferencesHeadingAlignment(referencesHeading)]),
+      checkReferencesStartNewPage(extracted, referencesHeading),
+      checkReferencesNumbered(extracted, referencesHeading),
       checkReferencesFormatting(extracted, referencesHeading),
       ...(hasCitations ? [
         checkUncitedReferences(extracted, referencesHeading),
@@ -3091,6 +3541,7 @@ function checkApaFormatting(extracted) {
       ] : []),
       checkReferenceDOIs(extracted, referencesHeading),
       checkReferenceDOIFormat(extracted, referencesHeading),
+      checkReferenceForbiddenPhrases(extracted, referencesHeading),
       checkReferenceShortLinks(extracted, referencesHeading),
       checkUnapprovedSources(extracted, referencesHeading),
       checkReferenceAuthors(extracted, referencesHeading),
@@ -3147,10 +3598,18 @@ module.exports = {
   checkReferenceItalics,
   checkReferencePunctuation,
   checkReferenceDOIFormat,
+  checkReferenceForbiddenPhrases,
+  checkHeadingNumbering,
+  checkHeadingTitleCase,
+  checkHeadingBold,
+  checkHeadingLevelFormat,
+  checkReferencesStartNewPage,
+  checkReferencesNumbered,
   checkPersonalCommunications,
   checkSecondaryCitations,
   checkCitationAmpersandUsage,
   checkCitationEtAl,
+  checkCitationComma,
   checkCitationNoDate,
   checkCitationPageFormat,
   checkCitationMultipleSources,
