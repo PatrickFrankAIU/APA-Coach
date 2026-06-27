@@ -1837,11 +1837,8 @@ function checkReferencesStartNewPage(extracted, referencesHeading) {
   const refPos = allParas.findIndex((p) => p.index === referencesHeading.index);
   const precedingPara = refPos > 0 ? allParas[refPos - 1] : null;
 
-  const startsOnNewPage =
-    referencesHeading.pageBreakBefore === true ||
-    (precedingPara && precedingPara.endsWithPageBreak === true);
-
-  if (startsOnNewPage) {
+  // pageBreakBefore on the heading itself is always reliable
+  if (referencesHeading.pageBreakBefore === true) {
     return {
       rule, status: "pass", passed: true, expected, expectedText: expected,
       foundText: "References section begins on a new page.",
@@ -1850,7 +1847,24 @@ function checkReferencesStartNewPage(extracted, referencesHeading) {
     };
   }
 
-  if (!precedingPara) {
+  // endsWithPageBreak on the preceding paragraph is only reliable when both
+  // the heading and that paragraph are direct body children (not from sdts).
+  // collectParagraphNodes does not preserve interleave order between body.p
+  // and body.sdt, so a page break inside an sdt may appear adjacent to the
+  // References heading in our list even when it isn't in the real document.
+  const precedingOrderReliable =
+    precedingPara && !referencesHeading.fromSdt && !precedingPara.fromSdt;
+
+  if (precedingOrderReliable && precedingPara.endsWithPageBreak) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "References section begins on a new page.",
+      applicable: 1, checked: 1, matched: 1, failed: 0, unknown: 0,
+      found: "New page detected", applicableParagraphs: 1, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  if (!precedingPara || !precedingOrderReliable) {
     return {
       rule, status: "review", passed: false, expected, expectedText: expected,
       foundText: "Could not determine whether the References section starts on a new page — please verify manually.",

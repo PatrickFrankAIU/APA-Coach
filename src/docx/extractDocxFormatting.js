@@ -758,28 +758,33 @@ function extractParagraphFormatting(
   return extracted;
 }
 
-function collectParagraphNodes(content, out) {
+// collectParagraphNodes gathers paragraph XML nodes for extraction.
+// Because fast-xml-parser separates w:p and w:sdt into distinct arrays, the
+// interleaved document order between direct-child <w:p> and <w:sdt> elements
+// is lost. We tag each node with fromSdt so callers can avoid making ordering
+// assumptions when paragraphs from sdts are mixed with body paragraphs.
+function collectParagraphNodes(content, out, fromSdt = false) {
   for (const p of toArray(content.p)) {
-    out.push(p);
+    out.push({ node: p, fromSdt });
   }
   for (const sdt of toArray(content.sdt)) {
     const inner = sdt.sdtContent;
-    if (inner) collectParagraphNodes(inner, out);
+    if (inner) collectParagraphNodes(inner, out, true);
   }
 }
 
 function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}, docDefaultRPr = {}) {
   const body = document.document && document.document.body;
-  const paragraphs = [];
-  if (body) collectParagraphNodes(body, paragraphs);
+  const items = [];
+  if (body) collectParagraphNodes(body, items);
   let nonBlankPosition = 0;
 
-  return paragraphs.map((paragraph, index) => {
+  return items.map(({ node: paragraph, fromSdt }, index) => {
     if (getParagraphText(paragraph).trim().length > 0) {
       nonBlankPosition += 1;
     }
 
-    return extractParagraphFormatting(
+    const extracted = extractParagraphFormatting(
       paragraph,
       index,
       styleMap,
@@ -788,6 +793,8 @@ function extractParagraphs(document, styleMap, defaults, hyperlinkRels = {}, doc
       hyperlinkRels,
       docDefaultRPr,
     );
+    extracted.fromSdt = fromSdt;
+    return extracted;
   });
 }
 
