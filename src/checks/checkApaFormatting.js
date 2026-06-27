@@ -1258,13 +1258,22 @@ function extractReferenceKey(text) {
   const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)[,)]/);
   if (!yearMatch) return null;
   const year = yearMatch[1];
-  const beforeYear = text.substring(0, yearMatch.index).trim().replace(/\.\s*$/, "").trim();
+  const rawBefore = text.substring(0, yearMatch.index).trim(); // keep periods for glued match
+  const beforeYear = rawBefore.replace(/\.\s*$/, "").trim();
   const commaIdx = beforeYear.indexOf(",");
   // Strip trailing initials glued without comma (e.g., "Laudon K.C." → "Laudon")
-  const lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear)
+  let lastName = (commaIdx > 0 ? beforeYear.substring(0, commaIdx) : beforeYear)
     .trim()
     .replace(/\s+[A-Z]\.(?:[A-Z]\.)*$/, "")
     .trim();
+  // Recover a surname glued directly to initials with no comma, e.g.
+  // "Cambra-FierroJ. J.BlascoM. F. …" → "Cambra-Fierro", "LiM." → "Li", "YangW." → "Yang".
+  // The first initial is the first capital-then-period that follows a lowercase letter
+  // (optionally with a space, to also handle "Smith J.").
+  if (commaIdx <= 0) {
+    const glued = rawBefore.match(/^(.*?[a-zà-ÿ])(?=\s?[A-ZÀ-Ÿ]\.)/);
+    if (glued && glued[1].length >= 2) lastName = glued[1].trim();
+  }
   if (!lastName || lastName.length < 2) return null;
   const preview = text.length > 80 ? text.substring(0, 80) + "…" : text;
   return { lastName, year, preview };
@@ -1297,8 +1306,11 @@ function parseReferenceEntry(paragraph) {
   let afterYear = text.slice(yearMatch.index + yearMatch[0].length).trim();
   afterYear = afterYear.replace(/^[.\s]+/, "");
 
-  // Match doi: prefix before bare https:// so "doi:https://..." is captured whole
-  const urlMatch = afterYear.match(/\bdoi:\s*\S+/i) || afterYear.match(/\bhttps?:\/\/\S+/i);
+  // Match doi: prefix before bare https:// so "doi:https://..." is captured whole.
+  // Bare DOIs (10.xxxx/…) are captured last so a full doi.org URL wins when present.
+  const urlMatch = afterYear.match(/\bdoi:\s*\S+/i)
+    || afterYear.match(/\bhttps?:\/\/\S+/i)
+    || afterYear.match(/\b10\.\d{4,}\/\S+/i);
   if (urlMatch) {
     result.doiOrUrl = urlMatch[0].replace(/[.,;)]+$/, "");
     afterYear = (afterYear.slice(0, urlMatch.index) + afterYear.slice(urlMatch.index + urlMatch[0].length))
@@ -1306,8 +1318,11 @@ function parseReferenceEntry(paragraph) {
       .replace(/[.,;\s]+$/, "");
   }
 
-  // Split title from source on ". " (normal) or " ." (student typo: space before period)
-  const splitMatch = afterYear.match(/\. | \./);
+  // Split title from source on period+space (normal) or space+period (student typo).
+  // \s matches a non-breaking space ( ), which some converted documents place
+  // between the title and the journal name — without it the split lands inside the
+  // journal abbreviation (e.g. "Educ. Inf. Technol.") and over-captures into the title.
+  const splitMatch = afterYear.match(/\.\s|\s\./);
   if (splitMatch) {
     result.title = afterYear.slice(0, splitMatch.index).trim();
     result.sourcePart = afterYear.slice(splitMatch.index + splitMatch[0].length).trim().replace(/\.\s*$/, "");
@@ -2427,34 +2442,61 @@ function checkReferenceTitleCapitalization(extracted, referencesHeading) {
     const words = title.split(/\s+/);
 
     let afterColon = false;
-    let capsCount = 0;
+    // Title Case capitalizes every major word, producing runs of consecutive
+    // capitalized words. Sentence case only capitalizes scattered words (proper
+    // nouns, post-colon, post-question-mark), so 2+ consecutive caps is the signal —
+    // far fewer false positives than counting every capital (which trips on repeated
+    // proper nouns like "ChatGPT … ChatGPT").
+    let consecutiveCaps = 0;
+    let maxConsecutiveCaps = 0;
+    let subtitleLowercase = false;
 
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
       // Strip leading/trailing punctuation for the capital check
       const bare = word.replace(/^["""''([\-–—]+|["""'')\].,!?;:]+$/g, "");
-      const isSkipped = i === 0 || afterColon;
+      const wasAfterColon = afterColon;
+      // A word that starts a new sentence (previous word ended in . ? !) is
+      // legitimately capitalized in sentence case — treat it like the first word.
+      const prevBare = i > 0 ? words[i - 1].replace(/["""'')\]]+$/g, "") : "";
+      const startsNewSentence = /[.?!]$/.test(prevBare);
+      const isSkipped = i === 0 || wasAfterColon || startsNewSentence;
       afterColon = word.endsWith(":") || word.endsWith("—");
-      if (isSkipped) continue;
+
+      // First word after a colon should be capitalized (subtitle start).
+      if (wasAfterColon && /^[a-zà-ÿ]/.test(bare)) subtitleLowercase = true;
+
+      if (isSkipped) { consecutiveCaps = 0; continue; }
       // Acronyms (all-caps, 2+ chars) are legitimate in any case style
-      if (bare.length > 1 && bare === bare.toUpperCase()) continue;
-      if (/^[A-Z]/.test(bare)) capsCount++;
+      if (bare.length > 1 && bare === bare.toUpperCase()) { consecutiveCaps = 0; continue; }
+      if (/^[A-ZÀ-Ÿ]/.test(bare)) {
+        consecutiveCaps++;
+        if (consecutiveCaps > maxConsecutiveCaps) maxConsecutiveCaps = consecutiveCaps;
+      } else {
+        consecutiveCaps = 0;
+      }
     }
 
-    if (capsCount >= 2) {
+    const isTitleCase = maxConsecutiveCaps >= 2;
+    if (isTitleCase || subtitleLowercase) {
       failures.push(p);
       const preview = title.length > 60 ? title.slice(0, 60) + "…" : title;
-      details.push(`Title appears to use Title Case instead of sentence case: "${preview}"`);
       const authorLabel = parsed.authorsRaw
         ? `${parsed.authorsRaw.split(",")[0]}${parsed.year ? ` (${parsed.year})` : ""}: `
         : "";
+      if (isTitleCase) {
+        details.push(`Title appears to use Title Case instead of sentence case: "${preview}"`);
+      }
+      if (subtitleLowercase) {
+        details.push(`First word after the colon should be capitalized: "${preview}"`);
+      }
       missingItems.push(`${authorLabel}"${preview}"`);
     }
   }
 
   const foundText =
     failures.length > 0
-      ? `${failures.length} reference title${failures.length === 1 ? "" : "s"} appear to use Title Case instead of sentence case.`
+      ? `${failures.length} reference title${failures.length === 1 ? " has" : "s have"} capitalization issues (Title Case, or a lowercase word after a colon).`
       : unknowns.length > 0
         ? "APA Coach could not verify title capitalization for some references — please review manually."
         : "Reference title capitalization appears correct.";
