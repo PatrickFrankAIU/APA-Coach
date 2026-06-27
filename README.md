@@ -41,8 +41,17 @@ The report can be printed or saved as a PDF directly from the browser using the 
 | References start on new page | References section begins on a new page (hard page break before the heading) |
 | References numbered | Flags automatic list numbering or bullets on reference entries — APA uses plain hanging indents |
 | In-text citations | At least one (Author, Year) citation found in the body |
+| Personal communication | Flags personal communication citations and confirms they are not listed in References |
+| Secondary citations | Flags "as cited in" usage; APA discourages secondary citations |
+| Citation ampersand | Inside parenthetical citations, "&" must be used between authors; "and" is used in narrative citations |
+| Citation et al. format | "et al." must be spelled with a period after "al" and no period after "et" |
+| Citation comma | Commas are present between author and year: (Author, Year); no trailing commas after year |
+| Citation no-date format | "n.d." must be lowercase with periods after each letter when a source has no date |
+| Citation page format | Uses "p." for a single page and "pp." for a page range — not "pg." or "pgs." |
+| Citation multiple sources | Multiple sources in one parenthetical are separated by semicolons: (Smith, 2020; Jones, 2021) |
+| Citation year suffix | When two works by the same author share a year, both citation and reference entry carry the same letter suffix (2020a, 2020b) |
 | References heading alignment | "References" heading is centered |
-| References formatting | Hanging indents on reference entries; flags broken or bare-URL entries |
+| Reference hanging indent | Hanging indents on reference entries; flags broken or bare-URL entries |
 | Uncited references | Every reference entry has a matching in-text citation |
 | Unmatched citations | Every in-text citation has a matching reference entry |
 | Reference DOI/URL | Each reference includes a visible DOI or URL |
@@ -50,7 +59,13 @@ The report can be printed or saved as a PDF directly from the browser using the 
 | Reference forbidden phrases | References do not use non-APA phrases such as "Available at" or "accessed [date]" |
 | Reference short link | Reference URLs link to a specific page, not just a domain homepage |
 | Unapproved source | References do not use sources on [AIU's list of 145+ unapproved domains](https://careered.libguides.com/AIUS/unacceptablewebsites) |
+| Reference authors | Author names use Last, F. M. format with correct initials, spacing, and separators |
+| Reference year format | Publication year is in parentheses immediately after the author(s), followed by a period |
+| Reference title capitalization | Article and chapter titles use sentence case; flags titles where multiple mid-sentence words are capitalized |
+| Reference italics | Book and report titles are italicized; journal article titles are not; journal name and volume number are italicized |
+| Reference punctuation | Flags incorrect page-range prefixes ("pp." not used in journal references), missing volume/issue spacing, and hyphen vs. en dash in page ranges |
 | Reference link verification | DOIs are verified against CrossRef — flags mismatches where the DOI resolves to a different source than the reference claims; URLs cannot be verified from the browser (status codes are inaccessible via cross-origin fetch) and are noted for manual review |
+| Unconverted markup symbols | Flags markdown asterisks (`*word*`, `**word**`) left in the document from AI-generated or pasted content that should be converted to Word formatting |
 | Margins | 1-inch margins on all four sides |
 | Body line spacing | Double spacing throughout body paragraphs |
 | Heading line spacing | Double spacing on heading paragraphs |
