@@ -6,7 +6,7 @@ A client-side tool for checking APA 7 formatting in Word documents. Upload a `.d
 
 > **Note:** APA Coach is in active development. Always review your paper manually before submitting.
 
-**Version 1.4.0** — Last updated June 27, 2026
+**Version 1.4.1** — Last updated July 3, 2026
 
 Contact pfrank@aiuniv.edu with questions, comments, or bug reports.
 
@@ -145,6 +145,9 @@ See the [LICENSE](LICENSE) file for details.
 ---
 
 ## Changelog
+
+**v1.4.1** — July 3, 2026
+Beta tester feedback round: improved reference parser to correctly classify Frontiers/PLoS-style journal articles (volume:article format) and "Available at:" entries, resolving spurious "review" status on the Reference italics check. Added new References alphabetical order check. Reordered report categories to Paper formatting → Citations → References. Updated instructions for Reference title capitalization, Reference italics, Reference punctuation, and References page checks for clarity. Fixed dead link in Reference authors help resources.
 
 **v1.4.0** — June 27, 2026
 Added 9 new checks based on library reviewer testing: heading numbering, heading capitalization, heading bold, heading level alignment, references start on new page, references numbered, citation comma, reference DOI format, and reference forbidden phrases. Fixed false positives in citation matching, reference italics, and title-case detection. Renamed "Inline citations" to "In-text citations". Full details in [edgecases.md](edgecases.md) and [CHANGELOG.md](CHANGELOG.md).

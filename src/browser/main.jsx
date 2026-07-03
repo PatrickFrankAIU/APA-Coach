@@ -7,7 +7,7 @@ import "./styles.css";
 
 const APP_INFO = {
   version: packageInfo.version,
-  lastUpdated: "June 27, 2026",
+  lastUpdated: "July 3, 2026",
   supportEmail: "pfrank@aiuniv.edu",
   resources: [
     {
@@ -70,6 +70,7 @@ const CHECK_CATEGORY = {
   "Unconverted markup symbols": "Paper formatting",
   // References
   "References page": "References",
+  "References alphabetical order": "References",
   "References start on new page": "References",
   "References numbered": "References",
   "References heading alignment": "References",
@@ -101,7 +102,7 @@ const CHECK_CATEGORY = {
   "Secondary citations": "Citations",
 };
 
-const CATEGORY_ORDER = ["Paper formatting", "References", "Citations"];
+const CATEGORY_ORDER = ["Paper formatting", "Citations", "References"];
 
 function sortChecks(checks) {
   return [...checks].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);

@@ -69,7 +69,7 @@ const APA_REFERENCE_FORMAT_RESOURCE = {
 };
 const APA_AUTHORS_RESOURCE = {
   label: "APA Style: Author Format",
-  url: "https://apastyle.apa.org/style-grammar-guidelines/references/author-format",
+  url: "https://apastyle.apa.org/style-grammar-guidelines/references/elements-list-entry",
 };
 const APA_DOI_FORMAT_RESOURCE = {
   label: "APA Style: DOIs and URLs",
@@ -538,11 +538,18 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "References alphabetical order") {
+    return [
+      "Sort all references A–Z by the first author's last name.",
+      "If two entries share the same first author, sort by the second author's last name, then by year.",
+      "Group authors (e.g., organizations) sort by the first word of their name.",
+    ];
+  }
+
   if (rule === "References page") {
     return [
       "Add a new page at the end of the document titled 'References'.",
       "Center the word 'References' at the top of the page.",
-      "List all sources in alphabetical order.",
       "Use a hanging indent for each reference entry.",
     ];
   }
@@ -569,7 +576,8 @@ function getHowToFix(rule) {
 
   if (rule === "Reference title capitalization") {
     return [
-      "Reference titles use sentence case: capitalize only the first word, the first word after a colon, and proper nouns.",
+      "Capitalize the first letter of the first word of the title.",
+      "Capitalize the first letter of the first word of the subtitle (after the colon).",
       "Example — correct: \"The effects of social media on academic performance\"",
       "Example — incorrect: \"The Effects of Social Media on Academic Performance\"",
       "Proper nouns (names of people, places, organizations, brands) stay capitalized: \"Facebook\", \"United States\", \"COVID-19\".",
@@ -590,15 +598,19 @@ function getHowToFix(rule) {
       "Book, report, and standalone work titles should be italicized.",
       "Journal article and book chapter titles should NOT be italicized — remove any italic formatting.",
       "For journal articles: italicize only the journal name and volume number. The issue number in parentheses and page range should not be italic.",
+      "Write journal titles in full — do not abbreviate: \"International Journal of Information and Learning Technology\", not \"Int. J. Inf. Learn. Technol.\"",
       "In Word, select the text and press Ctrl+I (Cmd+I on Mac) to toggle italic.",
     ];
   }
 
   if (rule === "Reference punctuation") {
     return [
-      "Each reference must end with the URL or DOI on its last line.",
+      "Check for the volume, issue, and page numbers for each article.",
+      "If an article has a volume, issue, and pages: Journal Title, 11(1), 99–110.",
+      "If an article does not have an issue number: Journal Title, 11, 99–110.",
+      "If an article has an article number instead of pages: Journal Title, 11(1), Article e0306639.",
       "Journal page ranges do not use \"p.\" or \"pp.\" — write the page range directly: 45–67, not pp. 45–67.",
-      "Write volume and issue with no space: 15(3) not 15 (3).",
+      "If there is an issue number, write volume and issue with no space: 15(3) not 15 (3).",
       "Use an en dash (–) for page ranges, not a hyphen (-).",
     ];
   }
@@ -1398,8 +1410,20 @@ function classifyReferenceKind(parsed) {
   const source = parsed.sourcePart || "";
   const title = parsed.title || "";
 
-  // Journal article: "Volume(Issue), pp" or "Volume, pp" pattern in source
+  // Journal article: "Volume(Issue)" or "Volume, page-range" pattern in source
   if (/\b\d+\s*\(\s*\d+\s*\)/.test(source) || /,\s*\d+\s*(?:[–—-]\s*\d+)\b/.test(source)) {
+    return "journal-article";
+  }
+
+  // Journal article: Frontiers/PLoS-style "Volume:ArticleID" (e.g., "Front. Educ.8:1206936", "PLoS ONE19:e0306639")
+  // No \b before the digit — the number is often concatenated directly to the journal name abbreviation.
+  if (/\d+:[0-9a-zA-Z]+/.test(source)) {
+    return "journal-article";
+  }
+
+  // Journal article: "Journal, Volume, ArticleNumber" where article number is 5+ digits
+  // (used by some journals instead of a page range, e.g., "Sustainable Futures, 10, 101408")
+  if (/,\s*\d+,\s*\d{5,}\b/.test(source)) {
     return "journal-article";
   }
 
@@ -1411,9 +1435,12 @@ function classifyReferenceKind(parsed) {
     return "book-chapter";
   }
 
-  // Webpage: URL present, no source signals — but doi.org links are journal articles
-  if (parsed.doiOrUrl && !source) {
-    return /\bdoi\.org\/10\./i.test(parsed.doiOrUrl) ? "journal-article" : "webpage";
+  // Webpage: URL present with no source, or with "Available at:" in source (reports, white papers)
+  if (parsed.doiOrUrl) {
+    const isDoi = /\bdoi\.org\/10\./i.test(parsed.doiOrUrl);
+    if (!source || /\bavailable\s+at\b/i.test(source)) {
+      return isDoi ? "journal-article" : "webpage";
+    }
   }
 
   // Book: has a publisher-like tail and no journal numbers
@@ -1683,8 +1710,8 @@ function checkReferencesPage(extracted) {
     rule: "References page",
     status,
     passed: status === "pass",
-    expected: "APA expects a References page with sources listed in alphabetical order using hanging indents.",
-    expectedText: "APA expects a References page with sources listed in alphabetical order using hanging indents.",
+    expected: "APA requires a References section at the end of the document with the heading 'References'.",
+    expectedText: "APA requires a References section at the end of the document with the heading 'References'.",
     foundText:
       status === "fail"
         ? "APA Coach did not detect a References page at the end of the document."
@@ -2682,6 +2709,7 @@ function checkReferenceItalics(extracted, referencesHeading) {
     "Books and reports: the title should be in italics.",
     { text: "Book *chapters*, if used: do not italicize the chapter title.", sub: true },
     "Journal articles: do not italicize the article title. Italicize the journal name and the volume number — but not the issue number (the number in parentheses).",
+    "Write journal names in full — do not abbreviate: \"International Journal of Information and Learning Technology\", not \"Int. J. Inf. Learn. Technol.\"",
   ];
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
   const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
@@ -2786,9 +2814,63 @@ function checkReferenceItalics(extracted, referencesHeading) {
   };
 }
 
+function checkReferencesAlphabeticalOrder(extracted, referencesHeading) {
+  const rule = "References alphabetical order";
+  const expected = "APA requires references to be listed in alphabetical order by the first author's last name.";
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
+
+  if (entryParagraphs.length < 2) {
+    return {
+      rule, status: "review", passed: false, expected, expectedText: expected,
+      foundText: entryParagraphs.length === 0
+        ? "No reference entries found."
+        : "Only one reference entry found — alphabetical order cannot be verified.",
+      applicable: 0, checked: 0, matched: 0, failed: 0, unknown: 0,
+      found: "Too few entries", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  const keyed = entryParagraphs.map(p => {
+    const parsed = parseReferenceEntry(p);
+    const raw = (parsed.authorsRaw || "").trim().replace(/\.\s*$/, "");
+    const commaIdx = raw.indexOf(",");
+    const sortKey = (commaIdx > 0 ? raw.slice(0, commaIdx) : raw)
+      .toLowerCase()
+      .replace(/^[^a-z]+/, "");
+    return { p, sortKey, text: p.text.trim() };
+  });
+
+  const checkable = keyed.filter(e => e.sortKey.length > 0);
+  const unknowns = keyed.filter(e => e.sortKey.length === 0).map(e => e.p);
+
+  const failures = [];
+  const details = [];
+
+  for (let i = 1; i < checkable.length; i++) {
+    const prev = checkable[i - 1];
+    const curr = checkable[i];
+    if (curr.sortKey < prev.sortKey) {
+      if (!failures.includes(curr.p)) failures.push(curr.p);
+      const prevPreview = prev.text.length > 50 ? prev.text.slice(0, 50) + "…" : prev.text;
+      const currPreview = curr.text.length > 50 ? curr.text.slice(0, 50) + "…" : curr.text;
+      details.push(`Out of order: "${currPreview}" should come before "${prevPreview}"`);
+    }
+  }
+
+  const foundText = failures.length > 0
+    ? `${failures.length} reference${failures.length === 1 ? " appears" : "s appear"} to be out of alphabetical order.`
+    : unknowns.length > 0
+      ? `Alphabetical order appears correct for ${checkable.length} ${checkable.length === 1 ? "entry" : "entries"}; ${unknowns.length} could not be verified.`
+      : "References appear to be in alphabetical order.";
+
+  return finishCheck(rule, expected, foundText, entryParagraphs, failures, unknowns, details,
+    getHowToFix(rule), [APA_REFERENCE_FORMAT_RESOURCE]);
+}
+
 function checkReferencePunctuation(extracted, referencesHeading) {
   const rule = "Reference punctuation";
-  const expected = "For journal articles, APA has two punctuation rules for the volume, issue, and page range:";
+  const expected = "For journal articles, APA formats the volume, issue, and page range as follows — the issue number in parentheses is only included when present:";
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
   const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
 
@@ -2834,8 +2916,10 @@ function checkReferencePunctuation(extracted, referencesHeading) {
         : "Reference punctuation appears correct.";
 
   const expectedItems = [
-    "Write the volume and issue together with no space: *15*(3) — not *15* (3).",
-    "Write the page range directly after the issue: *15*(3), 45–67 — do not add \"p.\" or \"pp.\" before the numbers.",
+    "With volume, issue, and pages: Journal Title, *11*(1), 99–110.",
+    "Without an issue number: Journal Title, *11*, 99–110.",
+    "With an article number instead of pages: Journal Title, *11*(1), Article e0306639.",
+    "Do not add \"p.\" or \"pp.\" before the page range.",
   ];
 
   return {
@@ -3544,6 +3628,7 @@ function checkApaFormatting(extracted) {
       checkReferenceForbiddenPhrases(extracted, referencesHeading),
       checkReferenceShortLinks(extracted, referencesHeading),
       checkUnapprovedSources(extracted, referencesHeading),
+      checkReferencesAlphabeticalOrder(extracted, referencesHeading),
       checkReferenceAuthors(extracted, referencesHeading),
       checkReferenceYear(extracted, referencesHeading),
       checkReferenceTitleCapitalization(extracted, referencesHeading),
@@ -3592,6 +3677,7 @@ module.exports = {
   checkUnconvertedMarkup,
   parseReferenceEntry,
   classifyReferenceKind,
+  checkReferencesAlphabeticalOrder,
   checkReferenceAuthors,
   checkReferenceYear,
   checkReferenceTitleCapitalization,
