@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .claude/
+claude/
 samples/
 reports/
 unused-assets/
