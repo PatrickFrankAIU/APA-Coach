@@ -6,7 +6,7 @@ A client-side tool for checking APA 7 formatting in Word documents. Upload a `.d
 
 > **Note:** APA Coach is in active development. Always review your paper manually before submitting.
 
-**Version 1.4.1** — Last updated July 3, 2026
+**Version 1.4.2** — Last updated July 24, 2026
 
 Contact pfrank@aiuniv.edu with questions, comments, or bug reports.
 
@@ -145,6 +145,9 @@ See the [LICENSE](LICENSE) file for details.
 ---
 
 ## Changelog
+
+**v1.4.2** — July 24, 2026
+Fixed citation/reference matching false positives: canonicalized name matching (diacritics, quotes, title-based keys, "et al." variants) so a malformed citation or a no-author title citation no longer produces a spurious unmatched/uncited result. Added an anchored fallback for references missing parentheses around the year, and fixed a reference-segmentation bug where such entries were silently merged into the previous entry. Added a year-mismatch message to Unmatched citations. Split Reference hanging indent into that check plus a new Reference completeness check. Added stable per-category issue numbering to the report. Added a regression fixture (wired into `npm test`) that locks in exact check counts for a sample paper and re-runs the pipeline 10x to guard determinism.
 
 **v1.4.1** — July 3, 2026
 Beta tester feedback round: improved reference parser to correctly classify Frontiers/PLoS-style journal articles (volume:article format) and "Available at:" entries, resolving spurious "review" status on the Reference italics check. Added new References alphabetical order check. Reordered report categories to Paper formatting → Citations → References. Updated instructions for Reference title capitalization, Reference italics, Reference punctuation, and References page checks for clarity. Fixed dead link in Reference authors help resources.

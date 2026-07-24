@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.2] - 2026-07-24
+
+### Added
+
+- **Reference completeness** — Split out of "Reference hanging indent": flags bare-URL entries, entries with no author/title/year, and entries broken across separate paragraphs. "Reference hanging indent" now covers only the 0.5" hanging indent and double spacing.
+- **Issue numbering** — Failed and warning checks now show a stable per-category badge (e.g. "References · 10") in the report UI, so a student can reference a specific issue by number.
+- **Citation/reference year-mismatch detection** — "Unmatched citations" now distinguishes a citation whose author matches a reference but whose year doesn't (reported as a likely typo) from a citation with no matching reference at all.
+- **Regression fixture** — `scripts/test-citation-regression.js`, wired into `npm test`, asserts exact per-check counts against a frozen snapshot of a sample paper and re-runs the pipeline 10x to guard against any future nondeterminism in citation/reference matching.
+
+### Fixed
+
+- **Canonical name matching** — `normalizeName` (used by all citation/reference matching) now strips diacritics, quotes, and punctuation, and truncates names longer than 4 words to a fixed-length prefix. Fixes false positives where a no-author, title-based citation (e.g. "Tools Such as ChatGPT, 2023") failed to match its identically-titled reference entry in both directions.
+- **Malformed "et al." leaking into match keys** — `extractInlineCitationKeys` now strips "et. al.", "et al", and "etal" in addition to the correctly-formed "et al.", so a typo in a citation no longer produces a spurious "unmatched citation" or an inflated in-text citation count.
+- **References missing parenthesized years** — Added an anchored bare-year fallback (`BARE_YEAR_FALLBACK_RE`) so a reference entry like `Heaven, W. D. 2022. Title…` (year not in parentheses — an APA violation) still yields a usable match key instead of silently failing to match its in-text citation. These entries now explicitly fail "Reference year format" with a "should be in parentheses" message rather than being marked unverifiable.
+- **Reference-entry segmentation on bare-year entries** — `looksLikeReferenceEntryStart` previously required a parenthesized year to recognize a new reference entry, so an entry missing its parentheses was silently merged into the *previous* entry as a continuation line — corrupting DOI, author, title, and alphabetical-order checks for both entries involved. Fixed to also recognize the anchored bare-year pattern as an entry boundary.
+- **"Inline citation" wording** — Replaced the one remaining instance in "Unmatched citations" expected text with "in-text citation," matching the v1.4.0 rename everywhere else.
+
 ## [1.4.0] - 2026-06-27
 
 ### Added
