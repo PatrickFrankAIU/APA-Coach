@@ -46,6 +46,20 @@
     ]
   },
   {
+    "rule": "Citation alphabetical order",
+    "status": "fail",
+    "applicable": 17,
+    "checked": 17,
+    "matched": 14,
+    "failed": 3,
+    "unknown": 0,
+    "details": [
+      "Sources out of alphabetical order: \"(Stokel-Walker, 2022; Terry, 2023; DePeau-Wilson, 2023; Lund et al., 2023; D’Agostino, 2023; Tools Such as ChatGPT, 2023; McMurtrie, 2022; Rigolino, 2023)\" — correct order: (D’Agostino, 2023; DePeau-Wilson, 2023; Lund et al., 2023; McMurtrie, 2022; Rigolino, 2023; Stokel-Walker, 2022; Terry, 2023; Tools Such as ChatGPT, 2023)",
+      "Sources out of alphabetical order: \"(Athaluri et al., 2023; Amber, 2024; Bhattacharyya et al., 2023; Wagner and Ertl-Wagner, 2023)\" — correct order: (Amber, 2024; Athaluri et al., 2023; Bhattacharyya et al., 2023; Wagner and Ertl-Wagner, 2023)",
+      "Sources out of alphabetical order: \"(Alkaissi and McFarlane, 2023; Zhang, 2026; Frosolini et al., 2023; Gavel et al., 2023; Weiser, 2023; Hueber & Kleyer, 2023)\" — correct order: (Alkaissi and McFarlane, 2023; Frosolini et al., 2023; Gavel et al., 2023; Hueber & Kleyer, 2023; Weiser, 2023; Zhang, 2026)"
+    ]
+  },
+  {
     "rule": "Citation ampersand",
     "status": "fail",
     "applicable": 4,
@@ -115,6 +129,18 @@
     "failed": 0,
     "unknown": 0,
     "details": []
+  },
+  {
+    "rule": "Citation title format",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "Citation \"Tools Such as ChatGPT, 2023\" doesn't match its reference entry's title formatting — its reference entry does not italicize the title, so the citation should use quotation marks, not italics — the title is not consistently italicized in the citation (select the whole title and reapply). Check both."
+    ]
   },
   {
     "rule": "Citation year suffix",

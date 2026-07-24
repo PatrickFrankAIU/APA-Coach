@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.3] - 2026-07-24
+
+### Added
+
+- **Citation alphabetical order** (APA 8.12) — Flags multi-source parenthetical citations whose sources aren't in alphabetical order by author (matching References list order), and shows the corrected order. Same-author entries with multiple years sort by year, not treated as misordered. Only emitted when the paper contains at least one multi-source parenthetical.
+- **Citation title format** (APA 8.14) — For a no-author citation, flags when the title's in-text formatting (italics vs. quotation marks) doesn't match how the title is formatted in its reference entry. A consistency check, not a correctness check — it never asserts which formatting is APA-correct, only that citation and reference agree; the independent "Reference italics" check flags a wrongly-italicized reference on its own. Only emitted when the paper contains at least one no-author citation with a resolvable reference match.
+- **Second regression fixture** — `scripts/test-citation-regression.js` now also asserts against `samples/testingperfect.docx` (a clean, well-formed paper), confirming neither new check fires a false positive when there's nothing to flag. The two fixtures' check sets are compared independently since checks that return null when inapplicable mean the sets aren't identical.
+
+### Notes
+
+- `parseReferenceEntry` assumes a reference's title follows the year ("Author. (Year). Title."), which breaks for a no-author reference correctly formatted as "Title. Source. (Year)." — the title sits where the author would be. "Citation title format" works around this by reading the pre-year text `extractReferenceKey` already extracts, rather than fixing `parseReferenceEntry` itself (same reasoning as v1.4.2: avoid touching shared parsing logic with wide blast radius outside this pass's scope).
+- Two limitations found while building these checks — `normalizeName` not stripping curly quotes (only straight ones), and the `words.length >= 4` no-author heuristic being a proxy rather than a precise author/title distinction — are documented in `notes/citation-checks-v1.4.3.md`, along with a noted inconsistency in how existing checks (`Citation year suffix`, `Secondary citations`) word their empty-case PASS versus the "don't emit" convention used here.
+
 ## [1.4.2] - 2026-07-24
 
 ### Added

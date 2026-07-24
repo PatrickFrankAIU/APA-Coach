@@ -99,6 +99,8 @@ const CHECK_CATEGORY = {
   "Citation no-date format": "Citations",
   "Citation page format": "Citations",
   "Citation multiple sources": "Citations",
+  "Citation alphabetical order": "Citations",
+  "Citation title format": "Citations",
   "Citation year suffix": "Citations",
   "Secondary citations": "Citations",
 };

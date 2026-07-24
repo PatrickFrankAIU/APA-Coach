@@ -491,6 +491,21 @@ function getHowToFix(rule) {
     ];
   }
 
+  if (rule === "Citation alphabetical order") {
+    return [
+      "Within one parenthetical, sort the sources alphabetically by the first author's last name (or by title for a no-author source).",
+      "If the same author appears more than once, list their works in order by year: (Smith, 2020, 2023).",
+      "Use the corrected order shown for each citation listed below.",
+    ];
+  }
+
+  if (rule === "Citation title format") {
+    return [
+      "Check the title's formatting (italics or quotation marks) in both the in-text citation and the References entry — they must match.",
+      "Select the entire title in the citation and reapply the formatting so it's consistent from start to finish, not partially applied.",
+    ];
+  }
+
   if (rule === "Uncited references") {
     return [
       "For each reference listed, find where you used that source and add an in-text citation.",
@@ -1473,6 +1488,30 @@ function classifyReferenceKind(parsed) {
   return "unknown";
 }
 
+// Parses a single semicolon-separated segment of a parenthetical citation (e.g.
+// "Smith et al., 2020") into { lastName, year, source }, or null if it doesn't
+// contain a usable year. Shared by extractInlineCitationKeys (cross-document,
+// deduped) and the per-parenthetical / per-paragraph checks that need the
+// segment's own text preserved (alphabetical order, title-format consistency).
+function parseCitationSegment(segTrimmed) {
+  const yearM = segTrimmed.match(/\b(\d{4}[a-z]?)\b/) || segTrimmed.match(/(n\.d\.)/);
+  if (!yearM) return null;
+  const year = yearM[1];
+  // Extract everything before the year as the author/title portion
+  const beforeYear = segTrimmed.slice(0, yearM.index).replace(/[,\s]+$/, "").trim();
+  if (!beforeYear) return null;
+  // Strip "et al." and its malformed variants ("et. al.", "et al", "etal") so a
+  // typo in the citation doesn't leak into the match key — the typo itself is
+  // flagged separately by the "Citation et al. format" check.
+  const withoutEtAl = beforeYear.replace(/\s*(?:et\.?\s+al\.?|etal)\.?\s*$/i, "").trim();
+  // For multi-author paren citations, take only the first author.
+  // Split on "&"/"and" first (handles 2-author), then on the first comma
+  // (handles 3+ authors like "A, B, & C" emitted by Word's references feature).
+  const firstAuthorChunk = withoutEtAl.split(/\s*&\s*|\s+and\s+/i)[0].trim();
+  const lastName = firstAuthorChunk.split(",")[0].trim() || firstAuthorChunk || withoutEtAl;
+  return { lastName, year, source: segTrimmed };
+}
+
 function extractInlineCitationKeys(bodyText) {
   const keys = [];
   const seen = new Set();
@@ -1486,26 +1525,12 @@ function extractInlineCitationKeys(bodyText) {
     if (/\bas\s+cited\s+in\b/i.test(content)) continue;
     const segments = content.split(";");
     for (const seg of segments) {
-      const segTrimmed = seg.trim();
-      const yearM = segTrimmed.match(/\b(\d{4}[a-z]?)\b/) || segTrimmed.match(/(n\.d\.)/);
-      if (!yearM) continue;
-      const year = yearM[1];
-      // Extract everything before the year as the author/title portion
-      const beforeYear = segTrimmed.slice(0, yearM.index).replace(/[,\s]+$/, "").trim();
-      if (!beforeYear) continue;
-      // Strip "et al." and its malformed variants ("et. al.", "et al", "etal") so a
-      // typo in the citation doesn't leak into the match key — the typo itself is
-      // flagged separately by the "Citation et al. format" check.
-      const withoutEtAl = beforeYear.replace(/\s*(?:et\.?\s+al\.?|etal)\.?\s*$/i, "").trim();
-      // For multi-author paren citations, take only the first author.
-      // Split on "&"/"and" first (handles 2-author), then on the first comma
-      // (handles 3+ authors like "A, B, & C" emitted by Word's references feature).
-      const firstAuthorChunk = withoutEtAl.split(/\s*&\s*|\s+and\s+/i)[0].trim();
-      const lastName = firstAuthorChunk.split(",")[0].trim() || firstAuthorChunk || withoutEtAl;
-      const key = `${lastName.toLowerCase()}|${year.replace(/[a-z]$/, "")}`;
+      const parsed = parseCitationSegment(seg.trim());
+      if (!parsed) continue;
+      const key = `${parsed.lastName.toLowerCase()}|${parsed.year.replace(/[a-z]$/, "")}`;
       if (!seen.has(key)) {
         seen.add(key);
-        keys.push({ lastName, year, source: segTrimmed });
+        keys.push(parsed);
       }
     }
   }
@@ -2216,6 +2241,135 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
     resources: [],
     missingItems: status === "fail" ? details : [],
     missingItemsLabel: "Citations with no matching reference:",
+  };
+}
+
+// A citation counts as "no discernible author" (and therefore in scope for the
+// title-format check below) when its extracted name spans at least this many
+// words. Deliberately >= rather than normalizeName's own `>` truncation trigger:
+// a 4-word title (e.g. "Tools Such as ChatGPT") is exactly at the boundary and
+// must still be classified as title-based here. This is a proxy, not a precise
+// author/title distinction — see notes/citation-checks-v1.4.3.md for its limits.
+const NO_AUTHOR_MIN_WORDS = TITLE_KEY_WORD_COUNT;
+
+function isQuotedSpan(text, startIdx, endIdx) {
+  const QUOTE_CHARS = new Set(['"', "“", "”"]);
+  const before = text[startIdx - 1];
+  let afterPos = endIdx;
+  if (text[afterPos] === ",") afterPos += 1; // APA wraps the trailing comma inside the quotes: "Title," 2023
+  const after = text[afterPos];
+  return QUOTE_CHARS.has(before) && QUOTE_CHARS.has(after);
+}
+
+// APA 8.14: a no-author citation's title is italicized when the reference title
+// is italicized (book/report/standalone work), or in quotation marks when it
+// isn't (article/chapter/webpage). This is a consistency check, not a
+// correctness check — it never asserts which formatting is APA-correct, only
+// that the citation and its reference entry agree. The independent
+// "Reference italics" check is what flags a wrongly-italicized reference.
+// Returns null (not a pass) when the paper has no no-author citations to check.
+function checkCitationTitleFormat(extracted, referencesHeading) {
+  const rule = "Citation title format";
+  const expected = "A no-author citation's title formatting (italics or quotation marks) must be consistent with how the title is formatted in its reference entry.";
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const entryParagraphs = getMergedReferenceEntries(referenceParagraphs);
+  const referenceKeys = entryParagraphs
+    .map((p) => ({ p, key: extractReferenceKey(p.text) }))
+    .filter((x) => x.key);
+
+  const bodyParagraphs = getParagraphsByRole(extracted, "body").filter(
+    (p) => p.index < referencesHeading.index,
+  );
+
+  const issues = [];
+  let applicable = 0;
+
+  for (const para of bodyParagraphs) {
+    const text = para.text;
+    const parenRe = /\(([^()]{2,300})\)/g;
+    let m;
+    while ((m = parenRe.exec(text)) !== null) {
+      const inner = m[1];
+      if (!/\d{4}|n\.d\./.test(inner)) continue;
+      if (/\bpersonal\s+communication\b/i.test(inner)) continue;
+      if (/\bas\s+cited\s+in\b/i.test(inner)) continue;
+
+      let searchFrom = m.index;
+      for (const rawSeg of inner.split(";")) {
+        const parsed = parseCitationSegment(rawSeg.trim());
+        if (!parsed) continue;
+
+        const nameIdx = text.indexOf(parsed.lastName, searchFrom);
+        if (nameIdx !== -1) searchFrom = nameIdx + parsed.lastName.length;
+
+        const words = parsed.lastName.split(/\s+/).filter(Boolean);
+        if (words.length < NO_AUTHOR_MIN_WORDS) continue; // has a discernible author — not in scope
+
+        const match = referenceKeys.find(
+          ({ key }) =>
+            namesMatch(key.lastName, parsed.lastName) &&
+            key.year.replace(/[a-z]$/, "") === parsed.year.replace(/[a-z]$/, ""),
+        );
+        if (!match) continue; // unmatched citation — already reported by "Unmatched citations"
+
+        // parseReferenceEntry assumes the title follows the year ("Author. (Year).
+        // Title."), which doesn't hold for a no-author reference correctly formatted
+        // as "Title. Source. (Year)." — the title sits where the author would be.
+        // Reuse extractReferenceKey's own pre-year text (same source as the match
+        // above) and probe its first few words directly against the reference's runs.
+        const refTitleWords = match.key.lastName.split(/\s+/).filter(Boolean).slice(0, NO_AUTHOR_MIN_WORDS);
+        if (refTitleWords.length < NO_AUTHOR_MIN_WORDS) continue;
+        const refTitleProbe = refTitleWords.join(" ");
+        const refItalicState = getSpanItalicState(match.p.runs, refTitleProbe);
+        // Ambiguous reference formatting — can't derive a confident expectation from it.
+        if (refItalicState !== "italic" && refItalicState !== "not-italic") continue;
+
+        applicable += 1;
+
+        // Strict on the citation side: only a clean "italic" state counts as italicized.
+        // A "mixed" state (e.g. Word left one run non-italic) is not a correctly
+        // italicized title even though it may look italicized on screen.
+        const citationItalicState = nameIdx === -1 ? "not-found" : getSpanItalicState(para.runs, parsed.lastName);
+        const citationIsCleanlyItalic = citationItalicState === "italic";
+        const quoted = nameIdx !== -1 && isQuotedSpan(text, nameIdx, nameIdx + parsed.lastName.length);
+
+        const expectedFormat = refItalicState === "italic" ? "italic" : "quoted";
+        const actualFormat = citationIsCleanlyItalic ? "italic" : quoted ? "quoted" : "plain";
+
+        if (actualFormat !== expectedFormat) {
+          const preview = rawSeg.trim().length > 80 ? rawSeg.trim().slice(0, 80) + "…" : rawSeg.trim();
+          const expectationNote =
+            expectedFormat === "italic"
+              ? "its reference entry italicizes the title, so the citation should be too"
+              : "its reference entry does not italicize the title, so the citation should use quotation marks, not italics";
+          const partialNote =
+            citationItalicState === "mixed"
+              ? " — the title is not consistently italicized in the citation (select the whole title and reapply)"
+              : "";
+          issues.push(`Citation "${preview}" doesn't match its reference entry's title formatting — ${expectationNote}${partialNote}. Check both.`);
+        }
+      }
+    }
+  }
+
+  if (applicable === 0) return null;
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "No-author citation title formatting matches the reference entries.",
+      applicable, checked: applicable, matched: applicable, failed: 0, unknown: 0,
+      found: "Citation title formatting consistent", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} of ${applicable} no-author citation${applicable === 1 ? "" : "s"} don't match their reference entry's title formatting.`,
+    applicable, checked: applicable, matched: applicable - issues.length,
+    failed: issues.length, unknown: 0, found: `${issues.length} citation title format issue(s)`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [],
   };
 }
 
@@ -3477,6 +3631,73 @@ function checkCitationMultipleSources(extracted, referencesHeading) {
   };
 }
 
+// APA 8.12: multiple works cited in one parenthetical must appear in
+// alphabetical order by author, matching References list order. Returns null
+// (not a pass) when the paper has no multi-source parentheticals at all —
+// multi-source citations are uncommon, so "nothing to check" and "checked and
+// correct" are different findings and shouldn't share one message.
+function checkCitationAlphabeticalOrder(extracted, referencesHeading) {
+  const rule = "Citation alphabetical order";
+  const expected = "APA requires multiple sources within one parenthetical citation to appear in alphabetical order, matching the order they appear in the References list.";
+  const bodyText = getBodyText(extracted, referencesHeading);
+  const issues = [];
+  let applicable = 0;
+
+  const parenRe = /\(([^()]{2,300})\)/g;
+  let m;
+  while ((m = parenRe.exec(bodyText)) !== null) {
+    const inner = m[1];
+    if (!/\d{4}|n\.d\./.test(inner)) continue;
+    if (/\bpersonal\s+communication\b/i.test(inner)) continue;
+    if (/\bas\s+cited\s+in\b/i.test(inner)) continue;
+
+    const segs = inner.split(";").map((s) => s.trim());
+    if (segs.length < 2) continue; // only multi-source parentheticals are in scope
+
+    const parsed = segs.map(parseCitationSegment);
+    if (parsed.some((p) => !p)) continue; // can't confidently parse every segment — skip rather than guess
+
+    applicable += 1;
+
+    const withIndex = parsed.map((p, i) => ({
+      ...p,
+      i,
+      sortKey: normalizeName(p.lastName),
+      yearNum: parseInt(p.year, 10) || 0,
+    }));
+    const sorted = [...withIndex].sort(
+      (a, b) => a.sortKey.localeCompare(b.sortKey) || a.yearNum - b.yearNum,
+    );
+    const inOrder = withIndex.every((p, idx) => p.i === sorted[idx].i);
+
+    if (!inOrder) {
+      const preview = m[0].length > 200 ? m[0].slice(0, 200) + "…)" : m[0];
+      const correctOrder = sorted.map((p) => p.source).join("; ");
+      issues.push(`Sources out of alphabetical order: "${preview}" — correct order: (${correctOrder})`);
+    }
+  }
+
+  if (applicable === 0) return null;
+
+  if (issues.length === 0) {
+    return {
+      rule, status: "pass", passed: true, expected, expectedText: expected,
+      foundText: "Multi-source citations are in alphabetical order.",
+      applicable, checked: applicable, matched: applicable, failed: 0, unknown: 0,
+      found: "Multi-source citations in order", applicableParagraphs: 0, details: [], howToFix: [], resources: [],
+    };
+  }
+
+  return {
+    rule, status: "fail", passed: false, expected, expectedText: expected,
+    foundText: `${issues.length} of ${applicable} multi-source citation${applicable === 1 ? "" : "s"} appear to be out of alphabetical order.`,
+    applicable, checked: applicable, matched: applicable - issues.length,
+    failed: issues.length, unknown: 0, found: `${issues.length} multi-source citation(s) out of order`,
+    applicableParagraphs: 0, details: issues,
+    howToFix: getHowToFix(rule), resources: [APA_IN_TEXT_FORMAT_RESOURCE],
+  };
+}
+
 function checkCitationYearSuffixes(extracted, referencesHeading) {
   const rule = "Citation year suffix";
   const expected = 'When citing two works by the same author in the same year, add a letter suffix: (Smith, 2020a) and (Smith, 2020b). The suffix must also appear in the reference entry.';
@@ -3731,6 +3952,7 @@ function checkApaFormatting(extracted) {
     checkCitationNoDate(extracted, referencesHeading),
     checkCitationPageFormat(extracted, referencesHeading),
     checkCitationMultipleSources(extracted, referencesHeading),
+    checkCitationAlphabeticalOrder(extracted, referencesHeading),
     checkCitationYearSuffixes(extracted, referencesHeading),
     ...(referencesHeading ? [
       ...(referencesHeading.synthetic ? [] : [checkReferencesHeadingAlignment(referencesHeading)]),
@@ -3741,6 +3963,7 @@ function checkApaFormatting(extracted) {
       ...(hasCitations ? [
         checkUncitedReferences(extracted, referencesHeading),
         checkUnmatchedCitations(extracted, referencesHeading),
+        checkCitationTitleFormat(extracted, referencesHeading),
       ] : []),
       checkReferenceDOIs(extracted, referencesHeading),
       checkReferenceDOIFormat(extracted, referencesHeading),
@@ -3764,7 +3987,7 @@ function checkApaFormatting(extracted) {
     checkAlignment(extracted),
     checkFonts(extracted),
     checkUnconvertedMarkup(extracted, referencesHeading),
-  ];
+  ].filter(Boolean); // some checks (e.g. Citation alphabetical order) return null when not applicable
 
   const referenceGroups = referencesHeading
     ? groupReferenceEntries(getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading))

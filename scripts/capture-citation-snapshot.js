@@ -8,6 +8,11 @@ const fs = require("fs");
 const { extractDocxFormatting } = require("../src/docx/extractDocxFormatting");
 const { checkApaFormatting } = require("../src/checks/checkApaFormatting");
 
+// Kept in sync with scripts/test-citation-regression.js — see the comment there
+// for why "Reference link verification" is excluded (currently a no-op, since
+// this script never exercises the browser entry point that adds it).
+const EXCLUDED_RULES = new Set(["Reference link verification"]);
+
 function main() {
   const [inputPath, outputPath] = process.argv.slice(2);
   if (!inputPath || !outputPath) {
@@ -20,6 +25,7 @@ function main() {
   const { checks } = checkApaFormatting(extracted);
 
   const snapshot = checks
+    .filter((check) => !EXCLUDED_RULES.has(check.rule))
     .map((check) => ({
       rule: check.rule,
       status: check.status,

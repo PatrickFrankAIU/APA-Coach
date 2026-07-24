@@ -1,0 +1,418 @@
+[
+  {
+    "rule": "Body alignment",
+    "status": "pass",
+    "applicable": 22,
+    "checked": 22,
+    "matched": 22,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Body first-line indents",
+    "status": "pass",
+    "applicable": 18,
+    "checked": 18,
+    "matched": 18,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Body line spacing",
+    "status": "pass",
+    "applicable": 23,
+    "checked": 23,
+    "matched": 23,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Body paragraph spacing",
+    "status": "pass",
+    "applicable": 26,
+    "checked": 26,
+    "matched": 26,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation ampersand",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation comma",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation et al. format",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation multiple sources",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation no-date format",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation page format",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation year suffix",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Font",
+    "status": "pass",
+    "applicable": 2,
+    "checked": 2,
+    "matched": 2,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Heading line spacing",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Heading paragraph spacing",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "In-text citations",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Margins",
+    "status": "pass",
+    "applicable": 4,
+    "checked": 4,
+    "matched": 4,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Page numbering",
+    "status": "pass",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 1,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Personal communication",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference authors",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference completeness",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference DOI format",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference DOI/URL",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference forbidden phrases",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference hanging indent",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference italics",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference punctuation",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference short link",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference title capitalization",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference year format",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "References alphabetical order",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "References heading alignment",
+    "status": "pass",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 1,
+    "failed": 0,
+    "unknown": 0,
+    "details": [
+      "The References heading uses center alignment."
+    ]
+  },
+  {
+    "rule": "References line spacing",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "References numbered",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "References page",
+    "status": "pass",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 1,
+    "failed": 0,
+    "unknown": 0,
+    "details": [
+      "Detected References heading at paragraph 41."
+    ]
+  },
+  {
+    "rule": "References start on new page",
+    "status": "pass",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 1,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Secondary citations",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Title page",
+    "status": "pass",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 1,
+    "failed": 0,
+    "unknown": 0,
+    "details": [
+      "Detected 6 possible title page paragraph(s)."
+    ]
+  },
+  {
+    "rule": "Unapproved source",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Uncited references",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Unconverted markup symbols",
+    "status": "pass",
+    "applicable": 35,
+    "checked": 35,
+    "matched": 35,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Unmatched citations",
+    "status": "pass",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 3,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  }
+]
