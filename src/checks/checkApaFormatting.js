@@ -734,10 +734,16 @@ function getHowToFix(rule) {
     ];
   }
 
-  if (rule === "Reference hanging indent") {
+  if (rule === "Reference completeness") {
     return [
       "If any entries are bare URLs: replace each URL-only line with a full APA reference. A complete reference includes the author's last name and initials, publication year in parentheses, title of the work, and the URL or DOI.",
       "Example: Smith, J. A. (2023). Title of article. Site Name. https://www.example.com/article",
+      "If an entry looks split across two paragraphs, merge it back into a single reference entry.",
+    ];
+  }
+
+  if (rule === "Reference hanging indent") {
+    return [
       "A hanging indent means the first line is flush left and all following lines are indented 0.5\". References must also be double-spaced.",
       "Select all reference entries in Microsoft Word.",
       "Click the Line Spacing button (⇵☰) in the Home toolbar to open its menu.",
@@ -1319,12 +1325,23 @@ function getReferenceEntryParagraphs(paragraphs, referencesHeading) {
     .filter((paragraph) => paragraph.text.trim().length > 0);
 }
 
+// Matches a bare (non-parenthesized) year 1900–2099 only when it is immediately
+// followed by a period and then whitespace or end-of-entry — the shape of a student
+// typo like "Heaven, W. D. 2022. Title…" with the parentheses omitted entirely.
+// Deliberately narrow: this must never fire as a general scan for any 4-digit
+// number, or it will start matching volume numbers, page numbers, and article IDs.
+const BARE_YEAR_FALLBACK_RE = /\b((?:19|20)\d{2})\b(?=\s*\.(?:\s|$))/;
+
 function looksLikeReferenceEntryStart(paragraph) {
-  return /\((\d{4}[a-z]?|n\.d\.)[,)]/i.test(paragraph.text);
+  return /\((\d{4}[a-z]?|n\.d\.)[,)]/i.test(paragraph.text) || BARE_YEAR_FALLBACK_RE.test(paragraph.text);
 }
 
 function extractReferenceKey(text) {
-  const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)[,)]/);
+  // Try the standard parenthesized year first; only fall back to a bare year when
+  // that fails — never as a general scan (see BARE_YEAR_FALLBACK_RE above). This
+  // recovers a match key for entries missing the required parentheses, while the
+  // separate "Reference year format" check still flags the missing parentheses.
+  const yearMatch = text.match(/\((\d{4}[a-z]?|n\.d\.)[,)]/) || text.match(BARE_YEAR_FALLBACK_RE);
   if (!yearMatch) return null;
   const year = yearMatch[1];
   const rawBefore = text.substring(0, yearMatch.index).trim(); // keep periods for glued match
@@ -1476,8 +1493,10 @@ function extractInlineCitationKeys(bodyText) {
       // Extract everything before the year as the author/title portion
       const beforeYear = segTrimmed.slice(0, yearM.index).replace(/[,\s]+$/, "").trim();
       if (!beforeYear) continue;
-      // Strip "et al." — also handles missing space (e.g., "Smithet al." → "Smith")
-      const withoutEtAl = beforeYear.replace(/\s*et\s+al\.?$/i, "").trim();
+      // Strip "et al." and its malformed variants ("et. al.", "et al", "etal") so a
+      // typo in the citation doesn't leak into the match key — the typo itself is
+      // flagged separately by the "Citation et al. format" check.
+      const withoutEtAl = beforeYear.replace(/\s*(?:et\.?\s+al\.?|etal)\.?\s*$/i, "").trim();
       // For multi-author paren citations, take only the first author.
       // Split on "&"/"and" first (handles 2-author), then on the first comma
       // (handles 3+ authors like "A, B, & C" emitted by Word's references feature).
@@ -1527,8 +1546,30 @@ function isReferenceCited(key, bodyText, citationKeys) {
   return false;
 }
 
+const TITLE_KEY_WORD_COUNT = 4;
+
+// Canonical normalizer used by every citation/reference name comparison (namesMatch,
+// and transitively isCitationMatched / isReferenceCited's fuzzy fallback). Strips
+// diacritics, quotes, and punctuation, then folds case and whitespace. When a name
+// spans more than TITLE_KEY_WORD_COUNT words — i.e. it's a title-based key with no
+// discernible surname (a no-author citation like "Tools Such as ChatGPT, 2023") —
+// truncate to a fixed-length word prefix so both sides of the match collapse onto
+// the same key regardless of how much of the title each side happened to capture.
 function normalizeName(name) {
-  return name.toLowerCase().replace(/[-‑‐]/g, "");
+  let n = (name || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[""''"]/g, "")
+    .replace(/[-‑‐]/g, "")
+    .replace(/[.,;:!?()]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+  const words = n.split(" ").filter(Boolean);
+  if (words.length > TITLE_KEY_WORD_COUNT) {
+    n = words.slice(0, TITLE_KEY_WORD_COUNT).join(" ");
+  }
+  return n;
 }
 
 function editDistance(a, b) {
@@ -1557,6 +1598,13 @@ function isCitationMatched(citKey, referenceKeys) {
       namesMatch(citKey.lastName, refKey.lastName) &&
       refKey.year.replace(/[a-z]$/, "") === yearBase,
   );
+}
+
+// Finds a reference whose name matches but whose year doesn't — distinguishes a
+// likely typo (citation/reference year mismatch) from a citation with no
+// corresponding reference at all.
+function findYearMismatchedReference(citKey, referenceKeys) {
+  return referenceKeys.find((refKey) => namesMatch(citKey.lastName, refKey.lastName));
 }
 
 function hasDOIOrURL(text) {
@@ -1671,12 +1719,13 @@ function looksLikeBareUrl(paragraph) {
   return /^https?:\/\//i.test(paragraph.text.trim());
 }
 
-function findReferencesFormattingIssues(referencesHeading, referenceParagraphs) {
+// Completeness: does each entry contain the substance of a reference (author, year,
+// title, source) rather than a bare URL or a fragment split across paragraphs?
+function findReferenceCompletenessIssues(referencesHeading, referenceParagraphs) {
   const issues = [];
   const bareUrlParagraphs = referenceParagraphs.filter(looksLikeBareUrl);
   const properEntries = referenceParagraphs.filter((p) => !looksLikeBareUrl(p));
   const shortParagraphs = properEntries.filter((paragraph) => paragraph.text.trim().length < 40);
-  const missingHangingIndentParagraphs = properEntries.filter((paragraph) => !hasExpectedHangingIndent(paragraph));
 
   if (referenceParagraphs.length === 0) {
     issues.push("No reference entries were detected after the References heading.");
@@ -1690,12 +1739,22 @@ function findReferencesFormattingIssues(referencesHeading, referenceParagraphs) 
     issues.push("Some reference entries appear incomplete or separated incorrectly.");
   }
 
-  if (missingHangingIndentParagraphs.length > 0) {
-    issues.push(MISSING_HANGING_INDENT_ISSUE);
-  }
-
   if (hasBrokenReferenceEntries(properEntries)) {
     issues.push("Some reference entries appear to be broken across separate paragraphs.");
+  }
+
+  return issues;
+}
+
+// Hanging indent + double spacing formatting, independent of whether the entry's
+// content is complete.
+function findHangingIndentIssues(referenceParagraphs) {
+  const issues = [];
+  const properEntries = referenceParagraphs.filter((p) => !looksLikeBareUrl(p));
+  const missingHangingIndentParagraphs = properEntries.filter((paragraph) => !hasExpectedHangingIndent(paragraph));
+
+  if (missingHangingIndentParagraphs.length > 0) {
+    issues.push(MISSING_HANGING_INDENT_ISSUE);
   }
 
   return issues;
@@ -1762,14 +1821,42 @@ function checkReferencesHeadingAlignment(referencesHeading) {
   };
 }
 
+function checkReferenceCompleteness(extracted, referencesHeading) {
+  const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
+  const issues = findReferenceCompletenessIssues(referencesHeading, referenceParagraphs);
+  const status = issues.length > 0 ? "fail" : "pass";
+
+  return {
+    rule: "Reference completeness",
+    status,
+    passed: status === "pass",
+    expected: "APA requires each reference entry to include the author, publication year, title, and source — not a bare URL or a fragment split across paragraphs.",
+    expectedText: "APA requires each reference entry to include the author, publication year, title, and source — not a bare URL or a fragment split across paragraphs.",
+    foundText:
+      status === "fail"
+        ? issues.join(" ")
+        : "Reference entries appear complete.",
+    applicable: referenceParagraphs.length,
+    checked: referenceParagraphs.length,
+    matched: status === "pass" ? referenceParagraphs.length : Math.max(referenceParagraphs.length - issues.length, 0),
+    failed: issues.length,
+    unknown: 0,
+    found:
+      status === "pass"
+        ? "Reference entries appear complete"
+        : `Completeness issues detected: ${issues.length}`,
+    applicableParagraphs: referenceParagraphs.length,
+    details: issues,
+    howToFix: status === "fail" ? getHowToFix("Reference completeness") : [],
+    resources: [],
+  };
+}
+
 function checkReferencesFormatting(extracted, referencesHeading) {
   const referenceParagraphs = getReferenceEntryParagraphs(extracted.paragraphs, referencesHeading);
-  const issues = findReferencesFormattingIssues(referencesHeading, referenceParagraphs);
+  const issues = findHangingIndentIssues(referenceParagraphs);
   const status = issues.length > 0 ? "fail" : "pass";
-  const resources =
-    status === "fail" && issues.includes(MISSING_HANGING_INDENT_ISSUE)
-      ? [HANGING_INDENT_RESOURCE, HANGING_INDENT_SCRIBBR_RESOURCE]
-      : [];
+  const resources = status === "fail" ? [HANGING_INDENT_RESOURCE, HANGING_INDENT_SCRIBBR_RESOURCE] : [];
 
   return {
     rule: "Reference hanging indent",
@@ -2100,12 +2187,19 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
   const unmatched = citationKeys.filter((cit) => !isCitationMatched(cit, referenceKeys));
   const status = unmatched.length === 0 ? "pass" : "fail";
 
+  const details = unmatched.map((cit) => {
+    const yearMismatch = findYearMismatchedReference(cit, referenceKeys);
+    return yearMismatch
+      ? `Citation "${cit.source}" cites ${cit.year}, but the reference for ${yearMismatch.lastName} lists ${yearMismatch.year} — check for a typo in the year.`
+      : `No reference found for: "${cit.source}"`;
+  });
+
   return {
     rule: "Unmatched citations",
     status,
     passed: status === "pass",
-    expected: "Each inline citation should have a matching entry in the References list.",
-    expectedText: "Each inline citation should have a matching entry in the References list.",
+    expected: "Each in-text citation should have a matching entry in the References list.",
+    expectedText: "Each in-text citation should have a matching entry in the References list.",
     foundText:
       status === "pass"
         ? `All ${citationKeys.length} in-text citations appear to have a matching reference.`
@@ -2117,10 +2211,10 @@ function checkUnmatchedCitations(extracted, referencesHeading) {
     unknown: 0,
     found: status === "pass" ? "All citations matched" : `${unmatched.length} citation(s) unmatched`,
     applicableParagraphs: entryParagraphs.length,
-    details: unmatched.map((cit) => `No reference found for: "${cit.source}"`),
+    details,
     howToFix: status === "fail" ? getHowToFix("Unmatched citations") : [],
     resources: [],
-    missingItems: status === "fail" ? unmatched.map((cit) => cit.source) : [],
+    missingItems: status === "fail" ? details : [],
     missingItemsLabel: "Citations with no matching reference:",
   };
 }
@@ -2572,13 +2666,30 @@ function checkReferenceYear(extracted, referencesHeading) {
   const unknowns = [];
   const details = [];
   const missingItems = [];
+  let missingParensCount = 0;
+  let missingPeriodCount = 0;
 
   for (const p of entryParagraphs) {
     const yearM = p.text.match(/\((\d{4}[a-z]?|n\.d\.)(?:,\s*[^)]+)?\)/);
-    if (!yearM) { unknowns.push(p); continue; }
+    if (!yearM) {
+      const bareYearM = p.text.match(BARE_YEAR_FALLBACK_RE);
+      if (bareYearM) {
+        failures.push(p);
+        missingParensCount += 1;
+        const preview = p.text.length > 70 ? p.text.slice(0, 70) + "…" : p.text;
+        details.push(`Year "${bareYearM[1]}" should be in parentheses: (${bareYearM[1]}). — found: "${preview}"`);
+        const parsed = parseReferenceEntry(p);
+        const authorLabel = parsed.authorsRaw ? `${parsed.authorsRaw.split(",")[0]}: ` : "";
+        missingItems.push(`${authorLabel}"${preview}"`);
+      } else {
+        unknowns.push(p);
+      }
+      continue;
+    }
     const afterParen = p.text.slice(yearM.index + yearM[0].length);
     if (afterParen.trim().length > 0 && !/^\s*\./.test(afterParen)) {
       failures.push(p);
+      missingPeriodCount += 1;
       const preview = p.text.length > 70 ? p.text.slice(0, 70) + "…" : p.text;
       details.push(`Missing period after year "(${yearM[1]})": "${preview}"`);
       const parsed = parseReferenceEntry(p);
@@ -2591,7 +2702,14 @@ function checkReferenceYear(extracted, referencesHeading) {
 
   const foundText =
     failures.length > 0
-      ? `${failures.length} reference${failures.length === 1 ? "" : "s"} appear to be missing a period after the year.`
+      ? [
+          missingParensCount > 0
+            ? `${missingParensCount} reference${missingParensCount === 1 ? "" : "s"} ${missingParensCount === 1 ? "is" : "are"} missing parentheses around the year.`
+            : null,
+          missingPeriodCount > 0
+            ? `${missingPeriodCount} reference${missingPeriodCount === 1 ? "" : "s"} appear to be missing a period after the year.`
+            : null,
+        ].filter(Boolean).join(" ")
       : unknowns.length > 0
         ? "APA Coach could not verify year format for some references."
         : "Reference year formatting appears correct.";
@@ -3618,6 +3736,7 @@ function checkApaFormatting(extracted) {
       ...(referencesHeading.synthetic ? [] : [checkReferencesHeadingAlignment(referencesHeading)]),
       checkReferencesStartNewPage(extracted, referencesHeading),
       checkReferencesNumbered(extracted, referencesHeading),
+      checkReferenceCompleteness(extracted, referencesHeading),
       checkReferencesFormatting(extracted, referencesHeading),
       ...(hasCitations ? [
         checkUncitedReferences(extracted, referencesHeading),
@@ -3660,6 +3779,7 @@ module.exports = {
   checkTitlePage,
   checkReferencesPage,
   checkReferencesHeadingAlignment,
+  checkReferenceCompleteness,
   checkReferencesFormatting,
   checkMargins,
   checkLineSpacingForRole,

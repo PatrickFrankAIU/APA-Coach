@@ -1,0 +1,583 @@
+[
+  {
+    "rule": "Body alignment",
+    "status": "pass",
+    "applicable": 118,
+    "checked": 118,
+    "matched": 118,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Body first-line indents",
+    "status": "fail",
+    "applicable": 54,
+    "checked": 54,
+    "matched": 0,
+    "failed": 54,
+    "unknown": 0,
+    "details": [
+      "First-line indent is 0.0 in (inferred default) for 54 paragraphs (paragraphs 1, 2, 3, 4, 5, and 49 more)."
+    ]
+  },
+  {
+    "rule": "Body line spacing",
+    "status": "fail",
+    "applicable": 56,
+    "checked": 56,
+    "matched": 5,
+    "failed": 51,
+    "unknown": 0,
+    "details": [
+      "Line spacing is 1.16x (default) for 51 paragraphs (paragraphs 26, 27, 28, 29, 31, and 46 more)."
+    ]
+  },
+  {
+    "rule": "Body paragraph spacing",
+    "status": "fail",
+    "applicable": 118,
+    "checked": 118,
+    "matched": 67,
+    "failed": 51,
+    "unknown": 0,
+    "details": [
+      "Paragraph spacing is before not found (unknown), after 8.0 pt (default) for 51 paragraphs (paragraphs 26, 27, 28, 29, 31, and 46 more)."
+    ]
+  },
+  {
+    "rule": "Citation ampersand",
+    "status": "fail",
+    "applicable": 4,
+    "checked": 4,
+    "matched": 0,
+    "failed": 4,
+    "unknown": 0,
+    "details": [
+      "Use \"&\" not \"and\" inside parenthetical citation: \"(Athaluri et al., 2023; Amber, 2024; Bhattacharyya et al., 2…)\"",
+      "Use \"&\" not \"and\" inside parenthetical citation: \"(Alkaissi and McFarlane, 2023; Zhang, 2026; Frosolini et al.…)\"",
+      "Use \"&\" not \"and\" inside parenthetical citation: \"(Green & Sultana, 2025; Orduña-Malea and Cabezas-Clavijo, 20…)\"",
+      "Use \"and\" not \"&\" in narrative citation: \"Wagner & Ertl-Wagner (2023) used GPT-3.5 to answer 88 questi\""
+    ]
+  },
+  {
+    "rule": "Citation comma",
+    "status": "fail",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 0,
+    "failed": 3,
+    "unknown": 0,
+    "details": [
+      "Missing comma before year — found: \"(Alkaissi & McFarlane 2023; Eysenbach 2023; Fried 2023; Frosolini et al. 2023; Halaweh 2023; Kim 2023; King 2023; Sanchez-Ramos et al. 2023; Tafferner et al. 2023; Weiser 2023; Willems 2023)\"",
+      "Missing comma before year — found: \"(Frosolini et. al. 2023; Khalaf et al., 2026)\"",
+      "Missing comma before year — found: \"(Beall 2023)\""
+    ]
+  },
+  {
+    "rule": "Citation et al. format",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "Use \"et al.\" not \"et. al.\" — found near: \"…terature (Frosolini et. al. 2023; Khalaf et al…\""
+    ]
+  },
+  {
+    "rule": "Citation multiple sources",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation no-date format",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation page format",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Citation year suffix",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Font",
+    "status": "fail",
+    "applicable": 3,
+    "checked": 3,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "Multiple fonts detected: Times New Roman, Merriweather Sans."
+    ]
+  },
+  {
+    "rule": "Heading bold",
+    "status": "fail",
+    "applicable": 8,
+    "checked": 8,
+    "matched": 0,
+    "failed": 8,
+    "unknown": 0,
+    "details": [
+      "Heading should be bold: \"1.1 Significance of the topic\"",
+      "Heading should be bold: \"1.2 Previous research\"",
+      "Heading should be bold: \"2.1 Paper topics and prompts\"",
+      "Heading should be bold: \"2.2 Data compilation and analysis\"",
+      "Heading should be bold: \"3.1 Extent of fabrication\"",
+      "Heading should be bold: \"3.2 Substantive citation errors\"",
+      "Heading should be bold: \"3.3 Formatting errors and hyperlinks\"",
+      "Heading should be bold: \"4.2 Implications of these findings\""
+    ]
+  },
+  {
+    "rule": "Heading capitalization",
+    "status": "fail",
+    "applicable": 8,
+    "checked": 8,
+    "matched": 0,
+    "failed": 8,
+    "unknown": 0,
+    "details": [
+      "Heading should use Title Case, not sentence case: \"1.1 Significance of the topic\"",
+      "Heading should use Title Case, not sentence case: \"1.2 Previous research\"",
+      "Heading should use Title Case, not sentence case: \"2.1 Paper topics and prompts\"",
+      "Heading should use Title Case, not sentence case: \"2.2 Data compilation and analysis\"",
+      "Heading should use Title Case, not sentence case: \"3.1 Extent of fabrication\"",
+      "Heading should use Title Case, not sentence case: \"3.2 Substantive citation errors\"",
+      "Heading should use Title Case, not sentence case: \"3.3 Formatting errors and hyperlinks\"",
+      "Heading should use Title Case, not sentence case: \"4.2 Implications of these findings\""
+    ]
+  },
+  {
+    "rule": "Heading level alignment",
+    "status": "pass",
+    "applicable": 8,
+    "checked": 8,
+    "matched": 8,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Heading line spacing",
+    "status": "fail",
+    "applicable": 13,
+    "checked": 13,
+    "matched": 1,
+    "failed": 12,
+    "unknown": 0,
+    "details": [
+      "Line spacing is 1.16x (default) for 12 paragraphs (paragraphs 30, 34, 42, 44, 48, and 7 more)."
+    ]
+  },
+  {
+    "rule": "Heading numbering",
+    "status": "fail",
+    "applicable": 8,
+    "checked": 8,
+    "matched": 0,
+    "failed": 8,
+    "unknown": 0,
+    "details": [
+      "Heading should not be numbered: \"1.1 Significance of the topic\"",
+      "Heading should not be numbered: \"1.2 Previous research\"",
+      "Heading should not be numbered: \"2.1 Paper topics and prompts\"",
+      "Heading should not be numbered: \"2.2 Data compilation and analysis\"",
+      "Heading should not be numbered: \"3.1 Extent of fabrication\"",
+      "Heading should not be numbered: \"3.2 Substantive citation errors\"",
+      "Heading should not be numbered: \"3.3 Formatting errors and hyperlinks\"",
+      "Heading should not be numbered: \"4.2 Implications of these findings\""
+    ]
+  },
+  {
+    "rule": "Heading paragraph spacing",
+    "status": "fail",
+    "applicable": 13,
+    "checked": 13,
+    "matched": 1,
+    "failed": 12,
+    "unknown": 0,
+    "details": [
+      "Paragraph spacing is before not found (unknown), after 8.0 pt (default) for 12 paragraphs (paragraphs 30, 34, 42, 44, 48, and 7 more)."
+    ]
+  },
+  {
+    "rule": "In-text citations",
+    "status": "pass",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 52,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Margins",
+    "status": "pass",
+    "applicable": 4,
+    "checked": 4,
+    "matched": 4,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Page numbering",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "No page number was found in the document header. APA requires a page number in the upper right corner of every page."
+    ]
+  },
+  {
+    "rule": "Personal communication",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "Personal communication \"(personal communication, July 4, 2026)\" — please include the person's full initials and last name (e.g., J. A. Smith)."
+    ]
+  },
+  {
+    "rule": "Reference authors",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 44,
+    "failed": 8,
+    "unknown": 0,
+    "details": [
+      "Missing space between initials — use \"J. R.\" not \"J.R.\": \"Athaluri, S.A., Manthena, S.V., Krishna Manoj Kesapragada, V.S.R., Yar…\"",
+      "Full name used instead of initial — write \"Bar-Ilan, A.\" not \"Bar-Ilan, An\"",
+      "Missing space between initials — use \"J. R.\" not \"J.R.\": \"Birch, S.A.J., Akmal, N. & Frampton, K.L. Two-year-olds are vigilant o…\"",
+      "Full name used instead of initial — write \"Muhlenbruck, T.\" not \"Muhlenbruck, The\"",
+      "Authors appear to be listed first-name first — use \"Last, F.\" format instead.",
+      "Missing space between initials — use \"J. R.\" not \"J.R.\": \"Price, P.C. & Stone, E.R.\"",
+      "Missing space between initials — use \"J. R.\" not \"J.R.\": \"Wagner, M.W. & Ertl-Wagner, B.B.\"",
+      "Full name used instead of initial — write \"Popoola, I.\" not \"Popoola, igut\""
+    ]
+  },
+  {
+    "rule": "Reference DOI format",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 46,
+    "failed": 6,
+    "unknown": 0,
+    "details": [
+      "Bare DOI must be a full URL — replace \"10.2196/46885\" with \"https://doi.org/10.2196/46885\"",
+      "Use \"https://doi.org/\" not \"http://dx.doi.org/\" — found in: \"Frosolini, A., Gennaro, P., Cascino, F. & Gabriele, G. (2023). In refe\"",
+      "Use \"https://doi.org/10.xxx\" not \"doi:10.xxx\" — found in: \"Lund, B. D., Wang, T., Mannuru, N. R., Nie, B., Shimray, S. & Wang, Z.\"",
+      "Use \"https://doi.org/10.xxx\" not \"doi:10.xxx\" — found in: \"Pegoraro, A., Kumari, K., Fereidooni, H. & Sadeghi, A.-R. (2023). To C\"",
+      "Use \"https://doi.org/\" not \"http://dx.doi.org/\" — found in: \"Wagner, M.W. & Ertl-Wagner, B.B. (2023). Accuracy of information and r\"",
+      "Use \"https://doi.org/10.xxx\" not \"doi:10.xxx\" — found in: \"Weber-Wulff, D., Anohina-Naumeca, A., Bjelobaba, S., Foltýnek, T., Gue\""
+    ]
+  },
+  {
+    "rule": "Reference DOI/URL",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 44,
+    "failed": 8,
+    "unknown": 0,
+    "details": [
+      "Issue: \"Atlas, S. (2023). Chatbot Prompting: A Guide for Students, Educators, and an AI-…\"",
+      "Issue: \"Birch, S.A.J., Akmal, N. & Frampton, K.L. Two-year-olds are vigilant of others’ …\"",
+      "Issue: \"DePaulo, B. M., Charlton, K., Cooper, H., Lindsay, J. J. & Muhlenbruck, L. The A…\"",
+      "Issue: \"Fajt, B., & Green, G. (2026). ChatGPT in academia: University students’ attitude…\"",
+      "Issue: \"Jacsó, P. (2005). As we may search: Comparison of major features of the Web of S…\"",
+      "Issue: \"Jacsó, P. (2006). Deflated, inflated and phantom citation counts. Online Informa…\"",
+      "Issue: \"Khalaf, M. A., Mansion, M. M., & Hubris, O. P. (2026). Plagiarism and ChatGPTGPT…\"",
+      "Issue: \"Michaels, M. M. (2026, July 4). Personal communication.\""
+    ]
+  },
+  {
+    "rule": "Reference forbidden phrases",
+    "status": "pass",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 52,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Reference hanging indent",
+    "status": "fail",
+    "applicable": 62,
+    "checked": 62,
+    "matched": 61,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "One or more entries appear to be bare URLs with no author, title, or year. APA references must include the author, publication year, title, and source — a URL alone is not a complete reference."
+    ]
+  },
+  {
+    "rule": "Reference italics",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 44,
+    "matched": 27,
+    "failed": 17,
+    "unknown": 8,
+    "details": [
+      "Article/chapter title should not be italicized: \"Inf\"",
+      "Article/chapter title should not be italicized: \"Dev\"",
+      "Book title should be italicized: \"Designing assignments in the ChatGPT era\"",
+      "Book title should be italicized: \"Peer-reviewed journal publishes paper written almost entirel…\"",
+      "Book title should be italicized: \"ChatGPT is a blurry jpeg of the Web\"",
+      "Book title should be italicized: \"Learning to fake it: Limited responses and fabricated refere…\"",
+      "Journal name should be italicized: \"Ethics & Behavior\"",
+      "Volume number \"32\" should be italicized.",
+      "Book title should be italicized: \"GPT detectors are biased against non-native English writers\"",
+      "Book title should be italicized: \"AI and the Future of Undergraduate Writing\"",
+      "Book title should be italicized: \"How ChatGPT actually works\"",
+      "Book title should be italicized: \"With ChatGPT, we’re all editors now\"",
+      "Book title should be italicized: \"I'm a student\"",
+      "Book title should be italicized: \"Evaluating AIGC detectors on code content\"",
+      "Book title should be italicized: \"Here’s what happens when your lawyer uses ChatGPT\"",
+      "Book title should be italicized: \"ChatGPT at universities—The least of our concerns\"",
+      "Book title should be italicized: \"Testing of detection tools for AI-generated text\""
+    ]
+  },
+  {
+    "rule": "Reference punctuation",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 44,
+    "matched": 42,
+    "failed": 2,
+    "unknown": 8,
+    "details": [
+      "Write volume and issue with no space: \"15(3)\" not \"15 (3)\": \"Sci. 13 (2):363–369\"",
+      "Write volume and issue with no space: \"15(3)\" not \"15 (3)\": \"Annals of Biomedical Engineering 223 (51):2120-2122\""
+    ]
+  },
+  {
+    "rule": "Reference short link",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 51,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "Short link: \"Bar-Ilan, J. An ego-centric citation analysis of the works of Michael O. Rabin b…\""
+    ]
+  },
+  {
+    "rule": "Reference title capitalization",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 50,
+    "matched": 44,
+    "failed": 6,
+    "unknown": 2,
+    "details": [
+      "Title appears to use Title Case instead of sentence case: \"Exploring The Boundaries of Reality: Investigating the Pheno…\"",
+      "Title appears to use Title Case instead of sentence case: \"Chatbot Prompting: A Guide for Students, Educators, and an A…\"",
+      "Title appears to use Title Case instead of sentence case: \"As we may search: Comparison of major features of the Web of…\"",
+      "First word after the colon should be capitalized: \"ChatGPT and a new academic reality: artificial Intelligence-…\"",
+      "Title appears to use Title Case instead of sentence case: \"AI and the Future of Undergraduate Writing\"",
+      "Title appears to use Title Case instead of sentence case: \"The Effectiveness of Software Designed to Detect AI-Generate…\""
+    ]
+  },
+  {
+    "rule": "Reference year format",
+    "status": "pass",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 52,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "References alphabetical order",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 47,
+    "failed": 5,
+    "unknown": 0,
+    "details": [
+      "Out of order: \"Alkaissi, H. & McFarlane, S. I. (2023). Artificial…\" should come before \"Athaluri, S.A., Manthena, S.V., Krishna Manoj Kesa…\"",
+      "Out of order: \"DePaulo, B. M., Charlton, K., Cooper, H., Lindsay,…\" should come before \"D’Agostino, S. (2023). Designing assignments in th…\"",
+      "Out of order: \"Chiang, T. (2023). ChatGPT is a blurry jpeg of the…\" should come before \"DePeau-Wilson, M. (2023). Peer-reviewed journal pu…\"",
+      "Out of order: \"Fajt, B., & Green, G. (2026). ChatGPT in academia:…\" should come before \"Halaweh, M. (2023). ChatGPT in education: Strategi…\"",
+      "Out of order: \"Weber-Wulff, D., Anohina-Naumeca, A., Bjelobaba, S…\" should come before \"Willems, J. (2023). ChatGPT at universities—The le…\""
+    ]
+  },
+  {
+    "rule": "References heading alignment",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "The References heading does not use center alignment."
+    ]
+  },
+  {
+    "rule": "References line spacing",
+    "status": "fail",
+    "applicable": 62,
+    "checked": 62,
+    "matched": 0,
+    "failed": 62,
+    "unknown": 0,
+    "details": [
+      "Line spacing is 1.0x (style) for 62 paragraphs (paragraphs 97, 98, 99, 100, 101, and 57 more)."
+    ]
+  },
+  {
+    "rule": "References numbered",
+    "status": "pass",
+    "applicable": 62,
+    "checked": 62,
+    "matched": 62,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "References page",
+    "status": "pass",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 1,
+    "failed": 0,
+    "unknown": 0,
+    "details": [
+      "Detected References heading at paragraph 96."
+    ]
+  },
+  {
+    "rule": "References start on new page",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "No hard page break was found before the References heading. Insert a page break at the end of the last body paragraph."
+    ]
+  },
+  {
+    "rule": "Secondary citations",
+    "status": "pass",
+    "applicable": 0,
+    "checked": 0,
+    "matched": 0,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Title page",
+    "status": "fail",
+    "applicable": 1,
+    "checked": 1,
+    "matched": 0,
+    "failed": 1,
+    "unknown": 0,
+    "details": [
+      "No titlePage paragraphs were detected before the first body paragraph."
+    ]
+  },
+  {
+    "rule": "Unapproved source",
+    "status": "pass",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 52,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Uncited references",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 47,
+    "failed": 5,
+    "unknown": 0,
+    "details": [
+      "No citation found for: \"Besançon, L., Cabanac, G., Labbé, C. & Magazinov, A. (2024). Sneaked references:…\"",
+      "No citation found for: \"Klein, M., Van de Sompel, H., Sanderson, R., Shankar, H., Balakireva, L., Zhou, …\"",
+      "No citation found for: \"Tomaszewski, R. & MacDonald, K. I. (2016). A study of citations to Wikipedia in …\"",
+      "No citation found for: \"Tools such as ChatGPT threaten transparent science: Here are our ground rules fo…\"",
+      "No citation found for: \"Wren, J. D. & Georgescu, C. (2022). Detecting anomalous referencing patterns in …\""
+    ]
+  },
+  {
+    "rule": "Unconverted markup symbols",
+    "status": "pass",
+    "applicable": 121,
+    "checked": 121,
+    "matched": 121,
+    "failed": 0,
+    "unknown": 0,
+    "details": []
+  },
+  {
+    "rule": "Unmatched citations",
+    "status": "fail",
+    "applicable": 52,
+    "checked": 52,
+    "matched": 45,
+    "failed": 7,
+    "unknown": 0,
+    "details": [
+      "No reference found for: \"Tools Such as ChatGPT, 2023\"",
+      "No reference found for: \"Heaven, 2022\"",
+      "No reference found for: \"Thomas et al., 2026\"",
+      "No reference found for: \"Frosolini et. al. 2023\"",
+      "No reference found for: \"Amber, 2024\"",
+      "No reference found for: \"Zhang, 2026\"",
+      "No reference found for: \"Beall 2023\""
+    ]
+  }
+]

@@ -75,6 +75,7 @@ const CHECK_CATEGORY = {
   "References numbered": "References",
   "References heading alignment": "References",
   "References line spacing": "References",
+  "Reference completeness": "References",
   "Reference hanging indent": "References",
   "Reference DOI/URL": "References",
   "Reference short link": "References",
@@ -132,7 +133,24 @@ function getCategoryLinksForStatuses(checks, statuses) {
   return links;
 }
 
-function CheckList({ checks, status }) {
+// Assigns a stable per-category issue number to every fail/warn check, in the
+// fixed order checkApaFormatting emits them — so "References · 10" always refers
+// to the same check for a given document, regardless of run. Pass/review/skipped
+// checks are not numbered; they aren't things a student needs to act on.
+function computeIssueNumbers(allChecks) {
+  const counters = new Map();
+  const numbers = new Map();
+  for (const check of allChecks) {
+    if (check.status !== "fail" && check.status !== "warn") continue;
+    const cat = CHECK_CATEGORY[check.rule] ?? "Other";
+    const next = (counters.get(cat) ?? 0) + 1;
+    counters.set(cat, next);
+    numbers.set(check.rule, { category: cat, number: next });
+  }
+  return numbers;
+}
+
+function CheckList({ checks, status, issueNumbers }) {
   const categories = useMemo(() => {
     const groups = new Map();
     for (const check of checks) {
@@ -156,7 +174,7 @@ function CheckList({ checks, status }) {
             <a href="#top" className="check-category-top">Back to top</a>
           </div>
           {catChecks.map((check) => (
-            <CheckCard key={check.rule} check={check} />
+            <CheckCard key={check.rule} check={check} issueNumber={issueNumbers?.get(check.rule)} />
           ))}
         </React.Fragment>
       ))}
@@ -235,7 +253,7 @@ function Summary({ report, checks }) {
 
 const ITEMS_PREVIEW_COUNT = 5;
 
-function CheckCard({ check }) {
+function CheckCard({ check, issueNumber }) {
   const fixId = useId();
   const itemsId = useId();
   const [open, setOpen] = useState(false);
@@ -250,6 +268,11 @@ function CheckCard({ check }) {
     <article className={`check-card ${check.status}`}>
       <div className="check-header">
         <span className="status-badge">{check.status}</span>
+        {issueNumber ? (
+          <span className="issue-number" title={`${issueNumber.category} issue ${issueNumber.number}`}>
+            {issueNumber.category} &middot; {issueNumber.number}
+          </span>
+        ) : null}
         <h3>{check.rule}</h3>
       </div>
       <p className="found">{check.foundText || check.found}</p>
@@ -725,6 +748,7 @@ function CheckCard({ check }) {
 }
 
 function Report({ report }) {
+  const issueNumbers = useMemo(() => computeIssueNumbers(report.checks), [report]);
   const sortedChecks = useMemo(() => sortChecks(report.checks), [report]);
   const failChecks = sortedChecks.filter((c) => c.status === "fail");
   const warnChecks = sortedChecks.filter((c) => c.status === "warn");
@@ -746,14 +770,14 @@ function Report({ report }) {
           <section id="fail-section" className="check-group" aria-labelledby="fail-heading">
             <h3 id="fail-heading" className="check-group-heading">Failed</h3>
             <p className="fail-intro">These items should be corrected before you submit your paper.</p>
-            <CheckList checks={failChecks} status="fail" />
+            <CheckList checks={failChecks} status="fail" issueNumbers={issueNumbers} />
           </section>
         )}
         {warnChecks.length > 0 && (
           <section id="warn-section" className="check-group" aria-labelledby="warn-heading">
             <h3 id="warn-heading" className="check-group-heading">Warnings</h3>
             <p className="warn-intro">These items may indicate a problem. Open each link and confirm it leads to the source you intended.</p>
-            <CheckList checks={warnChecks} status="warn" />
+            <CheckList checks={warnChecks} status="warn" issueNumbers={issueNumbers} />
           </section>
         )}
         {reviewChecks.length > 0 && (

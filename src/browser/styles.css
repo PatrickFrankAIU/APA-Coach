@@ -645,6 +645,16 @@ h1 {
   color: #7a8a9a;
 }
 
+.issue-number {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #2e3540;
+  color: #9aa5b1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .found {
   margin-bottom: 8px;
 }

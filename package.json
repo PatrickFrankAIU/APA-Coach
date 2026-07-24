@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --check scripts/analyze-docx.js && node --check src/docx/extractDocxFormatting.js && node --check src/checks/checkApaFormatting.js"
+    "test": "node --check scripts/analyze-docx.js && node --check src/docx/extractDocxFormatting.js && node --check src/checks/checkApaFormatting.js && node scripts/test-citation-regression.js"
   },
   "keywords": [],
   "author": "",
