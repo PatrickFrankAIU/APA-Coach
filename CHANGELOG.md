@@ -8,6 +8,10 @@
 - **Citation title format** (APA 8.14) — For a no-author citation, flags when the title's in-text formatting (italics vs. quotation marks) doesn't match how the title is formatted in its reference entry. A consistency check, not a correctness check — it never asserts which formatting is APA-correct, only that citation and reference agree; the independent "Reference italics" check flags a wrongly-italicized reference on its own. Only emitted when the paper contains at least one no-author citation with a resolvable reference match.
 - **Second regression fixture** — `scripts/test-citation-regression.js` now also asserts against `samples/testingperfect.docx` (a clean, well-formed paper), confirming neither new check fires a false positive when there's nothing to flag. The two fixtures' check sets are compared independently since checks that return null when inapplicable mean the sets aren't identical.
 
+### Changed
+
+- **"Citation multiple sources" now mentions alphabetical order** — Its expected-text/how-to-fix wording pointed only at the semicolon separator; added a note that sources must also appear in alphabetical order by author, since that's now checked separately by "Citation alphabetical order." Also fixed its example, which was itself out of alphabetical order: `(Smith, 2020; Jones, 2021)` → `(Jones, 2021; Smith, 2020)`.
+
 ### Notes
 
 - `parseReferenceEntry` assumes a reference's title follows the year ("Author. (Year). Title."), which breaks for a no-author reference correctly formatted as "Title. Source. (Year)." — the title sits where the author would be. "Citation title format" works around this by reading the pre-year text `extractReferenceKey` already extracts, rather than fixing `parseReferenceEntry` itself (same reasoning as v1.4.2: avoid touching shared parsing logic with wide blast radius outside this pass's scope).

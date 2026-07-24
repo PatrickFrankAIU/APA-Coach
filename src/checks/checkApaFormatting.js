@@ -729,7 +729,7 @@ function getHowToFix(rule) {
 
   if (rule === "Citation multiple sources") {
     return [
-      "When citing multiple sources in one parenthetical, separate them with a semicolon: (Smith, 2020; Jones, 2021).",
+      "When citing multiple sources in one parenthetical, separate them with a semicolon: (Jones, 2021; Smith, 2020).",
       "List multiple sources in alphabetical order by the first author's last name.",
     ];
   }
@@ -3594,7 +3594,7 @@ function checkCitationPageFormat(extracted, referencesHeading) {
 
 function checkCitationMultipleSources(extracted, referencesHeading) {
   const rule = "Citation multiple sources";
-  const expected = "When citing multiple sources in one parenthetical, separate them with semicolons: (Smith, 2020; Jones, 2021).";
+  const expected = "When citing multiple sources in one parenthetical, separate them with semicolons: (Jones, 2021; Smith, 2020). They should also appear in alphabetical order by author.";
   const bodyText = getBodyText(extracted, referencesHeading);
   const issues = [];
 
