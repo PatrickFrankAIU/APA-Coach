@@ -6,7 +6,7 @@ A client-side tool for checking APA 7 formatting in Word documents. Upload a `.d
 
 > **Note:** APA Coach is in active development. Always review your paper manually before submitting.
 
-**Version 1.4.3** — Last updated July 24, 2026
+**Version 1.4.3** — Last updated September 29, 2026
 
 Contact pfrank@aiuniv.edu with questions, comments, or bug reports.
 
